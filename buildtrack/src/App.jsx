@@ -7,23 +7,23 @@ import {
 
 const NAV = {
   foreman: [
-    { id: 'dashboard',     icon: '▦', label: 'Дашборд'       },
-    { id: 'projects',      icon: '◫', label: 'Объекты'       },
-    { id: 'tasks',         icon: '☑', label: 'Задачи'        },
-    { id: 'tools',         icon: '⚙', label: 'Инструменты'   },
-    { id: 'team',          icon: '◉', label: 'Команда'       },
-    { id: 'notifications', icon: '◆', label: 'Уведомления'   },
+    { id: 'dashboard',     icon: '▦', label: 'Дашборд'     },
+    { id: 'projects',      icon: '◫', label: 'Объекты'     },
+    { id: 'tasks',         icon: '☑', label: 'Задачи'      },
+    { id: 'tools',         icon: '⚙', label: 'Инструменты' },
+    { id: 'team',          icon: '◉', label: 'Команда'     },
+    { id: 'notifications', icon: '◆', label: 'Уведомления' },
   ],
   worker: [
-    { id: 'my-tasks',      icon: '☑', label: 'Мои задачи'    },
-    { id: 'tools',         icon: '⚙', label: 'Инструменты'   },
-    { id: 'notifications', icon: '◆', label: 'Уведомления'   },
+    { id: 'my-tasks',      icon: '☑', label: 'Задачи'      },
+    { id: 'tools',         icon: '⚙', label: 'Инструменты' },
+    { id: 'notifications', icon: '◆', label: 'Уведомления' },
   ],
   client: [
-    { id: 'dashboard',     icon: '▦', label: 'Мой объект'    },
-    { id: 'progress',      icon: '◫', label: 'Прогресс'      },
-    { id: 'photos',        icon: '◧', label: 'Фотоотчёт'     },
-    { id: 'notifications', icon: '◆', label: 'Уведомления'   },
+    { id: 'dashboard',     icon: '▦', label: 'Объект'      },
+    { id: 'progress',      icon: '◫', label: 'Прогресс'    },
+    { id: 'photos',        icon: '◧', label: 'Фото'        },
+    { id: 'notifications', icon: '◆', label: 'Уведомления' },
   ],
 }
 
@@ -57,17 +57,32 @@ function PageContent({ role, page }) {
 export default function App() {
   const { role, setRole } = useStore()
   const [page, setPage] = useState('dashboard')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const switchRole = (r) => {
     setRole(r)
     setPage(DEFAULT_PAGE[r])
   }
 
+  const navItems = NAV[role]
+  // На мобиле показываем только первые 4 в таббаре
+  const tabItems = navItems.slice(0, 4)
+
   return (
     <div className="app">
       {/* Topbar */}
       <header className="topbar">
-        <span className="topbar-logo">BuildTrack</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Бургер — только на мобиле */}
+          <button
+            className="burger-btn"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label="Меню"
+          >
+            <span></span><span></span><span></span>
+          </button>
+          <span className="topbar-logo">BuildTrack</span>
+        </div>
 
         <div className="role-tabs">
           {['foreman', 'worker', 'client'].map(r => (
@@ -85,13 +100,20 @@ export default function App() {
       </header>
 
       <div className="layout">
+        {/* Overlay для закрытия сайдбара на мобиле */}
+        {sidebarOpen && (
+          <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+        )}
+
         {/* Sidebar */}
-        <nav className="sidebar">
-          {NAV[role].map(item => (
+        <nav className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+          {/* Закрыть на мобиле */}
+          <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>✕</button>
+          {navItems.map(item => (
             <div
               key={item.id}
               className={`nav-item ${page === item.id ? 'active' : ''}`}
-              onClick={() => setPage(item.id)}
+              onClick={() => { setPage(item.id); setSidebarOpen(false) }}
             >
               <span className="nav-icon">{item.icon}</span>
               <span>{item.label}</span>
@@ -102,8 +124,24 @@ export default function App() {
         {/* Main content */}
         <main className="main">
           <PageContent role={role} page={page} />
+          {/* Нижний отступ чтобы таббар не перекрывал контент */}
+          <div className="tab-spacer" />
         </main>
       </div>
+
+      {/* Bottom tab bar — только на мобиле */}
+      <nav className="tab-bar">
+        {tabItems.map(item => (
+          <button
+            key={item.id}
+            className={`tab-item ${page === item.id ? 'active' : ''}`}
+            onClick={() => setPage(item.id)}
+          >
+            <span className="tab-icon">{item.icon}</span>
+            <span className="tab-label">{item.label}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   )
 }
