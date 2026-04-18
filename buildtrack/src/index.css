@@ -41,7 +41,7 @@ body {
 
 /* ── BURGER ── */
 .burger-btn {
-  display: none;
+  display: flex;
   flex-direction: column; gap: 4px;
   background: transparent; border: none; cursor: pointer;
   padding: 4px; flex-shrink: 0;
@@ -57,6 +57,7 @@ body {
 /* ── SIDEBAR ── */
 .sidebar {
   width: 190px;
+  transition: transform 0.25s ease;
   background: #fff;
   border-right: 1px solid #e8e8e8;
   padding: 10px 0;
@@ -81,7 +82,7 @@ body {
 .tab-spacer { height: 0; }
 
 /* ── BOTTOM TAB BAR (скрыт на десктопе) ── */
-.tab-bar { display: none; }
+.tab-bar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: #fff; border-top: 1px solid #e8e8e8; z-index: 30; }
 
 /* ── CARDS & COMPONENTS ── */
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
