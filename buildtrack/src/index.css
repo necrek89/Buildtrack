@@ -56,6 +56,8 @@ body {
 
 /* ── SIDEBAR ── */
 .sidebar {
+.sidebar.open { transform: translateX(0); }
+.sidebar:not(.open) { transform: translateX(-100%); position: fixed; top: 52px; bottom: 60px; z-index: 50; box-shadow: 2px 0 12px rgba(0,0,0,0.12); }
   width: 190px;
   transition: transform 0.25s ease;
   background: #fff;
