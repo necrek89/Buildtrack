@@ -66,6 +66,8 @@ export default function App() {
       if (profile) {
         setAuthed(true)
         setPage(DEFAULT_PAGE[profile.role] || 'dashboard')
+      } else {
+        setAuthed(false)
       }
       setChecking(false)
     })
