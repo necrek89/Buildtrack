@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
 import { Button, FormGroup } from './UI'
 
-const WORKERS = ['Мигель', 'Алексей', 'Карим', 'Иван']
+const WORKERS_DEFAULT = ['Мигель', 'Алексей', 'Карим', 'Иван']
 const STAGES = ['Фундамент', 'Электрика', 'Стены', 'Кровля', 'Отделка']
 const PRIORITY_OPTIONS = [
   { value: 'high',   label: 'Высокий' },
@@ -11,33 +11,39 @@ const PRIORITY_OPTIONS = [
 ]
 
 export default function TaskModal({ task, onClose }) {
-  const { addTask, updateTask } = useStore()
+  const { addTask, updateTask, projects, fetchProjects } = useStore()
   const isEdit = !!task
 
   const [form, setForm] = useState({
     text:     task?.text     || '',
-    who:      task?.who      || 'Мигель',
     stage:    task?.stage    || 'Электрика',
     priority: task?.priority || 'normal',
     deadline: task?.deadline || '',
   })
 
   useEffect(() => {
+    if (projects.length === 0) fetchProjects()
     const handler = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [onClose])
+  }, [])
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
 
-  const save = () => {
+  const save = async () => {
     if (!form.text.trim()) return
-    const { projects } = useStore.getState()
-    const projectId = projects[0]?.id
+    const projectId = useStore.getState().projects[0]?.id
+    console.log('Saving task, project_id:', projectId)
     if (isEdit) {
-      updateTask(task.id, form)
+      await updateTask(task.id, form)
     } else {
-      addTask({ ...form, project_id: projectId, worker_id: null })
+      const result = await addTask({ 
+        ...form, 
+        project_id: projectId,
+        worker_id: null,
+        status: 'new'
+      })
+      console.log('Add result:', result)
     }
     onClose()
   }
@@ -56,31 +62,24 @@ export default function TaskModal({ task, onClose }) {
         </FormGroup>
 
         <div className="form-grid-2">
-          <FormGroup label="Исполнитель">
-            <select className="form-input" value={form.who} onChange={set('who')}>
-              {WORKERS.map(w => <option key={w}>{w}</option>)}
-            </select>
-          </FormGroup>
           <FormGroup label="Этап">
             <select className="form-input" value={form.stage} onChange={set('stage')}>
               {STAGES.map(s => <option key={s}>{s}</option>)}
             </select>
           </FormGroup>
-        </div>
-
-        <div className="form-grid-2">
           <FormGroup label="Приоритет">
             <select className="form-input" value={form.priority} onChange={set('priority')}>
               {PRIORITY_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
             </select>
           </FormGroup>
-          <FormGroup label="Дедлайн">
-            <input
-              className="form-input" type="date"
-              value={form.deadline} onChange={set('deadline')}
-            />
-          </FormGroup>
         </div>
+
+        <FormGroup label="Дедлайн">
+          <input
+            className="form-input" type="date"
+            value={form.deadline} onChange={set('deadline')}
+          />
+        </FormGroup>
 
         <div className="modal-actions">
           <Button size="sm" onClick={onClose}>Отмена</Button>
