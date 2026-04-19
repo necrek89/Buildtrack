@@ -6,17 +6,46 @@ import ConfirmModal from '../components/ConfirmModal'
 
 // ─── FOREMAN DASHBOARD ───────────────────────────────────────────────────────
 export function Dashboard() {
-  const { tasks, tools, projects, team, fetchProjects, fetchTasks, fetchTools } = useStore()
+  const { tasks, tools, projects, team, fetchProjects, fetchTasks, fetchTools, profile } = useStore()
+  const [showAdd, setShowAdd] = useState(false)
+  const [form, setForm] = useState({ name: '', stage: 'Фундамент', deadline: '' })
+  const { supabase: sb } = require('../lib/supabase') 
 
-  useEffect(() => { 
-  fetchProjects().then(() => fetchTasks())
-}, [])
+  useEffect(() => {
+    fetchProjects()
+    fetchTasks()
+    fetchTools()
+  }, [])
+
+  const createProject = async () => {
+    if (!form.name.trim()) return
+    const { supabase } = await import('../lib/supabase')
+    const { data, error } = await supabase
+      .from('projects')
+      .insert({ 
+        name: form.name, 
+        stage: form.stage,
+        deadline: form.deadline || null,
+        foreman_id: profile.id,
+        progress: 0
+      })
+      .select()
+      .single()
+    if (!error) {
+      fetchProjects()
+      setShowAdd(false)
+      setForm({ name: '', stage: 'Фундамент', deadline: '' })
+    }
+  }
+
+  const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
+  const STAGES = ['Фундамент', 'Электрика', 'Стены', 'Кровля', 'Отделка']
 
   return (
     <div>
       <div className="page-header">
         <h1 className="page-title">Дашборд</h1>
-        <Button variant="primary" size="sm">+ Объект</Button>
+        <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>+ Объект</Button>
       </div>
       <div className="stat-grid">
         <StatCard label="Объектов"       value={projects.length} />
@@ -25,7 +54,7 @@ export function Dashboard() {
         <StatCard label="На проверке"    value={tasks.filter(t => t.status === 'pending').length} />
       </div>
       <SectionTitle>Объекты</SectionTitle>
-      {projects.length === 0 && <EmptyState>Нет объектов</EmptyState>}
+      {projects.length === 0 && <EmptyState>Нет объектов — создай первый!</EmptyState>}
       {projects.map(p => (
         <div className="card card-body" key={p.id}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -36,6 +65,33 @@ export function Dashboard() {
           <ProgressBar value={p.progress || 0} />
         </div>
       ))}
+
+      {showAdd && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAdd(false)}>
+          <div className="modal">
+            <div className="modal-title">Новый объект</div>
+            <FormGroup label="Название объекта *">
+              <input className="form-input" placeholder='ЖК "Северный" кв.14'
+                value={form.name} onChange={set('name')} autoFocus />
+            </FormGroup>
+            <div className="form-grid-2">
+              <FormGroup label="Текущий этап">
+                <select className="form-input" value={form.stage} onChange={set('stage')}>
+                  {STAGES.map(s => <option key={s}>{s}</option>)}
+                </select>
+              </FormGroup>
+              <FormGroup label="Дедлайн">
+                <input className="form-input" type="date"
+                  value={form.deadline} onChange={set('deadline')} />
+              </FormGroup>
+            </div>
+            <div className="modal-actions">
+              <Button size="sm" onClick={() => setShowAdd(false)}>Отмена</Button>
+              <Button variant="primary" size="sm" onClick={createProject}>Создать</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
