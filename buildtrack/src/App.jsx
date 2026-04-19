@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore } from './store/useStore'
+import LoginPage from './pages/LoginPage'
 import {
   Dashboard, Projects, Tasks, MyTasks, Tools, Team, Notifications,
   ClientDashboard, ClientProgress, ClientPhotos
@@ -27,9 +28,7 @@ const NAV = {
   ],
 }
 
-const DEFAULT_PAGE  = { foreman: 'dashboard', worker: 'my-tasks', client: 'dashboard' }
-const ROLE_INITIALS = { foreman: 'ДЖ', worker: 'МГ', client: 'МА' }
-const ROLE_LABEL    = { foreman: 'Прораб', worker: 'Рабочий', client: 'Заказчик' }
+const DEFAULT_PAGE = { foreman: 'dashboard', worker: 'my-tasks', client: 'dashboard' }
 
 function PageContent({ role, page }) {
   if (role === 'foreman') {
@@ -55,60 +54,91 @@ function PageContent({ role, page }) {
 }
 
 export default function App() {
-  const { role, setRole } = useStore()
+  const { role, profile, checkSession, signOut, loading } = useStore()
   const [page, setPage] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [authed, setAuthed] = useState(false)
+  const [checking, setChecking] = useState(true)
 
-  const switchRole = (r) => {
-    setRole(r)
-    setPage(DEFAULT_PAGE[r])
+  useEffect(() => {
+    checkSession().then(() => {
+      const { profile } = useStore.getState()
+      if (profile) {
+        setAuthed(true)
+        setPage(DEFAULT_PAGE[profile.role] || 'dashboard')
+      }
+      setChecking(false)
+    })
+  }, [])
+
+  const handleLogin = () => {
+    const { profile } = useStore.getState()
+    setAuthed(true)
+    setPage(DEFAULT_PAGE[profile?.role] || 'dashboard')
   }
 
-  const navItems = NAV[role]
-  // На мобиле показываем только первые 4 в таббаре
+  const handleSignOut = async () => {
+    await signOut()
+    setAuthed(false)
+    setPage('dashboard')
+    setSidebarOpen(false)
+  }
+
+  if (checking) {
+    return (
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: '#888', fontSize: 14 }}>Загрузка...</div>
+      </div>
+    )
+  }
+
+  if (!authed) {
+    return <LoginPage onLogin={handleLogin} />
+  }
+
+  const navItems = NAV[role] || NAV.worker
   const tabItems = navItems.slice(0, 4)
 
   return (
     <div className="app">
-      {/* Topbar */}
       <header className="topbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* Бургер — только на мобиле */}
-          <button
-            className="burger-btn"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            aria-label="Меню"
-          >
-            <span></span><span></span><span></span>
+          <button className="burger-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            <span /><span /><span />
           </button>
           <span className="topbar-logo">BuildTrack</span>
         </div>
 
-        <div className="role-tabs">
-          {['foreman', 'worker', 'client'].map(r => (
-            <button
-              key={r}
-              className={`rtab ${role === r ? 'active' : ''}`}
-              onClick={() => switchRole(r)}
-            >
-              {ROLE_LABEL[r]}
-            </button>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 12, color: '#888' }}>
+            {profile?.name}
+          </span>
+          <div
+            className="avatar"
+            title="Выйти"
+            onClick={handleSignOut}
+            style={{ cursor: 'pointer' }}
+          >
+            {profile?.name?.charAt(0)?.toUpperCase() || '?'}
+          </div>
         </div>
-
-        <div className="avatar">{ROLE_INITIALS[role]}</div>
       </header>
 
       <div className="layout">
-        {/* Overlay для закрытия сайдбара на мобиле */}
         {sidebarOpen && (
           <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
         )}
 
-        {/* Sidebar */}
         <nav className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-          {/* Закрыть на мобиле */}
           <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>✕</button>
+
+          <div style={{ padding: '40px 16px 12px', borderBottom: '1px solid #f0f0f0', marginBottom: 8 }}>
+            <div style={{ fontSize: 13, fontWeight: 500 }}>{profile?.name}</div>
+            <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>
+              {{ foreman: 'Прораб', worker: 'Рабочий', client: 'Заказчик' }[role]}
+            </div>
+          </div>
+
           {navItems.map(item => (
             <div
               key={item.id}
@@ -119,17 +149,23 @@ export default function App() {
               <span>{item.label}</span>
             </div>
           ))}
+
+          <div
+            className="nav-item"
+            style={{ marginTop: 'auto', color: '#A32D2D' }}
+            onClick={handleSignOut}
+          >
+            <span className="nav-icon">→</span>
+            <span>Выйти</span>
+          </div>
         </nav>
 
-        {/* Main content */}
         <main className="main">
           <PageContent role={role} page={page} />
-          {/* Нижний отступ чтобы таббар не перекрывал контент */}
           <div className="tab-spacer" />
         </main>
       </div>
 
-      {/* Bottom tab bar — только на мобиле */}
       <nav className="tab-bar">
         {tabItems.map(item => (
           <button
