@@ -133,6 +133,13 @@ export const useStore = create((set, get) => ({
     set(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, read: true } : n) }))
   },
 }))
+export const WORKERS = ['Мигель', 'Алексей', 'Карим', 'Иван']
+export const STAGES = ['Фундамент', 'Электрика', 'Стены', 'Кровля', 'Отделка']
+export const PRIORITY_OPTIONS = [
+  { value: 'high',   label: 'Высокий' },
+  { value: 'normal', label: 'Обычный' },
+  { value: 'low',    label: 'Низкий'  },
+]
 
 export const PRIORITY_BADGE = { high: 'badge-red', normal: 'badge-blue', low: 'badge-gray' }
 export const PRIORITY_LABEL = { high: 'Высокий', normal: 'Обычный', low: 'Низкий' }
