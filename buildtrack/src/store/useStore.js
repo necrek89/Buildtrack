@@ -118,14 +118,14 @@ export const useStore = create((set, get) => ({
     set({ team: data?.map(d => d.worker) || [] })
   },
 
-  // ── NOTIFICATIONS ─────────────────────────────────────────
-  fetchNotifications: async () => {
+  fetchWorkers: async (projectId) => {
     const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(20)
-    set({ notifications: data || [] })
+      .from('project_workers')
+      .select('worker:profiles(id, name, role)')
+      .eq('project_id', projectId)
+    const workers = data?.map(d => d.worker) || []
+    set({ team: workers })
+    return workers
   },
 
   markNotifRead: async (id) => {
