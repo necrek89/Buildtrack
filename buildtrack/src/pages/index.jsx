@@ -3,13 +3,15 @@ import { useStore, PRIORITY_BADGE, PRIORITY_LABEL, TOOL_STATUS_BADGE, TOOL_STATU
 import { Badge, Button, StatCard, ProgressBar, SectionTitle, EmptyState, IconButton, FormGroup } from '../components/UI'
 import TaskModal from '../components/TaskModal'
 import ConfirmModal from '../components/ConfirmModal'
+import { supabase } from '../lib/supabase'
 
 // ─── FOREMAN DASHBOARD ───────────────────────────────────────────────────────
 export function Dashboard() {
   const { tasks, tools, projects, team, fetchProjects, fetchTasks, fetchTools, profile } = useStore()
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState({ name: '', stage: 'Фундамент', deadline: '' })
-  const { supabase: sb } = require('../lib/supabase') 
+
+  const STAGES = ['Фундамент', 'Электрика', 'Стены', 'Кровля', 'Отделка']
 
   useEffect(() => {
     fetchProjects()
@@ -19,18 +21,15 @@ export function Dashboard() {
 
   const createProject = async () => {
     if (!form.name.trim()) return
-    const { supabase } = await import('../lib/supabase')
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('projects')
-      .insert({ 
-        name: form.name, 
+      .insert({
+        name: form.name,
         stage: form.stage,
         deadline: form.deadline || null,
         foreman_id: profile.id,
         progress: 0
       })
-      .select()
-      .single()
     if (!error) {
       fetchProjects()
       setShowAdd(false)
@@ -39,7 +38,6 @@ export function Dashboard() {
   }
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
-  const STAGES = ['Фундамент', 'Электрика', 'Стены', 'Кровля', 'Отделка']
 
   return (
     <div>
@@ -57,11 +55,11 @@ export function Dashboard() {
       {projects.length === 0 && <EmptyState>Нет объектов — создай первый!</EmptyState>}
       {projects.map(p => (
         <div className="card card-body" key={p.id}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-            <strong style={{ fontSize: 14 }}>{p.name}</strong>
+          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+            <strong style={{ fontSize:14 }}>{p.name}</strong>
             <Badge variant="blue">{p.stage}</Badge>
           </div>
-          {p.deadline && <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Дедлайн: {p.deadline}</div>}
+          {p.deadline && <div style={{ fontSize:12, color:'#888', marginBottom:4 }}>Дедлайн: {p.deadline}</div>}
           <ProgressBar value={p.progress || 0} />
         </div>
       ))}
