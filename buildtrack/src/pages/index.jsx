@@ -199,6 +199,8 @@ export function Tasks() {
 export function MyTasks() {
   const { tasks, fetchTasks, submitTask, profile } = useStore()
   const [filter, setFilter] = useState('active')
+  const [uploadingId, setUploadingId] = useState(null)
+  const [photoUrls, setPhotoUrls] = useState({})
 
   useEffect(() => { fetchTasks() }, [])
 
@@ -209,13 +211,31 @@ export function MyTasks() {
     filter === 'done'    ? t.status === 'approved' : true
   )
 
+  const uploadPhoto = async (taskId, file) => {
+    if (!file) return
+    setUploadingId(taskId)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `${profile.id}/${taskId}_${Date.now()}.${ext}`
+      const { error: upErr } = await supabase.storage
+        .from('task-photos')
+        .upload(path, file, { upsert: true })
+      if (upErr) { alert('Ошибка загрузки'); setUploadingId(null); return }
+      const { data } = supabase.storage.from('task-photos').getPublicUrl(path)
+      await supabase.from('tasks').update({ photo_url: data.publicUrl }).eq('id', taskId)
+      setPhotoUrls(p => ({ ...p, [taskId]: data.publicUrl }))
+      fetchTasks()
+    } catch(e) { alert('Ошибка') }
+    setUploadingId(null)
+  }
+
   return (
     <div>
       <div className="page-header"><h1 className="page-title">Мои задачи</h1></div>
       <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
-        <StatCard label="Всего"      value={mine.length} />
-        <StatCard label="Активных"   value={mine.filter(t => ['new','rejected'].includes(t.status)).length} />
-        <StatCard label="Выполнено"  value={mine.filter(t => t.status === 'approved').length} />
+        <StatCard label="Всего"     value={mine.length} />
+        <StatCard label="Активных"  value={mine.filter(t => ['new','rejected'].includes(t.status)).length} />
+        <StatCard label="Выполнено" value={mine.filter(t => t.status === 'approved').length} />
       </div>
       <div className="filter-bar">
         <button className={`filter-btn ${filter==='active'  ?'active':''}`} onClick={() => setFilter('active')}>Активные</button>
@@ -236,19 +256,46 @@ export function MyTasks() {
                   <span style={{ fontSize: 11, color: '#A32D2D', fontWeight: 500 }}>до {t.deadline}</span>
                 )}
               </div>
+
+              {/* Фото */}
+              {(t.photo_url || photoUrls[t.id]) && (
+                <div style={{ marginTop: 8 }}>
+                  <img
+                    src={t.photo_url || photoUrls[t.id]}
+                    alt="фото"
+                    style={{ width: '100%', maxWidth: 200, borderRadius: 8, border: '1px solid #e8e8e8' }}
+                  />
+                </div>
+              )}
+
               {t.status === 'rejected' && t.reject_comment && (
                 <div style={{ fontSize: 12, color: '#A32D2D', marginTop: 5, background: '#FCEBEB', padding: '5px 8px', borderRadius: 6 }}>
                   Прораб: {t.reject_comment}
                 </div>
               )}
+
               {['new','rejected'].includes(t.status) && (
-                <button
-                  className="btn btn-primary btn-sm"
-                  style={{ marginTop: 8 }}
-                  onClick={() => submitTask(t.id)}
-                >
-                  Отправить на проверку
-                </button>
+                <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                  {/* Загрузка фото */}
+                  <label style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    fontSize: 12, padding: '5px 12px', borderRadius: 8,
+                    border: '1px solid #ddd', cursor: 'pointer', background: '#fff'
+                  }}>
+                    {uploadingId === t.id ? 'Загрузка...' : '📷 Фото'}
+                    <input
+                      type="file" accept="image/*" capture="environment"
+                      style={{ display: 'none' }}
+                      onChange={e => uploadPhoto(t.id, e.target.files[0])}
+                    />
+                  </label>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={() => submitTask(t.id)}
+                  >
+                    Отправить на проверку
+                  </button>
+                </div>
               )}
             </div>
           </div>
