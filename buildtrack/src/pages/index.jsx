@@ -375,9 +375,11 @@ export function Team() {
       return
     }
 
-    const { error: e2 } = await supabase
+    const allProjects = useStore.getState().projects
+const inserts = allProjects.map(p => ({ project_id: p.id, worker_id: worker.id }))
+const { error: e2 } = await supabase
       .from('project_workers')
-      .insert({ project_id: proj.id, worker_id: worker.id })
+      .insert(inserts)
 
     if (e2) {
       setMsg(e2.code === '23505' ? 'Рабочий уже в проекте' : 'Ошибка добавления')
