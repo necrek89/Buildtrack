@@ -32,8 +32,13 @@ export default function TaskModal({ task, onClose }) {
 
   const save = () => {
     if (!form.text.trim()) return
-    if (isEdit) updateTask(task.id, form)
-    else addTask(form)
+    const { projects } = useStore.getState()
+    const projectId = projects[0]?.id
+    if (isEdit) {
+      updateTask(task.id, form)
+    } else {
+      addTask({ ...form, project_id: projectId, worker_id: null })
+    }
     onClose()
   }
 
