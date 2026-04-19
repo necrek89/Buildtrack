@@ -1,16 +1,25 @@
 import { useState, useEffect } from 'react'
-import { useStore, WORKERS, STAGES, PRIORITY_OPTIONS } from '../store/useStore'
+import { useStore } from '../store/useStore'
 import { Button, FormGroup } from './UI'
+
+const WORKERS = ['Мигель', 'Алексей', 'Карим', 'Иван']
+const STAGES = ['Фундамент', 'Электрика', 'Стены', 'Кровля', 'Отделка']
+const PRIORITY_OPTIONS = [
+  { value: 'high',   label: 'Высокий' },
+  { value: 'normal', label: 'Обычный' },
+  { value: 'low',    label: 'Низкий'  },
+]
 
 export default function TaskModal({ task, onClose }) {
   const { addTask, updateTask } = useStore()
   const isEdit = !!task
 
   const [form, setForm] = useState({
-    text: task?.text || '',
-    who: task?.who || 'Мигель',
-    stage: task?.stage || 'Электрика',
+    text:     task?.text     || '',
+    who:      task?.who      || 'Мигель',
+    stage:    task?.stage    || 'Электрика',
     priority: task?.priority || 'normal',
+    deadline: task?.deadline || '',
   })
 
   useEffect(() => {
@@ -35,12 +44,9 @@ export default function TaskModal({ task, onClose }) {
 
         <FormGroup label="Описание *">
           <textarea
-            className="form-input"
-            rows={2}
+            className="form-input" rows={2}
             placeholder="Что нужно сделать..."
-            value={form.text}
-            onChange={set('text')}
-            autoFocus
+            value={form.text} onChange={set('text')} autoFocus
           />
         </FormGroup>
 
@@ -57,11 +63,19 @@ export default function TaskModal({ task, onClose }) {
           </FormGroup>
         </div>
 
-        <FormGroup label="Приоритет">
-          <select className="form-input" value={form.priority} onChange={set('priority')}>
-            {PRIORITY_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-          </select>
-        </FormGroup>
+        <div className="form-grid-2">
+          <FormGroup label="Приоритет">
+            <select className="form-input" value={form.priority} onChange={set('priority')}>
+              {PRIORITY_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+            </select>
+          </FormGroup>
+          <FormGroup label="Дедлайн">
+            <input
+              className="form-input" type="date"
+              value={form.deadline} onChange={set('deadline')}
+            />
+          </FormGroup>
+        </div>
 
         <div className="modal-actions">
           <Button size="sm" onClick={onClose}>Отмена</Button>
