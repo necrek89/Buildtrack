@@ -8,11 +8,9 @@ import ConfirmModal from '../components/ConfirmModal'
 export function Dashboard() {
   const { tasks, tools, projects, team, fetchProjects, fetchTasks, fetchTools } = useStore()
 
-  useEffect(() => {
-    fetchProjects()
-    fetchTasks()
-    fetchTools()
-  }, [])
+  useEffect(() => { 
+  fetchProjects().then(() => fetchTasks())
+}, [])
 
   return (
     <div>
