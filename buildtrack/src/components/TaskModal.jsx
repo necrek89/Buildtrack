@@ -15,11 +15,12 @@ export default function TaskModal({ task, onClose }) {
   const [workers, setWorkers] = useState([])
 
   const [form, setForm] = useState({
-    text:      task?.text      || '',
-    worker_id: task?.worker_id || '',
-    stage:     task?.stage     || 'Электрика',
-    priority:  task?.priority  || 'normal',
-    deadline:  task?.deadline  || '',
+    text:       task?.text       || '',
+    project_id: task?.project_id || projects[0]?.id || '',
+    worker_id:  task?.worker_id  || '',
+    stage:      task?.stage      || 'Электрика',
+    priority:   task?.priority   || 'normal',
+    deadline:   task?.deadline   || '',
   })
 
   useEffect(() => {
@@ -29,8 +30,12 @@ export default function TaskModal({ task, onClose }) {
         await fetchProjects()
         projs = useStore.getState().projects
       }
-      if (projs[0]) {
-        const w = await fetchWorkers(projs[0].id)
+      if (!form.project_id && projs[0]) {
+        setForm(f => ({ ...f, project_id: projs[0].id }))
+      }
+      const projectId = form.project_id || projs[0]?.id
+      if (projectId) {
+        const w = await fetchWorkers(projectId)
         setWorkers(w)
       }
     }
@@ -40,17 +45,23 @@ export default function TaskModal({ task, onClose }) {
     return () => window.removeEventListener('keydown', handler)
   }, [])
 
-  const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
+  const set = (field) => async (e) => {
+    const val = e.target.value
+    setForm(f => ({ ...f, [field]: val }))
+    if (field === 'project_id' && val) {
+      const w = await fetchWorkers(val)
+      setWorkers(w)
+      setForm(f => ({ ...f, project_id: val, worker_id: '' }))
+    }
+  }
 
   const save = async () => {
     if (!form.text.trim()) return
-    const projectId = useStore.getState().projects[0]?.id
     if (isEdit) {
       await updateTask(task.id, form)
     } else {
       await addTask({
         ...form,
-        project_id: projectId,
         worker_id: form.worker_id || null,
         status: 'new'
       })
@@ -62,6 +73,15 @@ export default function TaskModal({ task, onClose }) {
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal">
         <div className="modal-title">{isEdit ? 'Редактировать задачу' : 'Новая задача'}</div>
+
+        <FormGroup label="Объект *">
+          <select className="form-input" value={form.project_id} onChange={set('project_id')}>
+            <option value="">Выбери объект</option>
+            {projects.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </FormGroup>
 
         <FormGroup label="Описание *">
           <textarea
