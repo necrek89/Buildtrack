@@ -1,80 +1,138 @@
 import { create } from 'zustand'
-
-const INITIAL_TASKS = [
-  { id: 1, text: 'Залить фундамент секции A',        done: true,  who: 'Алексей', stage: 'Фундамент', priority: 'normal' },
-  { id: 2, text: 'Установить опалубку секции B',      done: true,  who: 'Алексей', stage: 'Фундамент', priority: 'high'   },
-  { id: 3, text: 'Проложить электропроводку 1 этаж', done: false, who: 'Мигель',  stage: 'Электрика', priority: 'high'   },
-  { id: 4, text: 'Монтаж щитка распределительного',  done: false, who: 'Мигель',  stage: 'Электрика', priority: 'normal' },
-  { id: 5, text: 'Кладка стен восточный фасад',       done: false, who: 'Карим',   stage: 'Стены',     priority: 'low'    },
-  { id: 6, text: 'Гидроизоляция цоколя',             done: true,  who: 'Алексей', stage: 'Фундамент', priority: 'normal' },
-  { id: 7, text: 'Разметка под розетки 2 этаж',      done: false, who: 'Мигель',  stage: 'Электрика', priority: 'low'    },
-]
-
-const INITIAL_TOOLS = [
-  { id: 1, name: 'Перфоратор Bosch',    loc: 'Объект А-1',  status: 'active' },
-  { id: 2, name: 'Болгарка DeWalt',     loc: 'Объект А-1',  status: 'active' },
-  { id: 3, name: 'Уровень лазерный',    loc: 'Склад',        status: 'stored' },
-  { id: 4, name: 'Дрель Makita',        loc: 'Объект Б',     status: 'active' },
-  { id: 5, name: 'Шуруповёрт Hitachi',  loc: 'Не найден',    status: 'lost'   },
-]
-
-const INITIAL_PROJECTS = [
-  { id: 1, name: 'ЖК "Северный" кв.14',   progress: 62, stage: 'Электрика',        client: 'Марк Иванов'  },
-  { id: 2, name: 'Офис на Ленина 22',      progress: 35, stage: 'Стены',            client: 'ООО СтройПром' },
-  { id: 3, name: 'Дача Петровых',          progress: 88, stage: 'Финишная отделка', client: 'Петров А.В.'  },
-]
-
-const INITIAL_TEAM = [
-  { id: 1, name: 'Мигель Р.',  role: 'Электрик',   initials: 'МГ', tasks: 3 },
-  { id: 2, name: 'Алексей С.', role: 'Бетонщик',   initials: 'АС', tasks: 0 },
-  { id: 3, name: 'Карим Б.',   role: 'Каменщик',   initials: 'КБ', tasks: 1 },
-]
-
-let nextId = 100
+import { supabase } from '../lib/supabase'
 
 export const useStore = create((set, get) => ({
-  role: 'foreman',
-  tasks: INITIAL_TASKS,
-  tools: INITIAL_TOOLS,
-  projects: INITIAL_PROJECTS,
-  team: INITIAL_TEAM,
+  user: null,
+  profile: null,
+  role: null,
+  tasks: [],
+  tools: [],
+  projects: [],
+  team: [],
+  notifications: [],
+  loading: false,
 
-  setRole: (role) => set({ role }),
+  // ── AUTH ──────────────────────────────────────────────────
+  signIn: async (email, password) => {
+    set({ loading: true })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) { set({ loading: false }); return { error } }
+    const { data: profile } = await supabase
+      .from('profiles').select('*').eq('id', data.user.id).single()
+    set({ user: data.user, profile, role: profile.role, loading: false })
+    return { error: null }
+  },
 
-  // Tasks CRUD
-  addTask: (task) => set((s) => ({
-    tasks: [...s.tasks, { ...task, id: nextId++, done: false }]
-  })),
-  updateTask: (id, updates) => set((s) => ({
-    tasks: s.tasks.map(t => t.id === id ? { ...t, ...updates } : t)
-  })),
-  deleteTask: (id) => set((s) => ({
-    tasks: s.tasks.filter(t => t.id !== id)
-  })),
-  toggleTask: (id) => set((s) => ({
-    tasks: s.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t)
-  })),
+  signUp: async (email, password, name, role) => {
+    set({ loading: true })
+    const { data, error } = await supabase.auth.signUp({
+      email, password,
+      options: { data: { name, role } }
+    })
+    if (error) { set({ loading: false }); return { error } }
+    set({ loading: false })
+    return { error: null }
+  },
 
-  // Tools CRUD
-  addTool: (tool) => set((s) => ({
-    tools: [...s.tools, { ...tool, id: nextId++ }]
-  })),
-  deleteTool: (id) => set((s) => ({
-    tools: s.tools.filter(t => t.id !== id)
-  })),
+  signOut: async () => {
+    await supabase.auth.signOut()
+    set({ user: null, profile: null, role: null, tasks: [], projects: [], tools: [], team: [] })
+  },
 
-  // Selectors
-  getMyTasks: () => get().tasks.filter(t => t.who === 'Мигель'),
+  checkSession: async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    const { data: profile } = await supabase
+      .from('profiles').select('*').eq('id', session.user.id).single()
+    set({ user: session.user, profile, role: profile?.role })
+  },
+
+  // ── PROJECTS ──────────────────────────────────────────────
+  fetchProjects: async () => {
+    const { data } = await supabase.from('projects').select('*')
+    set({ projects: data || [] })
+  },
+
+  // ── TASKS ─────────────────────────────────────────────────
+  fetchTasks: async (projectId) => {
+    let query = supabase.from('tasks').select(`
+      *, worker:profiles(id, name)
+    `)
+    if (projectId) query = query.eq('project_id', projectId)
+    const { data } = await query.order('created_at', { ascending: false })
+    set({ tasks: data || [] })
+  },
+
+  addTask: async (task) => {
+    const { data, error } = await supabase.from('tasks').insert(task).select().single()
+    if (!error) set(s => ({ tasks: [data, ...s.tasks] }))
+    return { error }
+  },
+
+  updateTask: async (id, updates) => {
+    const { error } = await supabase.from('tasks').update(updates).eq('id', id)
+    if (!error) set(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, ...updates } : t) }))
+    return { error }
+  },
+
+  deleteTask: async (id) => {
+    const { error } = await supabase.from('tasks').delete().eq('id', id)
+    if (!error) set(s => ({ tasks: s.tasks.filter(t => t.id !== id) }))
+  },
+
+  // Рабочий отправляет на проверку
+  submitTask: async (id) => {
+    return get().updateTask(id, { status: 'pending' })
+  },
+
+  // Прораб подтверждает
+  approveTask: async (id) => {
+    return get().updateTask(id, { status: 'approved' })
+  },
+
+  // Прораб возвращает на доработку
+  rejectTask: async (id, comment) => {
+    return get().updateTask(id, { status: 'rejected', reject_comment: comment })
+  },
+
+  // ── TOOLS ─────────────────────────────────────────────────
+  fetchTools: async (projectId) => {
+    let query = supabase.from('tools').select('*')
+    if (projectId) query = query.eq('project_id', projectId)
+    const { data } = await query
+    set({ tools: data || [] })
+  },
+
+  addTool: async (tool) => {
+    const { data, error } = await supabase.from('tools').insert(tool).select().single()
+    if (!error) set(s => ({ tools: [data, ...s.tools] }))
+    return { error }
+  },
+
+  // ── TEAM ──────────────────────────────────────────────────
+  fetchTeam: async (projectId) => {
+    const { data } = await supabase
+      .from('project_workers')
+      .select('worker:profiles(id, name, role)')
+      .eq('project_id', projectId)
+    set({ team: data?.map(d => d.worker) || [] })
+  },
+
+  // ── NOTIFICATIONS ─────────────────────────────────────────
+  fetchNotifications: async () => {
+    const { data } = await supabase
+      .from('notifications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(20)
+    set({ notifications: data || [] })
+  },
+
+  markNotifRead: async (id) => {
+    await supabase.from('notifications').update({ read: true }).eq('id', id)
+    set(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, read: true } : n) }))
+  },
 }))
 
-export const WORKERS  = ['Мигель', 'Алексей', 'Карим', 'Иван']
-export const STAGES   = ['Фундамент', 'Электрика', 'Стены', 'Кровля', 'Отделка']
-export const PRIORITY_OPTIONS = [
-  { value: 'high',   label: 'Высокий' },
-  { value: 'normal', label: 'Обычный' },
-  { value: 'low',    label: 'Низкий'  },
-]
 export const PRIORITY_BADGE = { high: 'badge-red', normal: 'badge-blue', low: 'badge-gray' }
 export const PRIORITY_LABEL = { high: 'Высокий', normal: 'Обычный', low: 'Низкий' }
-export const TOOL_STATUS_LABEL = { active: 'На объекте', stored: 'На складе', lost: 'Не найден' }
-export const TOOL_STATUS_BADGE = { active: 'badge-blue', stored: 'badge-green', lost: 'badge-red' }
