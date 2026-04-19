@@ -343,22 +343,100 @@ export function Tools({ canAdd = true }) {
 
 // ─── TEAM ─────────────────────────────────────────────────────────────────────
 export function Team() {
-  const { team, fetchTeam, projects } = useStore()
-  useEffect(() => { if(projects[0]) fetchTeam(projects[0].id) }, [projects])
+  const { team, fetchTeam, projects, fetchProjects, profile } = useStore()
+  const [showInvite, setShowInvite] = useState(false)
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [msg, setMsg] = useState('')
+
+  useEffect(() => {
+    fetchProjects().then(() => {
+      const { projects } = useStore.getState()
+      if (projects[0]) fetchTeam(projects[0].id)
+    })
+  }, [])
+
+  const invite = async () => {
+    if (!email.trim()) return
+    setLoading(true)
+    setMsg('')
+    const proj = useStore.getState().projects[0]
+    if (!proj) { setMsg('Нет проекта'); setLoading(false); return }
+
+    const { data: worker, error } = await supabase
+      .from('profiles')
+      .select('id, name')
+      .eq('email', email.trim())
+      .single()
+
+    if (error || !worker) {
+      setMsg('Пользователь не найден. Попроси рабочего сначала зарегистрироваться.')
+      setLoading(false)
+      return
+    }
+
+    const { error: e2 } = await supabase
+      .from('project_workers')
+      .insert({ project_id: proj.id, worker_id: worker.id })
+
+    if (e2) {
+      setMsg(e2.code === '23505' ? 'Рабочий уже в проекте' : 'Ошибка добавления')
+    } else {
+      setMsg(`${worker.name} добавлен в проект!`)
+      fetchTeam(proj.id)
+      setEmail('')
+    }
+    setLoading(false)
+  }
+
   return (
     <div>
       <div className="page-header">
         <h1 className="page-title">Команда</h1>
-        <Button variant="primary" size="sm">+ Пригласить</Button>
+        <Button variant="primary" size="sm" onClick={() => { setShowInvite(!showInvite); setMsg('') }}>
+          {showInvite ? 'Закрыть' : '+ Пригласить'}
+        </Button>
       </div>
-      <div className="card" style={{ padding:0 }}>
-        {team.length === 0 && <EmptyState>Нет рабочих</EmptyState>}
+
+      {showInvite && (
+        <div className="card card-body" style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 10 }}>
+            Добавить рабочего по email
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              className="form-input"
+              placeholder="email рабочего..."
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && invite()}
+              style={{ flex: 1 }}
+            />
+            <Button variant="primary" size="sm" onClick={invite}>
+              {loading ? '...' : 'Добавить'}
+            </Button>
+          </div>
+          {msg && (
+            <div style={{
+              marginTop: 8, fontSize: 12, padding: '6px 10px', borderRadius: 6,
+              background: msg.includes('добавлен') ? '#EAF3DE' : '#FCEBEB',
+              color: msg.includes('добавлен') ? '#3B6D11' : '#A32D2D'
+            }}>{msg}</div>
+          )}
+          <div style={{ fontSize: 11, color: '#aaa', marginTop: 6 }}>
+            Рабочий должен сначала зарегистрироваться в BuildTrack
+          </div>
+        </div>
+      )}
+
+      <div className="card" style={{ padding: 0 }}>
+        {team.length === 0 && <EmptyState>Нет рабочих — пригласи первого!</EmptyState>}
         {team.map(m => (
           <div className="member-row" key={m.id}>
             <div className="member-avatar">{m.name?.charAt(0)?.toUpperCase()}</div>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:14, fontWeight:500 }}>{m.name}</div>
-              <div style={{ fontSize:12, color:'#888' }}>{m.role}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 500 }}>{m.name}</div>
+              <div style={{ fontSize: 12, color: '#888' }}>{m.role === 'worker' ? 'Рабочий' : m.role}</div>
             </div>
             <Badge variant="blue">В команде</Badge>
           </div>
