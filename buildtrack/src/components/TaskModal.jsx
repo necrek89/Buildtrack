@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
 import { Button, FormGroup } from './UI'
 
-const WORKERS_DEFAULT = ['Мигель', 'Алексей', 'Карим', 'Иван']
 const STAGES = ['Фундамент', 'Электрика', 'Стены', 'Кровля', 'Отделка']
 const PRIORITY_OPTIONS = [
   { value: 'high',   label: 'Высокий' },
@@ -11,18 +10,31 @@ const PRIORITY_OPTIONS = [
 ]
 
 export default function TaskModal({ task, onClose }) {
-  const { addTask, updateTask, projects, fetchProjects } = useStore()
+  const { addTask, updateTask, projects, fetchProjects, fetchWorkers } = useStore()
   const isEdit = !!task
+  const [workers, setWorkers] = useState([])
 
   const [form, setForm] = useState({
-    text:     task?.text     || '',
-    stage:    task?.stage    || 'Электрика',
-    priority: task?.priority || 'normal',
-    deadline: task?.deadline || '',
+    text:      task?.text      || '',
+    worker_id: task?.worker_id || '',
+    stage:     task?.stage     || 'Электрика',
+    priority:  task?.priority  || 'normal',
+    deadline:  task?.deadline  || '',
   })
 
   useEffect(() => {
-    if (projects.length === 0) fetchProjects()
+    const load = async () => {
+      let projs = projects
+      if (projs.length === 0) {
+        await fetchProjects()
+        projs = useStore.getState().projects
+      }
+      if (projs[0]) {
+        const w = await fetchWorkers(projs[0].id)
+        setWorkers(w)
+      }
+    }
+    load()
     const handler = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
@@ -33,17 +45,15 @@ export default function TaskModal({ task, onClose }) {
   const save = async () => {
     if (!form.text.trim()) return
     const projectId = useStore.getState().projects[0]?.id
-    console.log('Saving task, project_id:', projectId)
     if (isEdit) {
       await updateTask(task.id, form)
     } else {
-      const result = await addTask({ 
-        ...form, 
+      await addTask({
+        ...form,
         project_id: projectId,
-        worker_id: null,
+        worker_id: form.worker_id || null,
         status: 'new'
       })
-      console.log('Add result:', result)
     }
     onClose()
   }
@@ -62,24 +72,36 @@ export default function TaskModal({ task, onClose }) {
         </FormGroup>
 
         <div className="form-grid-2">
+          <FormGroup label="Исполнитель">
+            <select className="form-input" value={form.worker_id} onChange={set('worker_id')}>
+              <option value="">Не назначен</option>
+              {workers.map(w => (
+                <option key={w.id} value={w.id}>{w.name}</option>
+              ))}
+            </select>
+          </FormGroup>
           <FormGroup label="Этап">
             <select className="form-input" value={form.stage} onChange={set('stage')}>
               {STAGES.map(s => <option key={s}>{s}</option>)}
             </select>
           </FormGroup>
-          <FormGroup label="Приоритет">
-            <select className="form-input" value={form.priority} onChange={set('priority')}>
-              {PRIORITY_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-            </select>
-          </FormGroup>
         </div>
 
-        <FormGroup label="Дедлайн">
-          <input
-            className="form-input" type="date"
-            value={form.deadline} onChange={set('deadline')}
-          />
-        </FormGroup>
+        <div className="form-grid-2">
+          <FormGroup label="Приоритет">
+            <select className="form-input" value={form.priority} onChange={set('priority')}>
+              {PRIORITY_OPTIONS.map(p => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
+          </FormGroup>
+          <FormGroup label="Дедлайн">
+            <input
+              className="form-input" type="date"
+              value={form.deadline} onChange={set('deadline')}
+            />
+          </FormGroup>
+        </div>
 
         <div className="modal-actions">
           <Button size="sm" onClick={onClose}>Отмена</Button>
