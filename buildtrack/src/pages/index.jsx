@@ -269,21 +269,47 @@ const PROJECT_STAGES = [
 
 export function Projects() {
   const { projects, tasks, fetchProjects, fetchTasks } = useStore()
-  useEffect(() => { fetchProjects(); fetchTasks() }, [])
-  const proj = projects[0]
-  if (!proj) return <div><div className="page-header"><h1 className="page-title">Объекты</h1></div><EmptyState>Нет объектов</EmptyState></div>
+  const [selectedId, setSelectedId] = useState(null)
+
+  useEffect(() => {
+    fetchProjects().then(() => fetchTasks())
+  }, [])
+
+  const proj = projects.find(p => p.id === selectedId) || projects[0]
+  if (!proj) return (
+    <div>
+      <div className="page-header"><h1 className="page-title">Объекты</h1></div>
+      <EmptyState>Нет объектов — создай на дашборде</EmptyState>
+    </div>
+  )
 
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">{proj.name}</h1>
+        <h1 className="page-title">Объекты</h1>
         <Badge variant="blue">{proj.stage}</Badge>
       </div>
+
+      {projects.length > 1 && (
+        <div className="filter-bar" style={{ marginBottom: 16 }}>
+          {projects.map(p => (
+            <button
+              key={p.id}
+              className={`filter-btn ${proj.id === p.id ? 'active' : ''}`}
+              onClick={() => setSelectedId(p.id)}
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
         <StatCard label="Прогресс"       value={`${proj.progress || 0}%`} />
         <StatCard label="Дедлайн"        value={proj.deadline || 'Не задан'} />
-        <StatCard label="Активных задач" value={tasks.filter(t => t.status !== 'approved').length} />
+        <StatCard label="Активных задач" value={tasks.filter(t => t.project_id === proj.id && t.status !== 'approved').length} />
       </div>
+
       <SectionTitle>Этапы</SectionTitle>
       <div className="card" style={{ padding: 0 }}>
         {PROJECT_STAGES.map(s => (
@@ -297,6 +323,7 @@ export function Projects() {
           </div>
         ))}
       </div>
+
       <SectionTitle>Фото этапа</SectionTitle>
       <div className="photo-grid">
         {[{l:'Арматура',bg:'#E6F1FB',c:'#0C447C'},{l:'Заливка',bg:'#EAF3DE',c:'#3B6D11'},{l:'Готово',bg:'#FAEEDA',c:'#854F0B'},{l:'Фото 4',bg:'#E6F1FB',c:'#0C447C'}].map(ph=>(
