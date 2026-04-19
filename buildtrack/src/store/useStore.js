@@ -140,8 +140,9 @@ export const PRIORITY_OPTIONS = [
   { value: 'normal', label: 'Обычный' },
   { value: 'low',    label: 'Низкий'  },
 ]
-
-export const PRIORITY_BADGE = { high: 'badge-red', normal: 'badge-blue', low: 'badge-gray' }
-export const PRIORITY_LABEL = { high: 'Высокий', normal: 'Обычный', low: 'Низкий' }
-export const STATUS_LABEL = { new: 'Новая', pending: 'На проверке', approved: 'Выполнено', rejected: 'На доработке' }
-export const STATUS_BADGE  = { new: 'gray',  pending: 'amber',       approved: 'green',     rejected: 'red' }
+export const PRIORITY_BADGE  = { high: 'red',  normal: 'blue', low: 'gray' }
+export const PRIORITY_LABEL  = { high: 'Высокий', normal: 'Обычный', low: 'Низкий' }
+export const TOOL_STATUS_BADGE  = { active: 'blue', stored: 'green', lost: 'red' }
+export const TOOL_STATUS_LABEL  = { active: 'На объекте', stored: 'На складе', lost: 'Не найден' }
+export const STATUS_LABEL  = { new: 'Новая', pending: 'На проверке', approved: 'Выполнено', rejected: 'На доработке' }
+export const STATUS_BADGE   = { new: 'gray', pending: 'amber', approved: 'green', rejected: 'red' }
