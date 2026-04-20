@@ -8,27 +8,28 @@ import {
 
 const NAV = {
   foreman: [
-    { id: 'dashboard',     icon: '▦', label: 'Дашборд'     },
-    { id: 'projects',      icon: '◫', label: 'Объекты'     },
-    { id: 'tasks',         icon: '☑', label: 'Задачи'      },
-    { id: 'tools',         icon: '⚙', label: 'Инструменты' },
-    { id: 'team',          icon: '◉', label: 'Команда'     },
-    { id: 'notifications', icon: '◆', label: 'Уведомления' },
+    { id: 'dashboard',     icon: '▦', label: 'Dashboard'     },
+    { id: 'projects',      icon: '◫', label: 'Projects'      },
+    { id: 'tasks',         icon: '☑', label: 'Tasks'         },
+    { id: 'tools',         icon: '⚙', label: 'Tools'         },
+    { id: 'team',          icon: '◉', label: 'Team'          },
+    { id: 'notifications', icon: '◆', label: 'Notifications' },
   ],
   worker: [
-    { id: 'my-tasks',      icon: '☑', label: 'Задачи'      },
-    { id: 'tools',         icon: '⚙', label: 'Инструменты' },
-    { id: 'notifications', icon: '◆', label: 'Уведомления' },
+    { id: 'my-tasks',      icon: '☑', label: 'My Tasks'      },
+    { id: 'tools',         icon: '⚙', label: 'Tools'         },
+    { id: 'notifications', icon: '◆', label: 'Notifications' },
   ],
   client: [
-    { id: 'dashboard',     icon: '▦', label: 'Объект'      },
-    { id: 'progress',      icon: '◫', label: 'Прогресс'    },
-    { id: 'photos',        icon: '◧', label: 'Фото'        },
-    { id: 'notifications', icon: '◆', label: 'Уведомления' },
+    { id: 'dashboard',     icon: '▦', label: 'My Project'    },
+    { id: 'progress',      icon: '◫', label: 'Progress'      },
+    { id: 'photos',        icon: '◧', label: 'Photos'        },
+    { id: 'notifications', icon: '◆', label: 'Notifications' },
   ],
 }
 
-const DEFAULT_PAGE = { foreman: 'dashboard', worker: 'my-tasks', client: 'dashboard' }
+const DEFAULT_PAGE  = { foreman: 'dashboard', worker: 'my-tasks', client: 'dashboard' }
+const ROLE_LABEL    = { foreman: 'Foreman', worker: 'Worker', client: 'Client' }
 
 function PageContent({ role, page }) {
   if (role === 'foreman') {
@@ -50,11 +51,11 @@ function PageContent({ role, page }) {
     if (page === 'photos')        return <ClientPhotos />
     if (page === 'notifications') return <Notifications />
   }
-  return <div style={{ padding: 24, color: '#aaa' }}>Страница не найдена</div>
+  return <div style={{ padding: 24, color: '#aaa' }}>Page not found</div>
 }
 
 export default function App() {
-  const { role, profile, checkSession, signOut, loading } = useStore()
+  const { role, profile, checkSession, signOut } = useStore()
   const [page, setPage] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [authed, setAuthed] = useState(false)
@@ -89,14 +90,12 @@ export default function App() {
   if (checking) {
     return (
       <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: '#888', fontSize: 14 }}>Загрузка...</div>
+        <div style={{ color: '#888', fontSize: 14 }}>Loading...</div>
       </div>
     )
   }
 
-  if (!authed) {
-    return <LoginPage onLogin={handleLogin} />
-  }
+  if (!authed) return <LoginPage onLogin={handleLogin} />
 
   const navItems = NAV[role] || NAV.worker
   const tabItems = navItems.slice(0, 4)
@@ -108,19 +107,12 @@ export default function App() {
           <button className="burger-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
             <span /><span /><span />
           </button>
-          <span className="topbar-logo">BuildTrack</span>
+          <span className="topbar-logo">Tutuu</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, color: '#888' }}>
-            {profile?.name}
-          </span>
-          <div
-            className="avatar"
-            title="Выйти"
-            onClick={handleSignOut}
-            style={{ cursor: 'pointer' }}
-          >
+          <span style={{ fontSize: 12, color: '#888' }}>{profile?.name}</span>
+          <div className="avatar" title="Sign out" onClick={handleSignOut} style={{ cursor: 'pointer' }}>
             {profile?.name?.charAt(0)?.toUpperCase() || '?'}
           </div>
         </div>
@@ -133,12 +125,9 @@ export default function App() {
 
         <nav className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
           <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>✕</button>
-
-          <div style={{ padding: '40px 16px 12px', borderBottom: '1px solid #f0f0f0', marginBottom: 8 }}>
-            <div style={{ fontSize: 13, fontWeight: 500 }}>{profile?.name}</div>
-            <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>
-              {{ foreman: 'Прораб', worker: 'Рабочий', client: 'Заказчик' }[role]}
-            </div>
+          <div className="sidebar-user">
+            <div className="sidebar-user-name">{profile?.name}</div>
+            <div className="sidebar-user-role">{ROLE_LABEL[role]}</div>
           </div>
 
           {navItems.map(item => (
@@ -152,13 +141,11 @@ export default function App() {
             </div>
           ))}
 
-          <div
-            className="nav-item"
-            style={{ marginTop: 'auto', color: '#A32D2D' }}
-            onClick={handleSignOut}
-          >
-            <span className="nav-icon">→</span>
-            <span>Выйти</span>
+          <div className="nav-signout">
+            <div className="nav-item" style={{ color: '#A32D2D' }} onClick={handleSignOut}>
+              <span className="nav-icon">→</span>
+              <span>Sign Out</span>
+            </div>
           </div>
         </nav>
 
