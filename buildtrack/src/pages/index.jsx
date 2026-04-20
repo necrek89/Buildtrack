@@ -165,7 +165,6 @@ export function Tasks() {
     </div>
   </div>
 )}
-              )}
               {t.status === 'rejected' && t.reject_comment && (
                 <div style={{ fontSize: 12, color: '#A32D2D', marginTop: 5, background: '#FCEBEB', padding: '5px 8px', borderRadius: 6 }}>
                   Комментарий: {t.reject_comment}
