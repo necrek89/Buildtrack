@@ -56,7 +56,9 @@ export const useStore = create((set, get) => ({
   // ── TASKS ─────────────────────────────────────────────────
   fetchTasks: async (projectId) => {
     let query = supabase.from('tasks').select(`
-      *, worker:profiles(id, name)
+      id, text, status, priority, stage, deadline, 
+      photo_url, reject_comment, worker_id, project_id,
+      worker:profiles(id, name)
     `)
     if (projectId) query = query.eq('project_id', projectId)
     const { data } = await query.order('created_at', { ascending: false })
