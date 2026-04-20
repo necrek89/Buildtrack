@@ -135,7 +135,6 @@ export const useStore = create((set, get) => ({
     set(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, read: true } : n) }))
   },
 }))
-export const WORKERS = ['Miguel', 'Alexey', 'Karim', 'Ivan']
 export const STAGES = ['Foundation', 'Electrical', 'Walls', 'Roofing', 'Finishing']
 export const PRIORITY_OPTIONS = [
   { value: 'high',   label: 'High'   },
