@@ -308,45 +308,70 @@ export function Projects() {
     </div>
   )
 
+  const projTasks = tasks.filter(t => t.project_id === proj.id)
+  const activeTasks = projTasks.filter(t => t.status !== 'approved')
+  const doneTasks = projTasks.filter(t => t.status === 'approved')
+
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Projects</h1>
-        <Badge variant="blue">{proj.stage}</Badge>
+        <h1 className="page-title">{proj.name}</h1>
       </div>
+
       {projects.length > 1 && (
-        <div className="filter-bar" style={{ marginBottom:16 }}>
+        <div className="filter-bar" style={{ marginBottom: 16 }}>
           {projects.map(p => (
-            <button key={p.id} className={`filter-btn ${proj.id===p.id?'active':''}`}
-              onClick={() => setSelectedId(p.id)}>{p.name}</button>
+            <button key={p.id}
+              className={`filter-btn ${proj.id === p.id ? 'active' : ''}`}
+              onClick={() => setSelectedId(p.id)}>
+              {p.name}
+            </button>
           ))}
         </div>
       )}
-      <div className="stat-grid" style={{ gridTemplateColumns:'repeat(3,1fr)' }}>
-        <StatCard label="Progress"     value={`${proj.progress||0}%`} />
-        <StatCard label="Deadline"     value={proj.deadline||'Not set'} />
-        <StatCard label="Active tasks" value={tasks.filter(t=>t.project_id===proj.id&&t.status!=='approved').length} />
+
+      <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
+        <StatCard label="Progress"     value={`${proj.progress || 0}%`} />
+        <StatCard label="Deadline"     value={proj.deadline || 'Not set'} />
+        <StatCard label="Active tasks" value={activeTasks.length} />
       </div>
-      <SectionTitle>Stages</SectionTitle>
-      <div className="card" style={{ padding:0 }}>
-        {PROJECT_STAGES.map(s => (
-          <div className="stage-row" key={s.n}>
-            <div className={`stage-num ${s.cls}`}>{s.pct===100?'✓':s.n}</div>
-            <div style={{ flex:1, fontSize:13, fontWeight:500 }}>{s.name}</div>
-            <div style={{ flex:1, margin:'0 12px' }}>
-              <div className="progress-bar"><div className="progress-fill" style={{ width:`${s.pct}%` }} /></div>
+
+      <SectionTitle>Active Tasks</SectionTitle>
+      <div className="card" style={{ padding: 0 }}>
+        {activeTasks.length === 0 && <EmptyState>No active tasks</EmptyState>}
+        {activeTasks.map(t => (
+          <div className="task-row" key={t.id}>
+            <div className="task-body">
+              <div className="task-text">{t.text}</div>
+              <div className="task-meta" style={{ marginTop: 4 }}>
+                <Badge variant={STATUS_BADGE[t.status]?.replace('badge-','')}>{STATUS_LABEL[t.status]}</Badge>
+                {t.stage && <Badge variant="gray">{t.stage}</Badge>}
+                {t.deadline && <span style={{ fontSize: 11, color: '#888' }}>due {t.deadline}</span>}
+                {t.worker && <span style={{ fontSize: 11, color: '#aaa' }}>{t.worker.name}</span>}
+              </div>
             </div>
-            <div style={{ fontSize:12, color:'#888', minWidth:32, textAlign:'right' }}>{s.pct}%</div>
           </div>
         ))}
       </div>
-      <SectionTitle>Stage Photos</SectionTitle>
-      <div className="photo-grid">
-        {[{l:'Rebar',bg:'#E6F1FB',c:'#0C447C'},{l:'Pouring',bg:'#EAF3DE',c:'#3B6D11'},{l:'Done',bg:'#FAEEDA',c:'#854F0B'},{l:'Photo 4',bg:'#E6F1FB',c:'#0C447C'}].map(ph=>(
-          <div className="photo-cell" key={ph.l} style={{ background:ph.bg, color:ph.c }}>{ph.l}</div>
-        ))}
-        <div className="photo-cell" style={{ border:'1px dashed #ccc', color:'#aaa' }}>+ photo</div>
-      </div>
+
+      {doneTasks.length > 0 && (
+        <>
+          <SectionTitle>Completed</SectionTitle>
+          <div className="card" style={{ padding: 0 }}>
+            {doneTasks.map(t => (
+              <div className="task-row" key={t.id}>
+                <div className="task-body">
+                  <div className="task-text" style={{ color: '#aaa', textDecoration: 'line-through' }}>{t.text}</div>
+                  <div className="task-meta" style={{ marginTop: 4 }}>
+                    <Badge variant="green">Completed</Badge>
+                    {t.stage && <Badge variant="gray">{t.stage}</Badge>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }
