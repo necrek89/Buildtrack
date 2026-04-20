@@ -452,9 +452,11 @@ export function Team() {
 
     const { data: worker, error } = await supabase
       .from('profiles')
-      .select('id, name')
-      .eq('email', email.trim())
+      .select('id, name, role')
+      .eq('email', email.trim().toLowerCase())
       .single()
+
+console.log('Found worker:', worker, 'Error:', error)
 
     if (error || !worker) {
       setMsg('Пользователь не найден. Попроси рабочего сначала зарегистрироваться.')
