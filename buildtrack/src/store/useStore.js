@@ -135,16 +135,16 @@ export const useStore = create((set, get) => ({
     set(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, read: true } : n) }))
   },
 }))
-export const WORKERS = ['Мигель', 'Алексей', 'Карим', 'Иван']
-export const STAGES = ['Фундамент', 'Электрика', 'Стены', 'Кровля', 'Отделка']
+export const WORKERS = ['Miguel', 'Alexey', 'Karim', 'Ivan']
+export const STAGES = ['Foundation', 'Electrical', 'Walls', 'Roofing', 'Finishing']
 export const PRIORITY_OPTIONS = [
-  { value: 'high',   label: 'Высокий' },
-  { value: 'normal', label: 'Обычный' },
-  { value: 'low',    label: 'Низкий'  },
+  { value: 'high',   label: 'High'   },
+  { value: 'normal', label: 'Normal' },
+  { value: 'low',    label: 'Low'    },
 ]
-export const PRIORITY_BADGE  = { high: 'red',  normal: 'blue', low: 'gray' }
-export const PRIORITY_LABEL  = { high: 'Высокий', normal: 'Обычный', low: 'Низкий' }
+export const PRIORITY_BADGE = { high: 'red', normal: 'blue', low: 'gray' }
+export const PRIORITY_LABEL = { high: 'High', normal: 'Normal', low: 'Low' }
 export const TOOL_STATUS_BADGE  = { active: 'blue', stored: 'green', lost: 'red' }
-export const TOOL_STATUS_LABEL  = { active: 'На объекте', stored: 'На складе', lost: 'Не найден' }
-export const STATUS_LABEL  = { new: 'Новая', pending: 'На проверке', approved: 'Выполнено', rejected: 'На доработке' }
-export const STATUS_BADGE   = { new: 'gray', pending: 'amber', approved: 'green', rejected: 'red' }
+export const TOOL_STATUS_LABEL  = { active: 'On Site', stored: 'In Storage', lost: 'Lost' }
+export const STATUS_LABEL = { new: 'New', pending: 'In Review', approved: 'Completed', rejected: 'Revision' }
+export const STATUS_BADGE = { new: 'gray', pending: 'amber', approved: 'green', rejected: 'red' }
