@@ -147,10 +147,24 @@ export function Tasks() {
                 {t.worker && <span style={{ fontSize: 11, color: '#aaa' }}>{t.worker.name}</span>}
               </div>
               {t.status === 'pending' && (
-                <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-                  <Button variant="primary" size="sm" onClick={() => approveTask(t.id)}>✓ Подтвердить</Button>
-                  <Button variant="danger" size="sm" onClick={() => { setRejectId(t.id); setRejectComment('') }}>↩ На доработку</Button>
-                </div>
+  <div style={{ marginTop: 8 }}>
+    {t.photo_url && (
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Фото от рабочего:</div>
+        <img
+          src={t.photo_url}
+          alt="фото работы"
+          style={{ width: '100%', maxWidth: 240, borderRadius: 8, border: '1px solid #e8e8e8', cursor: 'pointer' }}
+          onClick={() => window.open(t.photo_url, '_blank')}
+        />
+      </div>
+    )}
+    <div style={{ display: 'flex', gap: 6 }}>
+      <Button variant="primary" size="sm" onClick={() => approveTask(t.id)}>✓ Подтвердить</Button>
+      <Button variant="danger" size="sm" onClick={() => { setRejectId(t.id); setRejectComment('') }}>↩ На доработку</Button>
+    </div>
+  </div>
+)}
               )}
               {t.status === 'rejected' && t.reject_comment && (
                 <div style={{ fontSize: 12, color: '#A32D2D', marginTop: 5, background: '#FCEBEB', padding: '5px 8px', borderRadius: 6 }}>
