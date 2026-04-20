@@ -13,17 +13,17 @@ export default function LoginPage({ onLogin }) {
   const handleSubmit = async () => {
     setError('')
     setSuccess('')
-    if (!form.email || !form.password) { setError('Заполни email и пароль'); return }
+    if (!form.email || !form.password) { setError('Please enter email and password'); return }
 
     if (mode === 'login') {
       const { error } = await signIn(form.email, form.password)
-      if (error) { setError('Неверный email или пароль'); return }
+      if (error) { setError('Invalid email or password'); return }
       onLogin()
     } else {
-      if (!form.name) { setError('Введи имя'); return }
+      if (!form.name) { setError('Please enter your name'); return }
       const { error } = await signUp(form.email, form.password, form.name, form.role)
       if (error) { setError(error.message); return }
-      setSuccess('Аккаунт создан! Проверь email для подтверждения, затем войди.')
+      setSuccess('Account created! Please sign in.')
       setMode('login')
     }
   }
@@ -38,11 +38,11 @@ export default function LoginPage({ onLogin }) {
         width: '100%', maxWidth: 380, border: '1px solid #e8e8e8'
       }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#185FA5', marginBottom: 4 }}>
-            BuildTrack
+          <div style={{ fontSize: 28, fontWeight: 700, color: '#185FA5', marginBottom: 4, letterSpacing: '-0.5px' }}>
+            Tutuu
           </div>
           <div style={{ fontSize: 13, color: '#888' }}>
-            {mode === 'login' ? 'Войди в свой аккаунт' : 'Создай новый аккаунт'}
+            {mode === 'login' ? 'Sign in to your account' : 'Create a new account'}
           </div>
         </div>
 
@@ -63,15 +63,15 @@ export default function LoginPage({ onLogin }) {
         {mode === 'register' && (
           <>
             <div className="form-group">
-              <label className="form-label">Имя</label>
-              <input className="form-input" placeholder="Иван Иванов" value={form.name} onChange={set('name')} />
+              <label className="form-label">Full name</label>
+              <input className="form-input" placeholder="John Smith" value={form.name} onChange={set('name')} />
             </div>
             <div className="form-group">
-              <label className="form-label">Роль</label>
+              <label className="form-label">Role</label>
               <select className="form-input" value={form.role} onChange={set('role')}>
-                <option value="foreman">Прораб</option>
-                <option value="worker">Рабочий</option>
-                <option value="client">Заказчик</option>
+                <option value="foreman">Foreman</option>
+                <option value="worker">Worker</option>
+                <option value="client">Client</option>
               </select>
             </div>
           </>
@@ -87,7 +87,7 @@ export default function LoginPage({ onLogin }) {
         </div>
 
         <div className="form-group">
-          <label className="form-label">Пароль</label>
+          <label className="form-label">Password</label>
           <input
             className="form-input" type="password" placeholder="••••••••"
             value={form.password} onChange={set('password')}
@@ -101,14 +101,14 @@ export default function LoginPage({ onLogin }) {
           onClick={handleSubmit}
           disabled={loading}
         >
-          {loading ? 'Загрузка...' : mode === 'login' ? 'Войти' : 'Создать аккаунт'}
+          {loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Create Account'}
         </button>
 
         <div style={{ textAlign: 'center', marginTop: 16, fontSize: 13, color: '#888' }}>
           {mode === 'login' ? (
-            <>Нет аккаунта? <span style={{ color: '#185FA5', cursor: 'pointer' }} onClick={() => { setMode('register'); setError('') }}>Зарегистрироваться</span></>
+            <>Don't have an account? <span style={{ color: '#185FA5', cursor: 'pointer' }} onClick={() => { setMode('register'); setError('') }}>Sign Up</span></>
           ) : (
-            <>Уже есть аккаунт? <span style={{ color: '#185FA5', cursor: 'pointer' }} onClick={() => { setMode('login'); setError('') }}>Войти</span></>
+            <>Already have an account? <span style={{ color: '#185FA5', cursor: 'pointer' }} onClick={() => { setMode('login'); setError('') }}>Sign In</span></>
           )}
         </div>
       </div>
