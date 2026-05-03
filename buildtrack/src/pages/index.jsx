@@ -170,6 +170,46 @@ export function Dashboard() {
         </div>
       )}
     </div>
+    {showAdd && (
+  <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAdd(false)}>
+    <div className="modal">
+      <div className="modal-title">New Project</div>
+      <FormGroup label="Project name *">
+        <input className="form-input" placeholder='e.g. Apartment Block A'
+          value={form.name} onChange={set('name')} autoFocus />
+      </FormGroup>
+      <FormGroup label="Address">
+        <input className="form-input" placeholder='e.g. ул. Ленина, 24, Подгорица'
+          value={form.address || ''} onChange={set('address')} />
+      </FormGroup>
+      <div className="form-grid-2">
+        <FormGroup label="Current stage">
+          <select className="form-input" value={form.stage} onChange={set('stage')}>
+            {STAGE_OPTIONS.map(s => <option key={s}>{s}</option>)}
+          </select>
+        </FormGroup>
+        <FormGroup label="Deadline">
+          <input className="form-input" type="date"
+            value={form.deadline} onChange={set('deadline')} />
+        </FormGroup>
+      </div>
+      <div className="modal-actions">
+        <Button size="sm" onClick={() => setShowAdd(false)}>Cancel</Button>
+        <Button variant="primary" size="sm" onClick={createProject}>Create</Button>
+      </div>
+    </div>
+  </div>
+)}
+
+{confirmId && (
+  <ConfirmModal
+    icon="🗑️"
+    title="Delete project?"
+    sub={`"${projects.find(p => p.id === confirmId)?.name}" will be permanently deleted.`}
+    onConfirm={() => deleteProject(confirmId)}
+    onCancel={() => setConfirmId(null)}
+  />
+)}
   )
 })}
 // ─── PROJECTS ────────────────────────────────────────────────────────────────
