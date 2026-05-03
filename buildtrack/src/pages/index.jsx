@@ -14,7 +14,7 @@ export function Dashboard() {
   const { tasks, tools, projects, fetchProjects, fetchTasks, fetchTools, profile } = useStore()
   const [showAdd, setShowAdd]     = useState(false)
   const [confirmId, setConfirmId] = useState(null)
-  const [form, setForm]           = useState({ name: '', stage: 'Foundation', deadline: '' })
+  const [form, setForm] = useState({ name: '', stage: 'Foundation', deadline: '', address: '' })
 
   useEffect(() => {
     fetchProjects(); fetchTasks(); fetchTools()
