@@ -130,27 +130,21 @@ export function Projects() {
 
   const stages = STAGE_LIST.map((name, i) => {
     const stageTasks = projectTasks.filter(t => t.stage === name)
-    const done  = stageTasks.filter(t => t.status === 'approved').length
+    const done   = stageTasks.filter(t => t.status === 'approved').length
     const inWork = stageTasks.filter(t => ['new','pending','rejected'].includes(t.status)).length
-    const total = stageTasks.length
-    const pct   = total === 0 ? 0 : Math.round((done / total) * 100)
+    const total  = stageTasks.length
+    const pct    = total === 0 ? 0 : Math.round((done / total) * 100)
     let cls = ''
     if (pct === 100 && total > 0) cls = 'done'
     else if (inWork > 0) cls = 'current'
     return { n: i + 1, name, pct, cls, done, total, inWork, tasks: stageTasks }
   })
 
-  const toggleStage = (name) => {
-    setOpenStages(prev =>
-      prev.includes(name) ? prev.filter(s => s !== name) : [...prev, name]
-    )
-  }
+  const toggleStage = (name) =>
+    setOpenStages(prev => prev.includes(name) ? prev.filter(s => s !== name) : [...prev, name])
 
-  const STATUS_COLOR = {
-    approved: { bg: 'var(--green-l)',  color: 'var(--green)'  },
-    pending:  { bg: 'var(--amber-l)',  color: 'var(--amber)'  },
-    new:      { bg: '#F2EDE4',         color: 'var(--mid)'    },
-    rejected: { bg: '#FCEBEB',         color: '#A32D2D'       },
+  const STATUS_DOT = {
+    approved: '#5A9467', pending: '#D4A843', new: '#B8AFA6', rejected: '#A32D2D'
   }
 
   return (
@@ -174,99 +168,44 @@ export function Projects() {
       </div>
       <SectionTitle>Stages</SectionTitle>
 
-      {/* Timeline */}
-      <div style={{ position:'relative', paddingLeft:20 }}>
-        {/* Вертикальная линия */}
-        <div style={{
-          position:'absolute', left:15, top:20, bottom:20,
-          width:2, background:`linear-gradient(to bottom, var(--green), var(--accent), var(--border))`,
-          borderRadius:2
-        }} />
-
+      <div className="tl-wrap">
         {stages.map(s => {
-          const isOpen = openStages.includes(s.name)
-          const dotBg    = s.cls === 'done' ? 'var(--green)' : s.cls === 'current' ? 'var(--accent)' : 'var(--border)'
-          const dotColor = s.cls === 'done' || s.cls === 'current' ? '#fff' : 'var(--muted)'
-          const barColor = s.cls === 'done' ? 'var(--green)' : s.cls === 'current' ? 'var(--accent)' : 'var(--border)'
-          const pctColor = s.cls === 'done' ? 'var(--green)' : s.cls === 'current' ? 'var(--accent)' : 'var(--muted)'
-          const cardBorder = s.cls === 'done'
-            ? '1px solid var(--border); border-left: 3px solid var(--green)'
-            : s.cls === 'current'
-            ? '1px solid var(--border); border-left: 3px solid var(--accent)'
-            : '1px solid var(--border)'
+          const isOpen   = openStages.includes(s.name)
+          const barColor = s.cls==='done' ? '#5A9467' : s.cls==='current' ? '#C96B3A' : '#EAE3D8'
+          const pctColor = s.cls==='done' ? '#5A9467' : s.cls==='current' ? '#C96B3A' : '#B8AFA6'
 
           return (
-            <div key={s.n} style={{ position:'relative', marginBottom:8, paddingLeft:28 }}>
-              {/* Dot */}
-              <div style={{
-                position:'absolute', left:-13, top:14,
-                width:18, height:18, borderRadius:'50%',
-                background:dotBg, color:dotColor,
-                display:'flex', alignItems:'center', justifyContent:'center',
-                fontSize:9, fontWeight:700,
-                border:'2px solid var(--bg)', zIndex:1
-              }}>
-                {s.cls === 'done' ? '✓' : s.n}
+            <div key={s.n} className="tl-stage">
+              <div className={`tl-dot ${s.cls || 'future'}`}>
+                {s.cls==='done' ? '✓' : s.n}
               </div>
-
-              {/* Card */}
-              <div
-                onClick={() => toggleStage(s.name)}
-                style={{
-                  background: 'var(--card)',
-                  border: '1px solid var(--border)',
-                  borderLeft: `3px solid ${dotBg}`,
-                  borderRadius:12,
-                  cursor:'pointer',
-                  boxShadow: s.cls === 'current' ? '0 4px 16px rgba(201,107,58,0.1)' : 'none',
-                  overflow:'hidden'
-                }}
-              >
-                <div style={{ display:'flex', alignItems:'center', gap:12, padding:'11px 14px' }}>
-                  <div style={{ flex:1, fontSize:13, fontWeight:600, color:'var(--dark)' }}>{s.name}</div>
-                  {s.inWork > 0 && (
-                    <div style={{ fontSize:9, fontWeight:700, padding:'2px 7px', borderRadius:10, background:'var(--accent-l)', color:'var(--accent)' }}>
-                      {s.inWork} in work
-                    </div>
-                  )}
-                  <div style={{ width:80, height:4, background:'var(--border)', borderRadius:4, overflow:'hidden' }}>
-                    <div style={{ height:4, borderRadius:4, background:barColor, width:`${s.pct}%` }} />
+              <div className={`tl-card ${s.cls || 'future'}`}>
+                <div className="tl-card-header" onClick={() => toggleStage(s.name)}>
+                  <div className="tl-card-name">{s.name}</div>
+                  {s.inWork > 0 && <div className="tl-inwork">{s.inWork} in work</div>}
+                  <div className="tl-bar-bg">
+                    <div className="tl-bar" style={{ width:`${s.pct}%`, background:barColor }} />
                   </div>
-                  <div style={{ fontSize:12, fontWeight:700, color:pctColor, minWidth:36, textAlign:'right', fontFamily:'monospace' }}>
-                    {s.pct}%
+                  <div className="tl-pct" style={{ color:pctColor }}>{s.pct}%</div>
+                  <div className="tl-count">
+                    {s.total===0 ? '—' : `${s.done}/${s.total}`}
                   </div>
-                  <div style={{ fontSize:11, color:'var(--muted)', minWidth:36, textAlign:'right' }}>
-                    {s.total === 0 ? <span style={{ color:'var(--faint)' }}>—</span> : `${s.done}/${s.total}`}
-                  </div>
-                  <div style={{ fontSize:11, color:'var(--muted)' }}>{isOpen ? '▲' : '▼'}</div>
+                  <div className="tl-arrow">{isOpen ? '▲' : '▼'}</div>
                 </div>
 
-                {/* Tasks */}
                 {isOpen && (
-                  <div style={{ borderTop:'1px solid var(--border)', background:'#FDFBF8' }}>
-                    {s.tasks.length === 0 && (
-                      <div style={{ padding:'12px 16px', fontSize:12, color:'var(--muted)' }}>
-                        No tasks for this stage yet
-                      </div>
-                    )}
-                    {s.tasks.map(t => {
-                      const sc = STATUS_COLOR[t.status] || STATUS_COLOR.new
-                      return (
-                        <div key={t.id} style={{
-                          display:'flex', alignItems:'center', gap:10,
-                          padding:'9px 16px', borderBottom:'1px solid var(--border)'
-                        }}>
-                          <div style={{ width:6, height:6, borderRadius:'50%', background:sc.color, flexShrink:0 }} />
-                          <div style={{ flex:1, fontSize:12, fontWeight:500, color:'var(--dark)' }}>{t.text}</div>
-                          <div style={{ fontSize:9, fontWeight:700, padding:'2px 8px', borderRadius:10, background:sc.bg, color:sc.color, whiteSpace:'nowrap' }}>
-                            {STATUS_LABEL[t.status]}
+                  <div className="tl-card-body">
+                    {s.tasks.length === 0
+                      ? <div className="tl-empty">No tasks for this stage yet</div>
+                      : s.tasks.map(t => (
+                          <div key={t.id} className="tl-task">
+                            <div className="tl-task-dot" style={{ background: STATUS_DOT[t.status] || '#B8AFA6' }} />
+                            <div className="tl-task-name">{t.text}</div>
+                            <Badge variant={STATUS_BADGE[t.status]?.replace('badge-','')}>{STATUS_LABEL[t.status]}</Badge>
+                            {t.deadline && <div className="tl-task-due">due {t.deadline}</div>}
                           </div>
-                          {t.deadline && (
-                            <div style={{ fontSize:10, color:'var(--muted)', whiteSpace:'nowrap' }}>due {t.deadline}</div>
-                          )}
-                        </div>
-                      )
-                    })}
+                        ))
+                    }
                   </div>
                 )}
               </div>
