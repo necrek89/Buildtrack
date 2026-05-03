@@ -23,10 +23,11 @@ export function Dashboard() {
   const createProject = async () => {
     if (!form.name.trim()) return
     const { error } = await supabase.from('projects').insert({
-      name: form.name, stage: form.stage,
-      deadline: form.deadline || null,
-      foreman_id: profile.id, progress: 0
-    })
+  name: form.name, stage: form.stage,
+  deadline: form.deadline || null,
+  address: form.address || null,
+  foreman_id: profile.id, progress: 0
+})
     if (!error) { fetchProjects(); setShowAdd(false); setForm({ name: '', stage: 'Foundation', deadline: '' }) }
   }
 
