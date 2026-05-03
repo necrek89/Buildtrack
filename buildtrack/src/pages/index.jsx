@@ -113,7 +113,7 @@ export function Dashboard() {
 export function Projects() {
   const { projects, tasks, fetchProjects, fetchTasks } = useStore()
   const [selectedId, setSelectedId] = useState(null)
-  const [openStage, setOpenStage]   = useState(null)
+  const [openStages, setOpenStages] = useState([])
 
   useEffect(() => { fetchProjects().then(() => fetchTasks()) }, [])
 
@@ -131,13 +131,27 @@ export function Projects() {
   const stages = STAGE_LIST.map((name, i) => {
     const stageTasks = projectTasks.filter(t => t.stage === name)
     const done  = stageTasks.filter(t => t.status === 'approved').length
+    const inWork = stageTasks.filter(t => ['new','pending','rejected'].includes(t.status)).length
     const total = stageTasks.length
     const pct   = total === 0 ? 0 : Math.round((done / total) * 100)
     let cls = ''
-    if (pct === 100) cls = 'done'
-    else if (pct > 0) cls = 'current'
-    return { n: i + 1, name, pct, cls, done, total, tasks: stageTasks }
+    if (pct === 100 && total > 0) cls = 'done'
+    else if (inWork > 0) cls = 'current'
+    return { n: i + 1, name, pct, cls, done, total, inWork, tasks: stageTasks }
   })
+
+  const toggleStage = (name) => {
+    setOpenStages(prev =>
+      prev.includes(name) ? prev.filter(s => s !== name) : [...prev, name]
+    )
+  }
+
+  const STATUS_COLOR = {
+    approved: { bg: 'var(--green-l)',  color: 'var(--green)'  },
+    pending:  { bg: 'var(--amber-l)',  color: 'var(--amber)'  },
+    new:      { bg: '#F2EDE4',         color: 'var(--mid)'    },
+    rejected: { bg: '#FCEBEB',         color: '#A32D2D'       },
+  }
 
   return (
     <div>
@@ -149,7 +163,7 @@ export function Projects() {
         <div className="filter-bar" style={{ marginBottom:16 }}>
           {projects.map(p => (
             <button key={p.id} className={`filter-btn ${proj.id===p.id?'active':''}`}
-              onClick={() => { setSelectedId(p.id); setOpenStage(null) }}>{p.name}</button>
+              onClick={() => { setSelectedId(p.id); setOpenStages([]) }}>{p.name}</button>
           ))}
         </div>
       )}
@@ -159,65 +173,106 @@ export function Projects() {
         <StatCard label="Active tasks" value={projectTasks.filter(t=>t.status!=='approved').length} />
       </div>
       <SectionTitle>Stages</SectionTitle>
-      <div className="card" style={{ padding:0 }}>
-        {stages.map(s => (
-          <div key={s.n}>
-            {/* ── Строка стадии (кликабельная) ── */}
-            <div
-              className="stage-row"
-              onClick={() => setOpenStage(openStage === s.name ? null : s.name)}
-              style={{ cursor:'pointer', userSelect:'none' }}
-            >
-              <div className={`stage-num ${s.cls}`}>{s.pct===100?'✓':s.n}</div>
-              <div style={{ flex:1, fontSize:13, fontWeight:500 }}>{s.name}</div>
-              <div style={{ flex:1, margin:'0 12px' }}>
-                <div className="progress-bar">
-                  <div className="progress-fill" style={{ width:`${s.pct}%` }} />
-                </div>
-              </div>
-              <div style={{ fontSize:11, color:'#B8AFA6', minWidth:60, textAlign:'right' }}>
-                {s.total === 0
-                  ? <span style={{ color:'#D4C8BE' }}>no tasks</span>
-                  : `${s.done}/${s.total}`}
-              </div>
-              <div style={{ marginLeft:10, fontSize:12, color:'#B8AFA6' }}>
-                {openStage === s.name ? '▲' : '▼'}
-              </div>
-            </div>
 
-            {/* ── Список задач (раскрывается) ── */}
-            {openStage === s.name && (
-              <div style={{ borderTop:'1px solid #EAE3D8', background:'#FAF7F2' }}>
-                {s.tasks.length === 0 && (
-                  <div style={{ padding:'12px 16px', fontSize:12, color:'#B8AFA6' }}>
-                    No tasks for this stage yet
+      {/* Timeline */}
+      <div style={{ position:'relative', paddingLeft:20 }}>
+        {/* Вертикальная линия */}
+        <div style={{
+          position:'absolute', left:15, top:20, bottom:20,
+          width:2, background:`linear-gradient(to bottom, var(--green), var(--accent), var(--border))`,
+          borderRadius:2
+        }} />
+
+        {stages.map(s => {
+          const isOpen = openStages.includes(s.name)
+          const dotBg    = s.cls === 'done' ? 'var(--green)' : s.cls === 'current' ? 'var(--accent)' : 'var(--border)'
+          const dotColor = s.cls === 'done' || s.cls === 'current' ? '#fff' : 'var(--muted)'
+          const barColor = s.cls === 'done' ? 'var(--green)' : s.cls === 'current' ? 'var(--accent)' : 'var(--border)'
+          const pctColor = s.cls === 'done' ? 'var(--green)' : s.cls === 'current' ? 'var(--accent)' : 'var(--muted)'
+          const cardBorder = s.cls === 'done'
+            ? '1px solid var(--border); border-left: 3px solid var(--green)'
+            : s.cls === 'current'
+            ? '1px solid var(--border); border-left: 3px solid var(--accent)'
+            : '1px solid var(--border)'
+
+          return (
+            <div key={s.n} style={{ position:'relative', marginBottom:8, paddingLeft:28 }}>
+              {/* Dot */}
+              <div style={{
+                position:'absolute', left:-13, top:14,
+                width:18, height:18, borderRadius:'50%',
+                background:dotBg, color:dotColor,
+                display:'flex', alignItems:'center', justifyContent:'center',
+                fontSize:9, fontWeight:700,
+                border:'2px solid var(--bg)', zIndex:1
+              }}>
+                {s.cls === 'done' ? '✓' : s.n}
+              </div>
+
+              {/* Card */}
+              <div
+                onClick={() => toggleStage(s.name)}
+                style={{
+                  background: 'var(--card)',
+                  border: '1px solid var(--border)',
+                  borderLeft: `3px solid ${dotBg}`,
+                  borderRadius:12,
+                  cursor:'pointer',
+                  boxShadow: s.cls === 'current' ? '0 4px 16px rgba(201,107,58,0.1)' : 'none',
+                  overflow:'hidden'
+                }}
+              >
+                <div style={{ display:'flex', alignItems:'center', gap:12, padding:'11px 14px' }}>
+                  <div style={{ flex:1, fontSize:13, fontWeight:600, color:'var(--dark)' }}>{s.name}</div>
+                  {s.inWork > 0 && (
+                    <div style={{ fontSize:9, fontWeight:700, padding:'2px 7px', borderRadius:10, background:'var(--accent-l)', color:'var(--accent)' }}>
+                      {s.inWork} in work
+                    </div>
+                  )}
+                  <div style={{ width:80, height:4, background:'var(--border)', borderRadius:4, overflow:'hidden' }}>
+                    <div style={{ height:4, borderRadius:4, background:barColor, width:`${s.pct}%` }} />
+                  </div>
+                  <div style={{ fontSize:12, fontWeight:700, color:pctColor, minWidth:36, textAlign:'right', fontFamily:'monospace' }}>
+                    {s.pct}%
+                  </div>
+                  <div style={{ fontSize:11, color:'var(--muted)', minWidth:36, textAlign:'right' }}>
+                    {s.total === 0 ? <span style={{ color:'var(--faint)' }}>—</span> : `${s.done}/${s.total}`}
+                  </div>
+                  <div style={{ fontSize:11, color:'var(--muted)' }}>{isOpen ? '▲' : '▼'}</div>
+                </div>
+
+                {/* Tasks */}
+                {isOpen && (
+                  <div style={{ borderTop:'1px solid var(--border)', background:'#FDFBF8' }}>
+                    {s.tasks.length === 0 && (
+                      <div style={{ padding:'12px 16px', fontSize:12, color:'var(--muted)' }}>
+                        No tasks for this stage yet
+                      </div>
+                    )}
+                    {s.tasks.map(t => {
+                      const sc = STATUS_COLOR[t.status] || STATUS_COLOR.new
+                      return (
+                        <div key={t.id} style={{
+                          display:'flex', alignItems:'center', gap:10,
+                          padding:'9px 16px', borderBottom:'1px solid var(--border)'
+                        }}>
+                          <div style={{ width:6, height:6, borderRadius:'50%', background:sc.color, flexShrink:0 }} />
+                          <div style={{ flex:1, fontSize:12, fontWeight:500, color:'var(--dark)' }}>{t.text}</div>
+                          <div style={{ fontSize:9, fontWeight:700, padding:'2px 8px', borderRadius:10, background:sc.bg, color:sc.color, whiteSpace:'nowrap' }}>
+                            {STATUS_LABEL[t.status]}
+                          </div>
+                          {t.deadline && (
+                            <div style={{ fontSize:10, color:'var(--muted)', whiteSpace:'nowrap' }}>due {t.deadline}</div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
-                {s.tasks.map(t => (
-                  <div key={t.id} style={{
-                    display:'flex', alignItems:'flex-start', gap:10,
-                    padding:'10px 16px', borderBottom:'1px solid #EAE3D8'
-                  }}>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontSize:13, fontWeight:500, color:'#2E2420' }}>{t.text}</div>
-                      <div style={{ display:'flex', gap:6, marginTop:4, flexWrap:'wrap' }}>
-                        <Badge variant={STATUS_BADGE[t.status]?.replace('badge-','')}>{STATUS_LABEL[t.status]}</Badge>
-                        <Badge variant={PRIORITY_BADGE[t.priority]?.replace('badge-','')}>{PRIORITY_LABEL[t.priority]}</Badge>
-                        {t.deadline && <span style={{ fontSize:11, color:'#B8AFA6' }}>due {t.deadline}</span>}
-                        {t.worker && <span style={{ fontSize:11, color:'#B8AFA6' }}>{t.worker.name}</span>}
-                      </div>
-                      {t.status === 'rejected' && t.reject_comment && (
-                        <div style={{ marginTop:6, fontSize:11, color:'#A32D2D', background:'#FCEBEB', padding:'4px 8px', borderRadius:6 }}>
-                          ↩ {t.reject_comment}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
               </div>
-            )}
-          </div>
-        ))}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
