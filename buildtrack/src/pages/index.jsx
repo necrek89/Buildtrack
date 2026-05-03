@@ -170,8 +170,7 @@ export function Dashboard() {
         </div>
       )}
     </div>
-  )
-}
+
     {showAdd && (
   <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAdd(false)}>
     <div className="modal">
