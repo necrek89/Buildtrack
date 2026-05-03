@@ -12,9 +12,10 @@ const STAGE_OPTIONS = ['Foundation','Electrical','Walls','Roofing','Finishing']
 const [openProject, setOpenProject] = useState(null)
 export function Dashboard() {
   const { tasks, tools, projects, fetchProjects, fetchTasks, fetchTools, profile } = useStore()
-  const [showAdd, setShowAdd]     = useState(false)
-  const [confirmId, setConfirmId] = useState(null)
-  const [form, setForm] = useState({ name: '', stage: 'Foundation', deadline: '', address: '' })
+  const [showAdd, setShowAdd]         = useState(false)
+  const [confirmId, setConfirmId]     = useState(null)
+  const [openProject, setOpenProject] = useState(null)
+  const [form, setForm]               = useState({ name: '', stage: 'Foundation', deadline: '', address: '' })
 
   useEffect(() => {
     fetchProjects(); fetchTasks(); fetchTools()
@@ -23,12 +24,16 @@ export function Dashboard() {
   const createProject = async () => {
     if (!form.name.trim()) return
     const { error } = await supabase.from('projects').insert({
-  name: form.name, stage: form.stage,
-  deadline: form.deadline || null,
-  address: form.address || null,
-  foreman_id: profile.id, progress: 0
-})
-    if (!error) { fetchProjects(); setShowAdd(false); setForm({ name: '', stage: 'Foundation', deadline: '' }) }
+      name: form.name, stage: form.stage,
+      deadline: form.deadline || null,
+      address: form.address || null,
+      foreman_id: profile.id, progress: 0
+    })
+    if (!error) {
+      fetchProjects()
+      setShowAdd(false)
+      setForm({ name: '', stage: 'Foundation', deadline: '', address: '' })
+    }
   }
 
   const deleteProject = async (id) => {
@@ -41,7 +46,11 @@ export function Dashboard() {
   }
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
-  const projectToDelete = projects.find(p => p.id === confirmId)
+
+  const openMap = (address) => {
+    const q = encodeURIComponent(address)
+    window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, '_blank')
+  }
 
   return (
     <div>
@@ -50,167 +59,135 @@ export function Dashboard() {
         <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>+ Project</Button>
       </div>
       <div className="stat-grid">
-        <StatCard label="Projects"      value={projects.length} />
-        <StatCard label="Active tasks"  value={tasks.filter(t => t.status !== 'approved').length} />
-        <StatCard label="Tools"         value={tools.length} />
-        <StatCard label="Pending"       value={tasks.filter(t => t.status === 'pending').length} />
+        <StatCard label="Projects"     value={projects.length} />
+        <StatCard label="Active tasks" value={tasks.filter(t => t.status !== 'approved').length} />
+        <StatCard label="Tools"        value={tools.length} />
+        <StatCard label="Pending"      value={tasks.filter(t => t.status === 'pending').length} />
       </div>
       <SectionTitle>Projects</SectionTitle>
       {projects.length === 0 && <EmptyState>No projects yet — create the first one!</EmptyState>}
       {projects.map(p => {
-  const pTasks  = tasks.filter(t => t.project_id === p.id)
-  const pDone   = pTasks.filter(t => t.status === 'approved').length
-  const pActive = pTasks.filter(t => t.status !== 'approved').length
-  const pPct    = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
-  const isOpen  = openProject === p.id
-  const team    = [] // можно позже подтянуть из useStore
-
-  const openMap = (address) => {
-    const q = encodeURIComponent(address)
-    window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, '_blank')
-  }
-
-  return (
-    <div key={p.id} className="card" style={{
-      marginBottom:10, overflow:'hidden',
-      border: isOpen ? '1.5px solid #C96B3A' : '1.5px solid #EAE3D8',
-      boxShadow: isOpen ? '0 4px 12px rgba(201,107,58,0.12)' : 'none',
-    }}>
-      {/* ── Шапка карточки ── */}
-      <div
-        onClick={() => setOpenProject(isOpen ? null : p.id)}
-        style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 13px', cursor:'pointer', background: isOpen ? '#FAECE4' : '#fff' }}
-      >
-        <div style={{ flex:1, fontSize:13, fontWeight:700, color: isOpen ? '#C96B3A' : '#2E2420' }}>
-          🏗 {p.name}
-        </div>
-        <div style={{ width:60, height:3, background:'#EAE3D8', borderRadius:3, overflow:'hidden' }}>
-          <div style={{ height:3, borderRadius:3, background: isOpen ? '#C96B3A' : '#B8AFA6', width:`${pPct}%` }} />
-        </div>
-        <div style={{ fontSize:11, fontWeight:700, color: isOpen ? '#C96B3A' : '#B8AFA6', fontFamily:'monospace', minWidth:32 }}>
-          {pPct}%
-        </div>
-        <IconButton className="danger" title="Delete" onClick={e => { e.stopPropagation(); setConfirmId(p.id) }}>🗑</IconButton>
-        <div style={{ fontSize:10, color:'#B8AFA6' }}>{isOpen ? '▲' : '▼'}</div>
-      </div>
-
-      {/* ── Раскрытая секция ── */}
-      {isOpen && (
-        <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 13px', background:'#FDFBF8' }}>
-
-          {/* Address */}
-          <div style={{ fontSize:9, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>📍 Address & Deadline</div>
-          <div
-            onClick={() => p.address && openMap(p.address)}
-            style={{
-              fontSize:12, fontWeight:600, color: p.address ? '#C96B3A' : '#B8AFA6',
-              cursor: p.address ? 'pointer' : 'default',
-              textDecoration: p.address ? 'underline' : 'none',
-              marginBottom:3
-            }}
-          >
-            {p.address || '— address not set'}
-          </div>
-          <div style={{ fontSize:11, color:'#B8AFA6', marginBottom:10 }}>
-            Due {p.deadline || 'not set'}
-            {p.deadline && (
-              <span style={{ color:'#C96B3A', fontWeight:600, marginLeft:6 }}>
-                · {Math.max(0, Math.ceil((new Date(p.deadline) - new Date()) / 86400000))} days left
-              </span>
+        const pTasks  = tasks.filter(t => t.project_id === p.id)
+        const pDone   = pTasks.filter(t => t.status === 'approved').length
+        const pActive = pTasks.filter(t => t.status !== 'approved').length
+        const pPct    = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
+        const isOpen  = openProject === p.id
+        return (
+          <div key={p.id} className="card" style={{
+            marginBottom:10, overflow:'hidden',
+            border: isOpen ? '1.5px solid #C96B3A' : '1.5px solid #EAE3D8',
+            boxShadow: isOpen ? '0 4px 12px rgba(201,107,58,0.12)' : 'none',
+          }}>
+            <div
+              onClick={() => setOpenProject(isOpen ? null : p.id)}
+              style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 13px', cursor:'pointer', background: isOpen ? '#FAECE4' : '#fff' }}
+            >
+              <div style={{ flex:1, fontSize:13, fontWeight:700, color: isOpen ? '#C96B3A' : '#2E2420' }}>
+                🏗 {p.name}
+              </div>
+              <div style={{ width:60, height:3, background:'#EAE3D8', borderRadius:3, overflow:'hidden' }}>
+                <div style={{ height:3, borderRadius:3, background: isOpen ? '#C96B3A' : '#B8AFA6', width:`${pPct}%` }} />
+              </div>
+              <div style={{ fontSize:11, fontWeight:700, color: isOpen ? '#C96B3A' : '#B8AFA6', fontFamily:'monospace', minWidth:32 }}>
+                {pPct}%
+              </div>
+              <IconButton className="danger" title="Delete" onClick={e => { e.stopPropagation(); setConfirmId(p.id) }}>🗑</IconButton>
+              <div style={{ fontSize:10, color:'#B8AFA6' }}>{isOpen ? '▲' : '▼'}</div>
+            </div>
+            {isOpen && (
+              <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 13px', background:'#FDFBF8' }}>
+                <div style={{ fontSize:9, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>📍 Address & Deadline</div>
+                <div
+                  onClick={() => p.address && openMap(p.address)}
+                  style={{ fontSize:12, fontWeight:600, color: p.address ? '#C96B3A' : '#B8AFA6', cursor: p.address ? 'pointer' : 'default', textDecoration: p.address ? 'underline' : 'none', marginBottom:3 }}
+                >
+                  {p.address || '— address not set'}
+                </div>
+                <div style={{ fontSize:11, color:'#B8AFA6', marginBottom:10 }}>
+                  Due {p.deadline || 'not set'}
+                  {p.deadline && <span style={{ color:'#C96B3A', fontWeight:600, marginLeft:6 }}>· {Math.max(0, Math.ceil((new Date(p.deadline) - new Date()) / 86400000))} days left</span>}
+                </div>
+                <div style={{ height:1, background:'#EAE3D8', marginBottom:10 }} />
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6, marginBottom:10 }}>
+                  {[{v:pPct+'%',l:'Progress'},{v:pActive,l:'Active',c:'#C96B3A'},{v:pDone,l:'Done',c:'#5A9467'}].map(s => (
+                    <div key={s.l} style={{ background:'#F2EDE4', borderRadius:8, padding:'7px 9px', textAlign:'center' }}>
+                      <div style={{ fontSize:15, fontWeight:700, color:s.c||'#2E2420' }}>{s.v}</div>
+                      <div style={{ fontSize:9, color:'#B8AFA6' }}>{s.l}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ height:1, background:'#EAE3D8', marginBottom:10 }} />
+                <div style={{ fontSize:9, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:6 }}>✅ Active Tasks</div>
+                {pTasks.filter(t => t.status !== 'approved').length === 0
+                  ? <div style={{ fontSize:11, color:'#B8AFA6', marginBottom:10 }}>No active tasks</div>
+                  : pTasks.filter(t => t.status !== 'approved').slice(0,3).map(t => (
+                    <div key={t.id} style={{ display:'flex', alignItems:'center', gap:7, marginBottom:5 }}>
+                      <div style={{ width:5, height:5, borderRadius:'50%', background: t.status==='pending'?'#D4A843':'#C96B3A', flexShrink:0 }} />
+                      <div style={{ flex:1, fontSize:11, color:'#2E2420' }}>{t.text}</div>
+                      <div style={{ fontSize:9, fontWeight:700, padding:'2px 7px', borderRadius:10, background: t.status==='pending'?'#FBF3DC':'#FAECE4', color: t.status==='pending'?'#9A6E10':'#C96B3A' }}>
+                        {STATUS_LABEL[t.status]}
+                      </div>
+                    </div>
+                  ))
+                }
+                <div style={{ height:1, background:'#EAE3D8', margin:'8px 0' }} />
+                <div style={{ fontSize:9, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:6 }}>🔧 Tools on site</div>
+                {tools.filter(t => t.project_id === p.id).length === 0
+                  ? <div style={{ fontSize:11, color:'#B8AFA6' }}>No tools registered</div>
+                  : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
+                      {tools.filter(t => t.project_id === p.id).map(t => (
+                        <div key={t.id} style={{ background:'#F2EDE4', borderRadius:6, padding:'3px 9px', fontSize:10, color:'#7A6E66' }}>{t.name}</div>
+                      ))}
+                    </div>
+                }
+              </div>
             )}
           </div>
+        )
+      })}
 
-          <div style={{ height:1, background:'#EAE3D8', marginBottom:10 }} />
-
-          {/* Stats */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6, marginBottom:10 }}>
-            {[
-              { v: pPct+'%',   l:'Progress'  },
-              { v: pActive,    l:'Active',    c:'#C96B3A' },
-              { v: pDone,      l:'Done',      c:'#5A9467' },
-            ].map(s => (
-              <div key={s.l} style={{ background:'#F2EDE4', borderRadius:8, padding:'7px 9px', textAlign:'center' }}>
-                <div style={{ fontSize:15, fontWeight:700, color: s.c || '#2E2420' }}>{s.v}</div>
-                <div style={{ fontSize:9, color:'#B8AFA6' }}>{s.l}</div>
-              </div>
-            ))}
+      {showAdd && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAdd(false)}>
+          <div className="modal">
+            <div className="modal-title">New Project</div>
+            <FormGroup label="Project name *">
+              <input className="form-input" placeholder='e.g. Apartment Block A'
+                value={form.name} onChange={set('name')} autoFocus />
+            </FormGroup>
+            <FormGroup label="Address">
+              <input className="form-input" placeholder='e.g. ул. Ленина, 24, Подгорица'
+                value={form.address || ''} onChange={set('address')} />
+            </FormGroup>
+            <div className="form-grid-2">
+              <FormGroup label="Current stage">
+                <select className="form-input" value={form.stage} onChange={set('stage')}>
+                  {STAGE_OPTIONS.map(s => <option key={s}>{s}</option>)}
+                </select>
+              </FormGroup>
+              <FormGroup label="Deadline">
+                <input className="form-input" type="date"
+                  value={form.deadline} onChange={set('deadline')} />
+              </FormGroup>
+            </div>
+            <div className="modal-actions">
+              <Button size="sm" onClick={() => setShowAdd(false)}>Cancel</Button>
+              <Button variant="primary" size="sm" onClick={createProject}>Create</Button>
+            </div>
           </div>
-
-          <div style={{ height:1, background:'#EAE3D8', marginBottom:10 }} />
-
-          {/* Active tasks */}
-          <div style={{ fontSize:9, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:6 }}>✅ Active Tasks</div>
-          {pTasks.filter(t => t.status !== 'approved').length === 0
-            ? <div style={{ fontSize:11, color:'#B8AFA6', marginBottom:10 }}>No active tasks</div>
-            : pTasks.filter(t => t.status !== 'approved').slice(0,3).map(t => (
-              <div key={t.id} style={{ display:'flex', alignItems:'center', gap:7, marginBottom:5 }}>
-                <div style={{ width:5, height:5, borderRadius:'50%', background: t.status==='pending' ? '#D4A843' : '#C96B3A', flexShrink:0 }} />
-                <div style={{ flex:1, fontSize:11, color:'#2E2420' }}>{t.text}</div>
-                <div style={{ fontSize:9, fontWeight:700, padding:'2px 7px', borderRadius:10, background: t.status==='pending' ? '#FBF3DC' : '#FAECE4', color: t.status==='pending' ? '#9A6E10' : '#C96B3A' }}>
-                  {STATUS_LABEL[t.status]}
-                </div>
-              </div>
-            ))
-          }
-
-          <div style={{ height:1, background:'#EAE3D8', margin:'8px 0' }} />
-
-          {/* Tools */}
-          <div style={{ fontSize:9, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:6 }}>🔧 Tools on site</div>
-          {tools.filter(t => t.project_id === p.id).length === 0
-            ? <div style={{ fontSize:11, color:'#B8AFA6' }}>No tools registered</div>
-            : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
-                {tools.filter(t => t.project_id === p.id).map(t => (
-                  <div key={t.id} style={{ background:'#F2EDE4', borderRadius:6, padding:'3px 9px', fontSize:10, color:'#7A6E66' }}>
-                    {t.name}
-                  </div>
-                ))}
-              </div>
-          }
         </div>
       )}
-    </div>
 
-    {showAdd && (
-  <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAdd(false)}>
-    <div className="modal">
-      <div className="modal-title">New Project</div>
-      <FormGroup label="Project name *">
-        <input className="form-input" placeholder='e.g. Apartment Block A'
-          value={form.name} onChange={set('name')} autoFocus />
-      </FormGroup>
-      <FormGroup label="Address">
-        <input className="form-input" placeholder='e.g. ул. Ленина, 24, Подгорица'
-          value={form.address || ''} onChange={set('address')} />
-      </FormGroup>
-      <div className="form-grid-2">
-        <FormGroup label="Current stage">
-          <select className="form-input" value={form.stage} onChange={set('stage')}>
-            {STAGE_OPTIONS.map(s => <option key={s}>{s}</option>)}
-          </select>
-        </FormGroup>
-        <FormGroup label="Deadline">
-          <input className="form-input" type="date"
-            value={form.deadline} onChange={set('deadline')} />
-        </FormGroup>
-      </div>
-      <div className="modal-actions">
-        <Button size="sm" onClick={() => setShowAdd(false)}>Cancel</Button>
-        <Button variant="primary" size="sm" onClick={createProject}>Create</Button>
-      </div>
+      {confirmId && (
+        <ConfirmModal
+          icon="🗑️"
+          title="Delete project?"
+          sub={`"${projects.find(p => p.id === confirmId)?.name}" will be permanently deleted.`}
+          onConfirm={() => deleteProject(confirmId)}
+          onCancel={() => setConfirmId(null)}
+        />
+      )}
     </div>
-  </div>
-)}
-
-{confirmId && (
-  <ConfirmModal
-    icon="🗑️"
-    title="Delete project?"
-    sub={`"${projects.find(p => p.id === confirmId)?.name}" will be permanently deleted.`}
-    onConfirm={() => deleteProject(confirmId)}
-    onCancel={() => setConfirmId(null)}
-  />
- )
+  )
 }
 // ─── PROJECTS ────────────────────────────────────────────────────────────────
 export function Projects() {
