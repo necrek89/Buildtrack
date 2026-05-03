@@ -9,7 +9,6 @@ const PROJECT_STAGES = []
 const STAGE_OPTIONS = ['Foundation','Electrical','Walls','Roofing','Finishing']
 
 // ─── FOREMAN DASHBOARD ───────────────────────────────────────────────────────
-const [openProject, setOpenProject] = useState(null)
 export function Dashboard() {
   const { tasks, tools, projects, fetchProjects, fetchTasks, fetchTools, profile } = useStore()
   const [showAdd, setShowAdd]         = useState(false)
