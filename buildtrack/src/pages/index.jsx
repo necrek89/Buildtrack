@@ -5,13 +5,7 @@ import TaskModal from '../components/TaskModal'
 import ConfirmModal from '../components/ConfirmModal'
 import { supabase } from '../lib/supabase'
 
-const PROJECT_STAGES = [
-  { n:1, name:'Foundation',  pct:100, cls:'done'    },
-  { n:2, name:'Electrical',  pct:45,  cls:'current' },
-  { n:3, name:'Walls',       pct:10,  cls:''        },
-  { n:4, name:'Roofing',     pct:0,   cls:''        },
-  { n:5, name:'Finishing',   pct:0,   cls:''        },
-]
+const PROJECT_STAGES = []
 const STAGE_OPTIONS = ['Foundation','Electrical','Walls','Roofing','Finishing']
 
 // ─── FOREMAN DASHBOARD ───────────────────────────────────────────────────────
