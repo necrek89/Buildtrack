@@ -113,6 +113,7 @@ export function Dashboard() {
 export function Projects() {
   const { projects, tasks, fetchProjects, fetchTasks } = useStore()
   const [selectedId, setSelectedId] = useState(null)
+  const [openStage, setOpenStage]   = useState(null)
 
   useEffect(() => { fetchProjects().then(() => fetchTasks()) }, [])
 
@@ -125,7 +126,6 @@ export function Projects() {
   )
 
   const projectTasks = tasks.filter(t => t.project_id === proj.id)
-
   const STAGE_LIST = ['Foundation','Electrical','Walls','Roofing','Finishing']
 
   const stages = STAGE_LIST.map((name, i) => {
@@ -136,7 +136,7 @@ export function Projects() {
     let cls = ''
     if (pct === 100) cls = 'done'
     else if (pct > 0) cls = 'current'
-    return { n: i + 1, name, pct, cls, done, total }
+    return { n: i + 1, name, pct, cls, done, total, tasks: stageTasks }
   })
 
   return (
@@ -149,7 +149,7 @@ export function Projects() {
         <div className="filter-bar" style={{ marginBottom:16 }}>
           {projects.map(p => (
             <button key={p.id} className={`filter-btn ${proj.id===p.id?'active':''}`}
-              onClick={() => setSelectedId(p.id)}>{p.name}</button>
+              onClick={() => { setSelectedId(p.id); setOpenStage(null) }}>{p.name}</button>
           ))}
         </div>
       )}
@@ -161,28 +161,63 @@ export function Projects() {
       <SectionTitle>Stages</SectionTitle>
       <div className="card" style={{ padding:0 }}>
         {stages.map(s => (
-          <div className="stage-row" key={s.n}>
-            <div className={`stage-num ${s.cls}`}>{s.pct===100?'✓':s.n}</div>
-            <div style={{ flex:1, fontSize:13, fontWeight:500 }}>{s.name}</div>
-            <div style={{ flex:1, margin:'0 12px' }}>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width:`${s.pct}%` }} />
+          <div key={s.n}>
+            {/* ── Строка стадии (кликабельная) ── */}
+            <div
+              className="stage-row"
+              onClick={() => setOpenStage(openStage === s.name ? null : s.name)}
+              style={{ cursor:'pointer', userSelect:'none' }}
+            >
+              <div className={`stage-num ${s.cls}`}>{s.pct===100?'✓':s.n}</div>
+              <div style={{ flex:1, fontSize:13, fontWeight:500 }}>{s.name}</div>
+              <div style={{ flex:1, margin:'0 12px' }}>
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width:`${s.pct}%` }} />
+                </div>
+              </div>
+              <div style={{ fontSize:11, color:'#B8AFA6', minWidth:60, textAlign:'right' }}>
+                {s.total === 0
+                  ? <span style={{ color:'#D4C8BE' }}>no tasks</span>
+                  : `${s.done}/${s.total}`}
+              </div>
+              <div style={{ marginLeft:10, fontSize:12, color:'#B8AFA6' }}>
+                {openStage === s.name ? '▲' : '▼'}
               </div>
             </div>
-            <div style={{ fontSize:11, color:'#B8AFA6', minWidth:60, textAlign:'right' }}>
-              {s.total === 0
-                ? <span style={{ color:'#D4C8BE' }}>no tasks</span>
-                : `${s.done}/${s.total}`}
-            </div>
+
+            {/* ── Список задач (раскрывается) ── */}
+            {openStage === s.name && (
+              <div style={{ borderTop:'1px solid #EAE3D8', background:'#FAF7F2' }}>
+                {s.tasks.length === 0 && (
+                  <div style={{ padding:'12px 16px', fontSize:12, color:'#B8AFA6' }}>
+                    No tasks for this stage yet
+                  </div>
+                )}
+                {s.tasks.map(t => (
+                  <div key={t.id} style={{
+                    display:'flex', alignItems:'flex-start', gap:10,
+                    padding:'10px 16px', borderBottom:'1px solid #EAE3D8'
+                  }}>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:13, fontWeight:500, color:'#2E2420' }}>{t.text}</div>
+                      <div style={{ display:'flex', gap:6, marginTop:4, flexWrap:'wrap' }}>
+                        <Badge variant={STATUS_BADGE[t.status]?.replace('badge-','')}>{STATUS_LABEL[t.status]}</Badge>
+                        <Badge variant={PRIORITY_BADGE[t.priority]?.replace('badge-','')}>{PRIORITY_LABEL[t.priority]}</Badge>
+                        {t.deadline && <span style={{ fontSize:11, color:'#B8AFA6' }}>due {t.deadline}</span>}
+                        {t.worker && <span style={{ fontSize:11, color:'#B8AFA6' }}>{t.worker.name}</span>}
+                      </div>
+                      {t.status === 'rejected' && t.reject_comment && (
+                        <div style={{ marginTop:6, fontSize:11, color:'#A32D2D', background:'#FCEBEB', padding:'4px 8px', borderRadius:6 }}>
+                          ↩ {t.reject_comment}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
-      </div>
-      <SectionTitle>Stage Photos</SectionTitle>
-      <div className="photo-grid">
-        {[{l:'Rebar',bg:'#FAECE4',c:'#A04B22'},{l:'Pouring',bg:'#E8F2EB',c:'#3D7A52'},{l:'Done',bg:'#FBF3DC',c:'#9A6E10'},{l:'Photo 4',bg:'#FAECE4',c:'#A04B22'}].map(ph=>(
-          <div className="photo-cell" key={ph.l} style={{ background:ph.bg, color:ph.c }}>{ph.l}</div>
-        ))}
-        <div className="photo-cell" style={{ border:'1px dashed #D4C8BE', color:'#B8AFA6' }}>+ photo</div>
       </div>
     </div>
   )
