@@ -145,16 +145,18 @@ export function Projects() {
       </div>
       <SectionTitle>Stages</SectionTitle>
       <div className="card" style={{ padding:0 }}>
-        {PROJECT_STAGES.map(s => (
-          <div className="stage-row" key={s.n}>
-            <div className={`stage-num ${s.cls}`}>{s.pct===100?'✓':s.n}</div>
-            <div style={{ flex:1, fontSize:13, fontWeight:500 }}>{s.name}</div>
-            <div style={{ flex:1, margin:'0 12px' }}>
-              <div className="progress-bar"><div className="progress-fill" style={{ width:`${s.pct}%` }} /></div>
-            </div>
-            <div style={{ fontSize:12, color:'#888', minWidth:32, textAlign:'right' }}>{s.pct}%</div>
-          </div>
-        ))}
+        {stages.map(s => (
+  <div className="stage-row" key={s.n}>
+    <div className={`stage-num ${s.cls}`}>{s.pct===100?'✓':s.n}</div>
+    <div style={{ flex:1, fontSize:13, fontWeight:500 }}>{s.name}</div>
+    <div style={{ flex:1, margin:'0 12px' }}>
+      <div className="progress-bar"><div className="progress-fill" style={{ width:`${s.pct}%` }} /></div>
+    </div>
+    <div style={{ fontSize:11, color:'#B8AFA6', minWidth:60, textAlign:'right' }}>
+      {s.total === 0 ? <span style={{ color:'#D4C8BE' }}>no tasks</span> : `${s.done}/${s.total}`}
+    </div>
+  </div>
+))}
       </div>
       <SectionTitle>Stage Photos</SectionTitle>
       <div className="photo-grid">
