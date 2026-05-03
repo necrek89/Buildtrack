@@ -210,9 +210,8 @@ export function Dashboard() {
     onConfirm={() => deleteProject(confirmId)}
     onCancel={() => setConfirmId(null)}
   />
-)}
-  )
-})}
+ )
+}
 // ─── PROJECTS ────────────────────────────────────────────────────────────────
 export function Projects() {
   const { projects, tasks, fetchProjects, fetchTasks } = useStore()
