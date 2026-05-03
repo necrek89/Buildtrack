@@ -4,7 +4,7 @@ import { Badge, Button, StatCard, ProgressBar, SectionTitle, EmptyState, IconBut
 import TaskModal from '../components/TaskModal'
 import ConfirmModal from '../components/ConfirmModal'
 import { supabase } from '../lib/supabase'
-
+ 
 const PROJECT_STAGES = []
 const STAGE_OPTIONS = ['Foundation','Electrical','Walls','Roofing','Finishing']
 
