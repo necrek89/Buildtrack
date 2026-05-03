@@ -124,6 +124,21 @@ export function Projects() {
     </div>
   )
 
+  const projectTasks = tasks.filter(t => t.project_id === proj.id)
+
+  const STAGE_LIST = ['Foundation','Electrical','Walls','Roofing','Finishing']
+
+  const stages = STAGE_LIST.map((name, i) => {
+    const stageTasks = projectTasks.filter(t => t.stage === name)
+    const done  = stageTasks.filter(t => t.status === 'approved').length
+    const total = stageTasks.length
+    const pct   = total === 0 ? 0 : Math.round((done / total) * 100)
+    let cls = ''
+    if (pct === 100) cls = 'done'
+    else if (pct > 0) cls = 'current'
+    return { n: i + 1, name, pct, cls, done, total }
+  })
+
   return (
     <div>
       <div className="page-header">
@@ -141,22 +156,26 @@ export function Projects() {
       <div className="stat-grid" style={{ gridTemplateColumns:'repeat(3,1fr)' }}>
         <StatCard label="Progress"     value={`${proj.progress||0}%`} />
         <StatCard label="Deadline"     value={proj.deadline||'Not set'} />
-        <StatCard label="Active tasks" value={tasks.filter(t=>t.project_id===proj.id&&t.status!=='approved').length} />
+        <StatCard label="Active tasks" value={projectTasks.filter(t=>t.status!=='approved').length} />
       </div>
       <SectionTitle>Stages</SectionTitle>
       <div className="card" style={{ padding:0 }}>
         {stages.map(s => (
-  <div className="stage-row" key={s.n}>
-    <div className={`stage-num ${s.cls}`}>{s.pct===100?'✓':s.n}</div>
-    <div style={{ flex:1, fontSize:13, fontWeight:500 }}>{s.name}</div>
-    <div style={{ flex:1, margin:'0 12px' }}>
-      <div className="progress-bar"><div className="progress-fill" style={{ width:`${s.pct}%` }} /></div>
-    </div>
-    <div style={{ fontSize:11, color:'#B8AFA6', minWidth:60, textAlign:'right' }}>
-      {s.total === 0 ? <span style={{ color:'#D4C8BE' }}>no tasks</span> : `${s.done}/${s.total}`}
-    </div>
-  </div>
-))}
+          <div className="stage-row" key={s.n}>
+            <div className={`stage-num ${s.cls}`}>{s.pct===100?'✓':s.n}</div>
+            <div style={{ flex:1, fontSize:13, fontWeight:500 }}>{s.name}</div>
+            <div style={{ flex:1, margin:'0 12px' }}>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width:`${s.pct}%` }} />
+              </div>
+            </div>
+            <div style={{ fontSize:11, color:'#B8AFA6', minWidth:60, textAlign:'right' }}>
+              {s.total === 0
+                ? <span style={{ color:'#D4C8BE' }}>no tasks</span>
+                : `${s.done}/${s.total}`}
+            </div>
+          </div>
+        ))}
       </div>
       <SectionTitle>Stage Photos</SectionTitle>
       <div className="photo-grid">
@@ -168,7 +187,6 @@ export function Projects() {
     </div>
   )
 }
-
 // ─── TASKS (foreman) ─────────────────────────────────────────────────────────
 export function Tasks() {
   const { tasks, fetchTasks, deleteTask, approveTask, rejectTask } = useStore()
