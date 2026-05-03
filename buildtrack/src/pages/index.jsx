@@ -153,14 +153,46 @@ export function Projects() {
         <h1 className="page-title">Projects</h1>
         <Badge variant="blue">{proj.stage}</Badge>
       </div>
-      {projects.length > 1 && (
-        <div className="filter-bar" style={{ marginBottom:16 }}>
-          {projects.map(p => (
-            <button key={p.id} className={`filter-btn ${proj.id===p.id?'active':''}`}
-              onClick={() => { setSelectedId(p.id); setOpenStages([]) }}>{p.name}</button>
-          ))}
+     <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
+  {projects.map(p => {
+    const pTasks  = tasks.filter(t => t.project_id === p.id)
+    const pDone   = pTasks.filter(t => t.status === 'approved').length
+    const pActive = pTasks.filter(t => t.status !== 'approved').length
+    const pPct    = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
+    const isActive = proj.id === p.id
+    return (
+      <div key={p.id}
+        onClick={() => { setSelectedId(p.id); setOpenStages([]) }}
+        style={{
+          background: isActive ? 'var(--accent-l, #FAECE4)' : '#fff',
+          border: isActive ? '1.5px solid #C96B3A' : '1.5px solid #EAE3D8',
+          borderRadius: 12,
+          padding: '10px 12px',
+          cursor: 'pointer',
+          boxShadow: isActive ? '0 4px 12px rgba(201,107,58,0.12)' : 'none',
+          transition: 'all .15s'
+        }}
+      >
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+          <div style={{ fontSize:13, fontWeight:700, color: isActive ? '#C96B3A' : '#2E2420' }}>
+            🏗 {p.name}
+          </div>
+          <div style={{ fontSize:11, fontWeight:700, color: isActive ? '#C96B3A' : '#B8AFA6', fontFamily:'monospace' }}>
+            {pPct}%
+          </div>
         </div>
-      )}
+        <div style={{ height:3, background:'#EAE3D8', borderRadius:3, overflow:'hidden', marginBottom:6 }}>
+          <div style={{ height:3, borderRadius:3, background: isActive ? '#C96B3A' : '#B8AFA6', width:`${pPct}%`, transition:'width .3s' }} />
+        </div>
+        <div style={{ display:'flex', gap:10 }}>
+          {p.deadline && <span style={{ fontSize:10, color:'#B8AFA6' }}>📅 {p.deadline}</span>}
+          <span style={{ fontSize:10, color:'#B8AFA6' }}>✅ {pDone}/{pTasks.length} tasks</span>
+          {pActive > 0 && <span style={{ fontSize:10, color:'#C96B3A' }}>⚡ {pActive} active</span>}
+        </div>
+      </div>
+    )
+  })}
+</div>
       <div className="stat-grid" style={{ gridTemplateColumns:'repeat(3,1fr)' }}>
         <StatCard label="Progress"     value={`${proj.progress||0}%`} />
         <StatCard label="Deadline"     value={proj.deadline||'Not set'} />
