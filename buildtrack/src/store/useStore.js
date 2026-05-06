@@ -1,6 +1,15 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 
+const INITIAL_MATERIALS = [
+  { id: 101, projectId: null, taskId: null, name: 'White wall sockets',     qty: 2,   unit: 'pcs', status: 'needed',    reportedBy: 'Miguel', note: 'Ran short during 2nd floor install', createdAt: '2026-05-05T14:32:00Z', purchasedAt: null },
+  { id: 102, projectId: null, taskId: null, name: 'PVC cable 3×2.5',        qty: 20,  unit: 'm',   status: 'needed',    reportedBy: 'Miguel', note: '',                                   createdAt: '2026-05-05T09:10:00Z', purchasedAt: null },
+  { id: 103, projectId: null, taskId: null, name: 'Drywall screws 35mm',    qty: 200, unit: 'pcs', status: 'purchased', reportedBy: 'Karim',  note: '',                                   createdAt: '2026-05-04T11:00:00Z', purchasedAt: '2026-05-04T18:20:00Z' },
+  { id: 104, projectId: null, taskId: null, name: 'Wago connectors 3-port', qty: 30,  unit: 'pcs', status: 'needed',    reportedBy: 'Miguel', note: 'For junction boxes',                 createdAt: '2026-05-06T08:15:00Z', purchasedAt: null },
+]
+
+export const MATERIAL_UNITS = ['pcs', 'm', 'm²', 'm³', 'kg', 'l', 'pack', 'roll']
+
 export const useStore = create((set, get) => ({
   user: null,
   profile: null,
@@ -10,7 +19,11 @@ export const useStore = create((set, get) => ({
   projects: [],
   team: [],
   notifications: [],
+  joinRequests: [],
+  materials: [...INITIAL_MATERIALS],
   loading: false,
+  selectedProjectId: null,
+  setSelectedProject: (id) => set({ selectedProjectId: id }),
 
   // ── AUTH ──────────────────────────────────────────────────
   signIn: async (email, password) => {
@@ -30,13 +43,18 @@ export const useStore = create((set, get) => ({
       options: { data: { name, role } }
     })
     if (error) { set({ loading: false }); return { error } }
+    // Генерируем invite_code для прораба
+    if (role === 'foreman' && data.user) {
+      const code = Math.random().toString(36).substring(2, 10)
+      await supabase.from('profiles').update({ invite_code: code }).eq('id', data.user.id)
+    }
     set({ loading: false })
     return { error: null }
   },
 
   signOut: async () => {
     await supabase.auth.signOut()
-    set({ user: null, profile: null, role: null, tasks: [], projects: [], tools: [], team: [] })
+    set({ user: null, profile: null, role: null, tasks: [], projects: [], tools: [], team: [], joinRequests: [] })
   },
 
   checkSession: async () => {
@@ -44,7 +62,21 @@ export const useStore = create((set, get) => ({
     if (!session) return
     const { data: profile } = await supabase
       .from('profiles').select('*').eq('id', session.user.id).single()
+    // Если прораб без invite_code — генерируем
+    if (profile?.role === 'foreman' && !profile?.invite_code) {
+      const code = Math.random().toString(36).substring(2, 10)
+      await supabase.from('profiles').update({ invite_code: code }).eq('id', session.user.id)
+      profile.invite_code = code
+    }
     set({ user: session.user, profile, role: profile?.role })
+  },
+
+  fetchProfile: async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    const { data: profile } = await supabase
+      .from('profiles').select('*').eq('id', session.user.id).single()
+    set({ profile })
   },
 
   // ── PROJECTS ──────────────────────────────────────────────
@@ -53,10 +85,16 @@ export const useStore = create((set, get) => ({
     set({ projects: data || [] })
   },
 
+  updateProject: async (id, updates) => {
+    const { error } = await supabase.from('projects').update(updates).eq('id', id)
+    if (!error) set(s => ({ projects: s.projects.map(p => p.id === id ? { ...p, ...updates } : p) }))
+    return { error }
+  },
+
   // ── TASKS ─────────────────────────────────────────────────
   fetchTasks: async (projectId) => {
     let query = supabase.from('tasks').select(`
-      id, text, status, priority, stage, deadline, 
+      id, text, description, status, priority, stage, deadline,
       photo_url, reject_comment, worker_id, project_id,
       worker:profiles(id, name)
     `)
@@ -82,32 +120,40 @@ export const useStore = create((set, get) => ({
     if (!error) set(s => ({ tasks: s.tasks.filter(t => t.id !== id) }))
   },
 
-  // Рабочий отправляет на проверку
-  submitTask: async (id) => {
-    return get().updateTask(id, { status: 'pending' })
-  },
-
-  // Прораб подтверждает
-  approveTask: async (id) => {
-    return get().updateTask(id, { status: 'approved' })
-  },
-
-  // Прораб возвращает на доработку
-  rejectTask: async (id, comment) => {
-    return get().updateTask(id, { status: 'rejected', reject_comment: comment })
-  },
+  submitTask: async (id) => get().updateTask(id, { status: 'pending' }),
+  approveTask: async (id) => get().updateTask(id, { status: 'approved' }),
+  rejectTask:  async (id, comment) => get().updateTask(id, { status: 'rejected', reject_comment: comment }),
 
   // ── TOOLS ─────────────────────────────────────────────────
   fetchTools: async (projectId) => {
+    const { profile } = get()
     let query = supabase.from('tools').select('*')
     if (projectId) query = query.eq('project_id', projectId)
+    else if (profile?.role === 'foreman') query = query.eq('foreman_id', profile.id)
     const { data } = await query
     set({ tools: data || [] })
   },
 
   addTool: async (tool) => {
-    const { data, error } = await supabase.from('tools').insert(tool).select().single()
+    const { profile } = get()
+    const payload = { name: tool.name, status: tool.status || 'active', foreman_id: profile?.id }
+    if (tool.location)   payload.location   = tool.location
+    if (tool.project_id) payload.project_id = tool.project_id
+    if (tool.worker_id)  payload.worker_id  = tool.worker_id
+    const { data, error } = await supabase.from('tools').insert(payload).select().single()
     if (!error) set(s => ({ tools: [data, ...s.tools] }))
+    return { error }
+  },
+
+  updateTool: async (id, updates) => {
+    const { data, error } = await supabase.from('tools').update(updates).eq('id', id).select().single()
+    if (!error) set(s => ({ tools: s.tools.map(t => t.id === id ? data : t) }))
+    return { error }
+  },
+
+  deleteTool: async (id) => {
+    const { error } = await supabase.from('tools').delete().eq('id', id)
+    if (!error) set(s => ({ tools: s.tools.filter(t => t.id !== id) }))
     return { error }
   },
 
@@ -115,7 +161,7 @@ export const useStore = create((set, get) => ({
   fetchTeam: async (projectId) => {
     const { data } = await supabase
       .from('project_workers')
-      .select('worker:profiles(id, name, role)')
+      .select('worker:profiles(id, name, role, worker_status)')
       .eq('project_id', projectId)
     set({ team: data?.map(d => d.worker) || [] })
   },
@@ -123,11 +169,147 @@ export const useStore = create((set, get) => ({
   fetchWorkers: async (projectId) => {
     const { data } = await supabase
       .from('project_workers')
-      .select('worker:profiles(id, name, role)')
+      .select('worker:profiles(id, name, role, worker_status)')
       .eq('project_id', projectId)
     const workers = data?.map(d => d.worker) || []
     set({ team: workers })
     return workers
+  },
+
+  // Fetch all unique workers across all foreman's projects, with project membership
+  fetchAllWorkers: async () => {
+    const { projects } = get()
+    if (!projects.length) return []
+    const { data } = await supabase
+      .from('project_workers')
+      .select('worker:profiles(id, name, role, worker_status), project_id')
+      .in('project_id', projects.map(p => p.id))
+    // Deduplicate workers, collect project_ids per worker
+    const map = {}
+    for (const row of data || []) {
+      const w = row.worker
+      if (!w) continue
+      if (!map[w.id]) map[w.id] = { ...w, project_ids: [] }
+      map[w.id].project_ids.push(row.project_id)
+    }
+    const workers = Object.values(map)
+    set({ team: workers })
+    return workers
+  },
+
+  updateWorkerStatus: async (workerId, status) => {
+    await supabase.from('profiles').update({ worker_status: status }).eq('id', workerId)
+    set(s => ({ team: s.team.map(m => m.id === workerId ? { ...m, worker_status: status } : m) }))
+  },
+
+  // ── JOIN REQUESTS ─────────────────────────────────────────
+  // Рабочий отправляет заявку прорабу по invite_code
+  sendJoinRequest: async (inviteCode) => {
+    const { profile } = get()
+    // Найти прораба по коду
+    const { data: foreman, error: fErr } = await supabase
+      .from('profiles')
+      .select('id, name, role')
+      .eq('invite_code', inviteCode.trim().toLowerCase())
+      .single()
+    if (fErr || !foreman) return { error: 'Foreman not found. Check the code.' }
+    if (foreman.role !== 'foreman') return { error: 'This code does not belong to a foreman.' }
+    if (foreman.id === profile.id) return { error: 'You cannot join yourself.' }
+    // Создать заявку
+    const { error } = await supabase.from('join_requests').insert({
+      foreman_id: foreman.id,
+      worker_id: profile.id,
+    })
+    if (error) {
+      if (error.code === '23505') return { error: 'Request already sent.' }
+      return { error: error.message }
+    }
+    return { error: null, foremanName: foreman.name }
+  },
+
+  // Прораб получает список заявок
+  fetchJoinRequests: async () => {
+    const { profile } = get()
+    const { data } = await supabase
+      .from('join_requests')
+      .select(`
+        id, status, created_at,
+        worker:profiles!join_requests_worker_id_fkey(id, name, email, role)
+      `)
+      .eq('foreman_id', profile.id)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+    set({ joinRequests: data || [] })
+  },
+
+  // Прораб одобряет заявку
+  approveJoinRequest: async (requestId, workerId) => {
+    const { projects } = get()
+    // Добавляем рабочего во все проекты прораба
+    const inserts = projects.map(p => ({ project_id: p.id, worker_id: workerId }))
+    await supabase.from('project_workers').insert(inserts)
+    // Обновляем статус заявки
+    await supabase.from('join_requests').update({ status: 'approved' }).eq('id', requestId)
+    set(s => ({ joinRequests: s.joinRequests.filter(r => r.id !== requestId) }))
+  },
+
+  // Прораб отклоняет заявку
+  rejectJoinRequest: async (requestId) => {
+    await supabase.from('join_requests').update({ status: 'rejected' }).eq('id', requestId)
+    set(s => ({ joinRequests: s.joinRequests.filter(r => r.id !== requestId) }))
+  },
+
+  // ── MATERIALS ────────────────────────────────────────────
+  addMaterial: (material) => {
+    const { materials, notifications, profile } = get()
+    const nextId = Math.max(0, ...materials.map(m => m.id)) + 1
+    const entry = {
+      ...material,
+      id: nextId,
+      status: 'needed',
+      createdAt: new Date().toISOString(),
+      purchasedAt: null,
+    }
+    set({ materials: [...materials, entry] })
+    // Push notification so foreman sees it
+    set(s => ({
+      notifications: [{
+        id: Date.now(),
+        text: `${material.reportedBy} needs ${material.qty} ${material.unit} — ${material.name}`,
+        read: false,
+        created_at: new Date().toISOString(),
+        type: 'material_shortage',
+      }, ...s.notifications]
+    }))
+  },
+
+  markMaterialPurchased: (id) => set(s => ({
+    materials: s.materials.map(m =>
+      m.id === id ? { ...m, status: 'purchased', purchasedAt: new Date().toISOString() } : m
+    )
+  })),
+
+  markMaterialNeeded: (id) => set(s => ({
+    materials: s.materials.map(m =>
+      m.id === id ? { ...m, status: 'needed', purchasedAt: null } : m
+    )
+  })),
+
+  deleteMaterial: (id) => set(s => ({
+    materials: s.materials.filter(m => m.id !== id)
+  })),
+
+  getProjectMaterials: (projectId) => get().materials.filter(m => m.projectId === projectId),
+  getTaskMaterials:    (taskId)     => get().materials.filter(m => m.taskId    === taskId),
+  getOpenShortages:    ()           => get().materials.filter(m => m.status === 'needed'),
+
+  // ── NOTIFICATIONS ─────────────────────────────────────────
+  fetchNotifications: async () => {
+    const { data } = await supabase
+      .from('notifications')
+      .select('*')
+      .order('created_at', { ascending: false })
+    set({ notifications: data || [] })
   },
 
   markNotifRead: async (id) => {
@@ -135,6 +317,7 @@ export const useStore = create((set, get) => ({
     set(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, read: true } : n) }))
   },
 }))
+
 export const STAGES = ['Foundation', 'Electrical', 'Walls', 'Roofing', 'Finishing']
 export const PRIORITY_OPTIONS = [
   { value: 'high',   label: 'High'   },
