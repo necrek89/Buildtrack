@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useStore } from './store/useStore'
+import { useT } from './i18n/useLanguage'
+import LanguagePicker from './components/LanguagePicker'
 import LoginPage from './pages/LoginPage'
 import AccountPage from './pages/AccountPage'
 import {
@@ -34,31 +36,31 @@ function TabIcon({ name, size = 22 }) {
 // ── Nav icons for sidebar (slightly smaller) ──────────────────────────────────
 function NavIcon({ name }) { return <TabIcon name={name} size={18} /> }
 
+// labelKey maps to translations.nav.*
 const NAV = {
   foreman: [
-    { id: 'projects',      icon: 'projects',      label: 'Projects'      },
-    { id: 'materials',     icon: 'materials',     label: 'Materials'     },
-    { id: 'tools',         icon: 'tools',         label: 'Tools'         },
-    { id: 'team',          icon: 'team',          label: 'Team'          },
-    { id: 'notifications', icon: 'notifications', label: 'Alerts'        },
+    { id: 'projects',      icon: 'projects',      labelKey: 'projects'      },
+    { id: 'materials',     icon: 'materials',     labelKey: 'materials'     },
+    { id: 'tools',         icon: 'tools',         labelKey: 'tools'         },
+    { id: 'team',          icon: 'team',          labelKey: 'team'          },
+    { id: 'notifications', icon: 'notifications', labelKey: 'alerts'        },
   ],
   worker: [
-    { id: 'my-tasks',      icon: 'tasks',         label: 'My Tasks'      },
-    { id: 'tools',         icon: 'tools',         label: 'Tools'         },
-    { id: 'notifications', icon: 'notifications', label: 'Alerts'        },
-    { id: 'account',       icon: 'account',       label: 'Account'       },
+    { id: 'my-tasks',      icon: 'tasks',         labelKey: 'myTasks'       },
+    { id: 'tools',         icon: 'tools',         labelKey: 'tools'         },
+    { id: 'notifications', icon: 'notifications', labelKey: 'alerts'        },
+    { id: 'account',       icon: 'account',       labelKey: 'account'       },
   ],
   client: [
-    { id: 'dashboard',     icon: 'projects',      label: 'My Project'    },
-    { id: 'progress',      icon: 'tasks',         label: 'Progress'      },
-    { id: 'photos',        icon: 'materials',     label: 'Photos'        },
-    { id: 'notifications', icon: 'notifications', label: 'Alerts'        },
-    { id: 'account',       icon: 'account',       label: 'Account'       },
+    { id: 'dashboard',     icon: 'projects',      labelKey: 'myProject'     },
+    { id: 'progress',      icon: 'tasks',         labelKey: 'progress'      },
+    { id: 'photos',        icon: 'materials',     labelKey: 'photos'        },
+    { id: 'notifications', icon: 'notifications', labelKey: 'alerts'        },
+    { id: 'account',       icon: 'account',       labelKey: 'account'       },
   ],
 }
 
 const DEFAULT_PAGE = { foreman: 'projects', worker: 'my-tasks', client: 'dashboard' }
-const ROLE_LABEL   = { foreman: 'Foreman', worker: 'Worker', client: 'Client' }
 
 function PageContent({ role, page, onNavigate }) {
   if (page === 'account') return <AccountPage />
@@ -85,6 +87,7 @@ function PageContent({ role, page, onNavigate }) {
 
 export default function App() {
   const { role, profile, checkSession, signOut, setSelectedProject } = useStore()
+  const { t } = useT()
   const [page, setPage]               = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [authed, setAuthed]           = useState(false)
@@ -126,7 +129,10 @@ export default function App() {
 
   if (!authed) return <LoginPage onLogin={handleLogin} />
 
-  const navItems = NAV[role] || NAV.worker
+  const navItems = (NAV[role] || NAV.worker).map(item => ({
+    ...item,
+    label: t(`nav.${item.labelKey}`),
+  }))
   const tabItems = navItems.slice(0, 4)
 
   const avatarStyle = {
@@ -180,7 +186,7 @@ export default function App() {
             </div>
             <div>
               <div className="sidebar-user-name">{profile?.name}</div>
-              <div className="sidebar-user-role">{ROLE_LABEL[role]}</div>
+              <div className="sidebar-user-role">{t(`roles.${role}`)}</div>
             </div>
           </div>
 
@@ -195,6 +201,11 @@ export default function App() {
             </div>
           ))}
 
+          {/* Language picker in sidebar */}
+          <div style={{ padding: '8px 16px', borderTop: '1px solid #EAE3D8', marginTop: 4 }}>
+            <LanguagePicker />
+          </div>
+
           <div className="nav-signout">
             <div className="nav-item" style={{ color:'#A32D2D' }} onClick={handleSignOut}>
               <span className="nav-icon">
@@ -202,7 +213,7 @@ export default function App() {
                   <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
                 </svg>
               </span>
-              <span>Sign Out</span>
+              <span>{t('nav.signOut')}</span>
             </div>
           </div>
         </nav>

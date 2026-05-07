@@ -1,3 +1,5 @@
+import { useT } from '../i18n/useLanguage'
+
 function timeAgo(dateStr) {
   if (!dateStr) return ''
   const d    = new Date(dateStr)
@@ -18,11 +20,13 @@ export default function MaterialList({
   role,
   profile,
 }) {
+  const { t } = useT()
+
   if (materials.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '28px 0', color: '#B8AFA6' }}>
         <div style={{ fontSize: 30, marginBottom: 6 }}>📦</div>
-        <div style={{ fontSize: 12 }}>No materials yet</div>
+        <div style={{ fontSize: 12 }}>{t('materials.none')}</div>
       </div>
     )
   }
@@ -40,7 +44,7 @@ export default function MaterialList({
             {/* Checkbox */}
             <div
               onClick={() => canCheck && onTogglePurchased(m.id)}
-              title={canCheck ? (isPurchased ? 'Mark as needed again' : 'Mark as purchased') : undefined}
+              title={canCheck ? (isPurchased ? t('materials.filterOpen', { n: '' }).trim() : t('materials.filterPurchased')) : undefined}
               style={{
                 width: 18, height: 18, borderRadius: 4, flexShrink: 0, marginTop: 2,
                 border: `2px solid ${isPurchased ? '#5A9467' : '#C96B3A'}`,
@@ -66,7 +70,7 @@ export default function MaterialList({
                 </span>
               </div>
 
-              {/* Project chip — показывается только если передан showProject */}
+              {/* Project chip */}
               {projName && (
                 <div style={{ marginTop: 4, marginBottom: 2 }}>
                   <span style={{
@@ -84,7 +88,7 @@ export default function MaterialList({
                 {m.reportedBy}
                 {m.stage && <> · {m.stage}</>}
                 {isPurchased
-                  ? <> · <span style={{ color: '#5A9467', fontWeight: 600 }}>purchased {timeAgo(m.purchasedAt)}</span></>
+                  ? <> · <span style={{ color: '#5A9467', fontWeight: 600 }}>{t('materials.purchased', { time: timeAgo(m.purchasedAt) })}</span></>
                   : <> · {timeAgo(m.createdAt)}</>
                 }
               </div>
@@ -98,7 +102,7 @@ export default function MaterialList({
             {canDelete && onDelete && (
               <button
                 onClick={() => onDelete(m.id)}
-                title="Remove"
+                title={t('common.remove')}
                 style={{
                   background: 'none', border: 'none', color: '#C8B8B0',
                   cursor: 'pointer', fontSize: 14, padding: '0 2px', flexShrink: 0,

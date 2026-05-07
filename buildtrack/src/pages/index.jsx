@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useStore, PRIORITY_BADGE, PRIORITY_LABEL, TOOL_STATUS_BADGE, TOOL_STATUS_LABEL, STATUS_LABEL, STATUS_BADGE, STAGES, PRIORITY_OPTIONS } from '../store/useStore'
 import { Badge, Button, StatCard, ProgressBar, SectionTitle, EmptyState, IconButton, FormGroup } from '../components/UI'
+import { useT } from '../i18n/useLanguage'
 import TaskModal from '../components/TaskModal'
 import ConfirmModal from '../components/ConfirmModal'
 import MaterialModal from '../components/MaterialModal'
@@ -97,6 +98,7 @@ function TaskMedia({ urls }) {
 
 // ─── TASK MATERIAL SECTION (shown inside an expanded task card) ──────────────
 function TaskMaterialSection({ task }) {
+  const { t } = useT()
   const { materials, role, profile, projects,
           markMaterialPurchased, markMaterialNeeded, deleteMaterial } = useStore()
   const [showModal, setShowModal] = useState(false)
@@ -121,10 +123,10 @@ function TaskMaterialSection({ task }) {
       <div style={{ height:1, background:'#EAE3D8', margin:'10px 0 8px' }} />
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', display:'flex', alignItems:'center', gap:6 }}>
-          📦 Materials
+          📦 {t('materials.title')}
           {openCount > 0 && (
             <span style={{ background:'#FCEBEB', color:'#A32D2D', fontSize:10, fontWeight:700, padding:'1px 6px', borderRadius:8 }}>
-              {openCount} needed
+              {t('materials.needed', { n: openCount })}
             </span>
           )}
         </div>
@@ -132,7 +134,7 @@ function TaskMaterialSection({ task }) {
           onClick={e => { e.stopPropagation(); setShowModal(true) }}
           style={{ fontSize:11, fontWeight:600, color:'#C96B3A', background:'#FAECE4', border:'none', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
         >
-          + Report shortage
+          {t('materials.reportShortage')}
         </button>
       </div>
 
@@ -160,6 +162,7 @@ function TaskMaterialSection({ task }) {
 
 // ─── TASK ACCORDION CARD ─────────────────────────────────────────────────────
 function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApprove, onReject, showProject, projects }) {
+  const { t: tr } = useT()
   const isOpen = openId === t.id
   const projName = showProject && projects ? projects.find(p => p.id === t.project_id)?.name : null
   return (
@@ -194,7 +197,7 @@ function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApprove, onReject,
         <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 13px', background:'#FDFBF8' }}>
           {t.description
             ? <div style={{ fontSize:13, color:'#2E2420', lineHeight:1.65, whiteSpace:'pre-wrap', marginBottom:10 }}>{t.description}</div>
-            : <div style={{ fontSize:12, color:'#B8AFA6', marginBottom:10 }}>No description</div>
+            : <div style={{ fontSize:12, color:'#B8AFA6', marginBottom:10 }}>{tr('tasks.noDesc')}</div>
           }
           <TaskMedia urls={t.photo_url} />
           {t.status === 'rejected' && t.reject_comment && (
@@ -202,8 +205,8 @@ function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApprove, onReject,
           )}
           {t.status === 'pending' && onApprove && (
             <div style={{ marginTop:12, display:'flex', gap:8 }}>
-              <Button size="sm" variant="primary" onClick={() => onApprove(t.id)}>✓ Approve</Button>
-              <Button size="sm" variant="danger"  onClick={() => onReject(t.id)}>✕ Reject</Button>
+              <Button size="sm" variant="primary" onClick={() => onApprove(t.id)}>{tr('tasks.approve')}</Button>
+              <Button size="sm" variant="danger"  onClick={() => onReject(t.id)}>{tr('tasks.reject')}</Button>
             </div>
           )}
           <TaskMaterialSection task={t} />
@@ -236,6 +239,7 @@ function StatusSection({ icon, label, color, bg, tasks, openId, setOpenId, onEdi
 
 // ─── OVERVIEW TAB ────────────────────────────────────────────────────────────
 function OverviewTab({ proj, tasks, tools, onEdit }) {
+  const { t } = useT()
   const pTasks  = tasks.filter(t => t.project_id === proj.id)
   const pDone   = pTasks.filter(t => t.status === 'approved').length
   const pActive = pTasks.filter(t => t.status !== 'approved').length
@@ -248,9 +252,9 @@ function OverviewTab({ proj, tasks, tools, onEdit }) {
       {/* Stats */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8, marginBottom:14 }}>
         {[
-          { v: pPct+'%',  l: 'Progress', c: '#C96B3A' },
-          { v: pActive,   l: 'Active',   c: pActive > 0 ? '#C96B3A' : '#2E2420' },
-          { v: daysLeft !== null ? daysLeft+'d' : '—', l: 'Days left', c: daysLeft !== null && daysLeft < 7 ? '#A32D2D' : '#2E2420' },
+          { v: pPct+'%',  l: t('detail.progress'), c: '#C96B3A' },
+          { v: pActive,   l: t('detail.active'),   c: pActive > 0 ? '#C96B3A' : '#2E2420' },
+          { v: daysLeft !== null ? daysLeft+'d' : '—', l: t('detail.daysLeft'), c: daysLeft !== null && daysLeft < 7 ? '#A32D2D' : '#2E2420' },
         ].map(s => (
           <div key={s.l} style={{ background:'#F2EDE4', borderRadius:10, padding:'10px 8px', textAlign:'center' }}>
             <div style={{ fontSize:18, fontWeight:700, color:s.c }}>{s.v}</div>
@@ -275,8 +279,8 @@ function OverviewTab({ proj, tasks, tools, onEdit }) {
           )}
           {proj.deadline && (
             <div style={{ fontSize:11, color:'#B8AFA6' }}>
-              📅 Deadline: {proj.deadline}
-              {daysLeft !== null && <span style={{ color: daysLeft < 7 ? '#A32D2D' : '#C96B3A', fontWeight:600, marginLeft:6 }}>· {daysLeft} days left</span>}
+              📅 {t('detail.deadlineLabel')} {proj.deadline}
+              {daysLeft !== null && <span style={{ color: daysLeft < 7 ? '#A32D2D' : '#C96B3A', fontWeight:600, marginLeft:6 }}>· {t('detail.daysLeftText', { n: daysLeft })}</span>}
             </div>
           )}
         </div>
@@ -284,13 +288,13 @@ function OverviewTab({ proj, tasks, tools, onEdit }) {
 
       {/* Edit button */}
       {onEdit && (
-        <Button size="sm" onClick={() => onEdit(proj)} style={{ marginBottom:14 }}>✏️ Edit Project</Button>
+        <Button size="sm" onClick={() => onEdit(proj)} style={{ marginBottom:14 }}>✏️ {t('detail.editProject')}</Button>
       )}
 
       {/* Active tasks preview */}
-      <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:8 }}>⚡ Active Tasks</div>
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:8 }}>⚡ {t('detail.activeTasks')}</div>
       {pTasks.filter(t => t.status !== 'approved').length === 0
-        ? <div style={{ fontSize:12, color:'#B8AFA6', marginBottom:14 }}>No active tasks</div>
+        ? <div style={{ fontSize:12, color:'#B8AFA6', marginBottom:14 }}>{t('detail.noActiveTasks')}</div>
         : pTasks.filter(t => t.status !== 'approved').slice(0,4).map(t => (
           <div key={t.id} style={{ display:'flex', alignItems:'center', gap:7, marginBottom:6 }}>
             <div style={{ width:5, height:5, borderRadius:'50%', background: t.status==='pending'?'#D4A843':'#C96B3A', flexShrink:0 }} />
@@ -304,9 +308,9 @@ function OverviewTab({ proj, tasks, tools, onEdit }) {
 
       {/* Tools on site */}
       <div style={{ height:1, background:'#EAE3D8', margin:'12px 0 10px' }} />
-      <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:8 }}>🔧 Tools on Site</div>
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:8 }}>🔧 {t('detail.toolsOnSite')}</div>
       {projTools.length === 0
-        ? <div style={{ fontSize:12, color:'#B8AFA6' }}>No tools assigned</div>
+        ? <div style={{ fontSize:12, color:'#B8AFA6' }}>{t('detail.noTools')}</div>
         : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
             {projTools.map(t => (
               <div key={t.id} style={{ background:'#F2EDE4', borderRadius:6, padding:'3px 9px', fontSize:10, color:'#7A6E66' }}>{t.name}</div>
@@ -319,6 +323,7 @@ function OverviewTab({ proj, tasks, tools, onEdit }) {
 
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
 function ProjectTasksTab({ proj }) {
+  const { t } = useT()
   const { tasks, fetchTasks, deleteTask, approveTask, rejectTask } = useStore()
   const [filter,   setFilter]   = useState('all')
   const [showAdd,  setShowAdd]  = useState(false)
@@ -345,23 +350,23 @@ function ProjectTasksTab({ proj }) {
           {['all','active','pending','done'].map(f => (
             <button key={f} className={`filter-btn ${filter===f?'active':''}`} onClick={() => setFilter(f)}
               style={{ fontSize:11, padding:'4px 10px' }}>
-              {f === 'all'     ? `All (${pTasks.length})` :
-               f === 'active'  ? 'Active' :
-               f === 'pending' ? `Review (${pTasks.filter(t=>t.status==='pending').length})` : 'Done'}
+              {f === 'all'     ? `${t('tasks.filterAll')} (${pTasks.length})` :
+               f === 'active'  ? t('tasks.filterActive') :
+               f === 'pending' ? `${t('tasks.filterReview')} (${pTasks.filter(t=>t.status==='pending').length})` : t('tasks.filterDone')}
             </button>
           ))}
         </div>
-        <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>+ Task</Button>
+        <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('tasks.add')}</Button>
       </div>
 
-      {filtered.length === 0 && <EmptyState>No tasks</EmptyState>}
+      {filtered.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
 
       <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
-        <StatusSection icon="⚡" label="Active"    color="#C96B3A" bg="#FAECE4" tasks={active}  openId={openId} setOpenId={setOpenId}
+        <StatusSection icon="⚡" label={t('tasks.filterActive')}    color="#C96B3A" bg="#FAECE4" tasks={active}  openId={openId} setOpenId={setOpenId}
           onEdit={setEditTask} onDelete={setDeleteId} />
-        <StatusSection icon="🕐" label="In Review" color="#9A6E10" bg="#FBF3DC" tasks={pending} openId={openId} setOpenId={setOpenId}
+        <StatusSection icon="🕐" label={t('tasks.filterReview')} color="#9A6E10" bg="#FBF3DC" tasks={pending} openId={openId} setOpenId={setOpenId}
           onEdit={setEditTask} onDelete={setDeleteId} onApprove={approveTask} onReject={(id) => rejectTask(id, 'Needs revision')} />
-        <StatusSection icon="✅" label="Done"      color="#3D7A52" bg="#E8F2EB" tasks={done}    openId={openId} setOpenId={setOpenId}
+        <StatusSection icon="✅" label={t('tasks.filterDone')}      color="#3D7A52" bg="#E8F2EB" tasks={done}    openId={openId} setOpenId={setOpenId}
           onEdit={setEditTask} onDelete={setDeleteId} />
       </div>
 
@@ -369,7 +374,7 @@ function ProjectTasksTab({ proj }) {
         <TaskModal task={editTask} defaultProjectId={proj.id} onClose={() => { setShowAdd(false); setEditTask(null); fetchTasks(proj.id) }} />
       )}
       {deleteId && (
-        <ConfirmModal icon="🗑️" title="Delete task?" sub={tasks.find(t => t.id === deleteId)?.text}
+        <ConfirmModal icon="🗑️" title={t('tasks.deleteTitle')} sub={tasks.find(t => t.id === deleteId)?.text}
           onConfirm={() => { deleteTask(deleteId); setDeleteId(null) }}
           onCancel={() => setDeleteId(null)} />
       )}
@@ -379,6 +384,7 @@ function ProjectTasksTab({ proj }) {
 
 // ─── MATERIALS TAB ───────────────────────────────────────────────────────────
 function MaterialsTab({ proj }) {
+  const { t } = useT()
   const { materials, role, profile, projects,
           markMaterialPurchased, markMaterialNeeded, deleteMaterial } = useStore()
   const [filter,    setFilter]    = useState('open')
@@ -412,27 +418,27 @@ function MaterialsTab({ proj }) {
     <div style={{ paddingBottom: 24 }}>
       {/* Header */}
       <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>
-        <Button variant="primary" size="sm" onClick={() => setShowModal(true)}>+ Report shortage</Button>
+        <Button variant="primary" size="sm" onClick={() => setShowModal(true)}>{t('materials.reportShortage')}</Button>
       </div>
 
       {/* Stat mini-cards */}
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:12 }}>
         <div style={{ background:'#FCEBEB', border:'1px solid #F0AAAA', borderRadius:10, padding:'10px 12px', textAlign:'center' }}>
           <div style={{ fontSize:20, fontWeight:700, color:'#A32D2D' }}>{openCount}</div>
-          <div style={{ fontSize:10, color:'#B8AFA6', marginTop:2 }}>Open shortages</div>
+          <div style={{ fontSize:10, color:'#B8AFA6', marginTop:2 }}>{t('materials.statOpen')}</div>
         </div>
         <div style={{ background:'#E8F2EB', border:'1px solid #A8D4B4', borderRadius:10, padding:'10px 12px', textAlign:'center' }}>
           <div style={{ fontSize:20, fontWeight:700, color:'#3D7A52' }}>{purchasedWeek}</div>
-          <div style={{ fontSize:10, color:'#B8AFA6', marginTop:2 }}>Purchased this week</div>
+          <div style={{ fontSize:10, color:'#B8AFA6', marginTop:2 }}>{t('materials.statWeek')}</div>
         </div>
       </div>
 
       {/* Filter chips */}
       <div className="filter-bar" style={{ marginBottom:10 }}>
         {[
-          { k:'all',       l:`All (${projMaterials.length})` },
-          { k:'open',      l:`Open (${openCount})` },
-          { k:'purchased', l:'Purchased' },
+          { k:'all',       l:t('materials.filterAll', { n: projMaterials.length }) },
+          { k:'open',      l:t('materials.filterOpen', { n: openCount }) },
+          { k:'purchased', l:t('materials.filterPurchased') },
         ].map(({ k, l }) => (
           <button key={k} className={`filter-btn ${filter===k?'active':''}`}
             onClick={() => setFilter(k)} style={{ fontSize:11, padding:'4px 10px' }}>
@@ -465,6 +471,7 @@ function MaterialsTab({ proj }) {
 
 // ─── STAGES TAB ──────────────────────────────────────────────────────────────
 function StagesTab({ proj }) {
+  const { t } = useT()
   const { tasks } = useStore()
   const [openStages, setOpenStages] = useState([])
 
@@ -496,7 +503,7 @@ function StagesTab({ proj }) {
               <div className={`tl-card ${s.cls || 'future'}`}>
                 <div className="tl-card-header" onClick={() => setOpenStages(prev => prev.includes(s.name) ? prev.filter(x => x !== s.name) : [...prev, s.name])}>
                   <div className="tl-card-name">{s.name}</div>
-                  {s.inWork > 0 && <div className="tl-inwork">{s.inWork} in work</div>}
+                  {s.inWork > 0 && <div className="tl-inwork">{t('tasks.inWork', { n: s.inWork })}</div>}
                   <div className="tl-bar-bg"><div className="tl-bar" style={{ width:`${s.pct}%`, background:barColor }} /></div>
                   <div className="tl-pct" style={{ color:pctColor }}>{s.pct}%</div>
                   <div className="tl-count">{s.total===0 ? '—' : `${s.done}/${s.total}`}</div>
@@ -505,13 +512,13 @@ function StagesTab({ proj }) {
                 {isOpen && (
                   <div className="tl-card-body">
                     {s.tasks.length === 0
-                      ? <div className="tl-empty">No tasks for this stage</div>
-                      : s.tasks.map(t => (
-                        <div key={t.id} className="tl-task">
-                          <div className="tl-task-dot" style={{ background: STATUS_DOT[t.status] || '#B8AFA6' }} />
-                          <div className="tl-task-name">{t.text}</div>
-                          <Badge variant={STATUS_BADGE[t.status]?.replace('badge-','')}>{STATUS_LABEL[t.status]}</Badge>
-                          {t.deadline && <div className="tl-task-due">due {t.deadline}</div>}
+                      ? <div className="tl-empty">{t('tasks.noTasksStage')}</div>
+                      : s.tasks.map(tk => (
+                        <div key={tk.id} className="tl-task">
+                          <div className="tl-task-dot" style={{ background: STATUS_DOT[tk.status] || '#B8AFA6' }} />
+                          <div className="tl-task-name">{tk.text}</div>
+                          <Badge variant={STATUS_BADGE[tk.status]?.replace('badge-','')}>{STATUS_LABEL[tk.status]}</Badge>
+                          {tk.deadline && <div className="tl-task-due">{t('tasks.due', { date: tk.deadline })}</div>}
                         </div>
                       ))
                     }
@@ -560,12 +567,13 @@ function PhotosTab({ proj }) {
 
 // ─── PROJECT TEAM TAB ────────────────────────────────────────────────────────
 function ProjectTeamTab({ proj }) {
+  const { t } = useT()
   const { team, fetchTeam } = useStore()
   useEffect(() => { fetchTeam(proj.id) }, [proj.id])
   return (
     <div style={{ paddingBottom:24 }}>
       <div className="card" style={{ padding:0 }}>
-        {team.length === 0 && <EmptyState>No team members on this project</EmptyState>}
+        {team.length === 0 && <EmptyState>{t('detail.noTeam')}</EmptyState>}
         {team.map(m => (
           <div className="member-row" key={m.id}>
             <div className="member-avatar">{m.name?.charAt(0)?.toUpperCase()}</div>
@@ -573,7 +581,7 @@ function ProjectTeamTab({ proj }) {
               <div style={{ fontSize:13, fontWeight:500 }}>{m.name}</div>
               <div style={{ fontSize:11, color:'#B8AFA6' }}>{m.role}</div>
             </div>
-            <Badge variant="green">Active</Badge>
+            <Badge variant="green">{t('detail.active')}</Badge>
           </div>
         ))}
       </div>
@@ -583,15 +591,16 @@ function ProjectTeamTab({ proj }) {
 
 // ─── PROJECT DETAIL ──────────────────────────────────────────────────────────
 function ProjectDetail({ proj, onBack, onEdit }) {
+  const { t } = useT()
   const { tasks, tools, fetchTasks, fetchTools } = useStore()
   const [tab, setTab] = useState('overview')
   const TABS = [
-    { id:'overview',   label:'Overview'   },
-    { id:'tasks',      label:'Tasks'      },
-    { id:'materials',  label:'Materials'  },
-    { id:'stages',     label:'Stages'     },
-    { id:'photos',     label:'Photos'     },
-    { id:'team',       label:'Team'       },
+    { id:'overview',   label: t('detail.overview')   },
+    { id:'tasks',      label: t('detail.tasks')      },
+    { id:'materials',  label: t('detail.materials')  },
+    { id:'stages',     label: t('detail.stages')     },
+    { id:'photos',     label: t('detail.photos')     },
+    { id:'team',       label: t('detail.team')       },
   ]
 
   useEffect(() => {
@@ -609,7 +618,7 @@ function ProjectDetail({ proj, onBack, onEdit }) {
       {/* ── Header ── */}
       <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4, paddingTop:4 }}>
         <button onClick={onBack} style={{ background:'#F2EDE4', border:'none', borderRadius:8, padding:'5px 10px', fontSize:12, color:'#7A6E66', cursor:'pointer', flexShrink:0 }}>
-          ← Back
+          {t('common.back')}
         </button>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:16, fontWeight:700, color:'#2E2420', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
@@ -646,6 +655,7 @@ function ProjectDetail({ proj, onBack, onEdit }) {
 
 // ─── PROJECT LIST ────────────────────────────────────────────────────────────
 function ProjectList({ onSelect, onEdit, onDelete }) {
+  const { t } = useT()
   const { projects, tasks, tools } = useStore()
 
   const overdueTasks = tasks.filter(t => t.deadline && new Date(t.deadline) < new Date() && t.status !== 'approved').length
@@ -657,15 +667,15 @@ function ProjectList({ onSelect, onEdit, onDelete }) {
       {(overdueTasks > 0 || pendingReview > 0) && (
         <div className="summary-bar">
           {overdueTasks > 0 && (
-            <div className="summary-chip danger">⚠️ {overdueTasks} overdue</div>
+            <div className="summary-chip danger">⚠️ {t('projects.overdue', { n: overdueTasks })}</div>
           )}
           {pendingReview > 0 && (
-            <div className="summary-chip warning">🕐 {pendingReview} for review</div>
+            <div className="summary-chip warning">🕐 {t('projects.forReview', { n: pendingReview })}</div>
           )}
         </div>
       )}
 
-      {projects.length === 0 && <EmptyState>No projects yet — add the first one!</EmptyState>}
+      {projects.length === 0 && <EmptyState>{t('projects.noProjects')}</EmptyState>}
 
       <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
         {projects.map(p => {
@@ -706,6 +716,7 @@ function ProjectList({ onSelect, onEdit, onDelete }) {
 
 // ─── PROJECTS (two-mode: list ↔ detail) ─────────────────────────────────────
 export function Projects() {
+  const { t } = useT()
   const { projects, tasks, tools, fetchProjects, fetchTasks, fetchTools, updateProject, profile, selectedProjectId, setSelectedProject } = useStore()
   const [showAdd,    setShowAdd]    = useState(false)
   const [confirmId,  setConfirmId]  = useState(null)
@@ -773,8 +784,8 @@ export function Projects() {
       {!selectedProjectId || !selectedProj ? (
         <>
           <div className="page-header">
-            <h1 className="page-title">Projects</h1>
-            <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>+ Project</Button>
+            <h1 className="page-title">{t('projects.title')}</h1>
+            <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('projects.add')}</Button>
           </div>
           <ProjectList
             onSelect={(id) => setSelectedProject(id)}
@@ -794,28 +805,28 @@ export function Projects() {
       {showAdd && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAdd(false)}>
           <div className="modal">
-            <div className="modal-title">New Project</div>
-            <FormGroup label="Project name *">
-              <input className="form-input" placeholder="e.g. Apartment Block A"
+            <div className="modal-title">{t('projects.newModal')}</div>
+            <FormGroup label={t('projects.nameLabel')}>
+              <input className="form-input" placeholder={t('projects.namePlaceholder')}
                 value={addForm.name} onChange={setA('name')} autoFocus />
             </FormGroup>
-            <FormGroup label="Address">
-              <input className="form-input" placeholder="e.g. 24 Lenin St, Podgorica"
+            <FormGroup label={t('projects.addressLabel')}>
+              <input className="form-input" placeholder={t('projects.addressPlaceholder')}
                 value={addForm.address} onChange={setA('address')} />
             </FormGroup>
             <div className="form-grid-2">
-              <FormGroup label="Stage">
+              <FormGroup label={t('projects.stageLabel')}>
                 <select className="form-input" value={addForm.stage} onChange={setA('stage')}>
                   {STAGE_OPTIONS.map(s => <option key={s}>{s}</option>)}
                 </select>
               </FormGroup>
-              <FormGroup label="Deadline">
+              <FormGroup label={t('projects.deadlineLabel')}>
                 <input className="form-input" type="date" value={addForm.deadline} onChange={setA('deadline')} />
               </FormGroup>
             </div>
             <div className="modal-actions">
-              <Button size="sm" onClick={() => setShowAdd(false)}>Cancel</Button>
-              <Button variant="primary" size="sm" onClick={createProject}>Create</Button>
+              <Button size="sm" onClick={() => setShowAdd(false)}>{t('common.cancel')}</Button>
+              <Button variant="primary" size="sm" onClick={createProject}>{t('projects.create')}</Button>
             </div>
           </div>
         </div>
@@ -825,24 +836,24 @@ export function Projects() {
       {editProject && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setEditProject(null)}>
           <div className="modal">
-            <div className="modal-title">Edit: {editProject.name}</div>
-            <FormGroup label="Project name *">
+            <div className="modal-title">{t('projects.editModal')}: {editProject.name}</div>
+            <FormGroup label={t('projects.nameLabel')}>
               <input className="form-input" value={editForm.name} onChange={setE('name')} autoFocus />
             </FormGroup>
-            <FormGroup label="Address">
-              <input className="form-input" placeholder="e.g. 24 Lenin St, Podgorica" value={editForm.address} onChange={setE('address')} />
+            <FormGroup label={t('projects.addressLabel')}>
+              <input className="form-input" placeholder={t('projects.addressPlaceholder')} value={editForm.address} onChange={setE('address')} />
             </FormGroup>
             <div className="form-grid-2">
-              <FormGroup label="Stage">
+              <FormGroup label={t('projects.stageLabel')}>
                 <select className="form-input" value={editForm.stage} onChange={setE('stage')}>
                   {STAGE_OPTIONS.map(s => <option key={s}>{s}</option>)}
                 </select>
               </FormGroup>
-              <FormGroup label="Deadline">
+              <FormGroup label={t('projects.deadlineLabel')}>
                 <input className="form-input" type="date" value={editForm.deadline} onChange={setE('deadline')} />
               </FormGroup>
             </div>
-            <FormGroup label={`Progress — ${editForm.progress}%`}>
+            <FormGroup label={t('projects.progressLabel', { pct: editForm.progress })}>
               <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                 <input type="range" min={0} max={100} step={1} value={editForm.progress}
                   onChange={setE('progress')} style={{ flex:1, accentColor:'#C96B3A' }} />
@@ -853,9 +864,9 @@ export function Projects() {
               </div>
             </FormGroup>
             <div className="modal-actions">
-              <Button size="sm" onClick={() => setEditProject(null)}>Cancel</Button>
+              <Button size="sm" onClick={() => setEditProject(null)}>{t('common.cancel')}</Button>
               <Button variant="primary" size="sm" onClick={saveEdit} disabled={editSaving}>
-                {editSaving ? 'Saving...' : 'Save'}
+                {editSaving ? t('common.saving') : t('common.save')}
               </Button>
             </div>
           </div>
@@ -864,8 +875,8 @@ export function Projects() {
 
       {/* ── Confirm Delete ── */}
       {confirmId && (
-        <ConfirmModal icon="🗑️" title="Delete project?"
-          sub={`"${projects.find(p => p.id === confirmId)?.name}" will be permanently deleted.`}
+        <ConfirmModal icon="🗑️" title={t('projects.deleteTitle')}
+          sub={t('projects.deleteSub', { name: projects.find(p => p.id === confirmId)?.name })}
           onConfirm={() => deleteProject(confirmId)}
           onCancel={() => setConfirmId(null)} />
       )}
@@ -875,6 +886,7 @@ export function Projects() {
 
 // ─── MY TASKS (worker) ───────────────────────────────────────────────────────
 export function MyTasks() {
+  const { t } = useT()
   const { tasks, fetchTasks, submitTask, profile, materials } = useStore()
   const [filter, setFilter]           = useState('active')
   const [uploadingId, setUploadingId] = useState(null)
@@ -906,64 +918,64 @@ export function MyTasks() {
 
   return (
     <div>
-      <div className="page-header"><h1 className="page-title">My Tasks</h1></div>
+      <div className="page-header"><h1 className="page-title">{t('tasks.title')}</h1></div>
       <div className="stat-grid" style={{ gridTemplateColumns:'repeat(3,1fr)' }}>
-        <StatCard label="Total"     value={mine.length} />
-        <StatCard label="Active"    value={mine.filter(t => ['new','rejected'].includes(t.status)).length} />
-        <StatCard label="Completed" value={mine.filter(t => t.status==='approved').length} />
+        <StatCard label={t('tasks.statTotal')}     value={mine.length} />
+        <StatCard label={t('tasks.statActive')}    value={mine.filter(tk => ['new','rejected'].includes(tk.status)).length} />
+        <StatCard label={t('tasks.statCompleted')} value={mine.filter(tk => tk.status==='approved').length} />
       </div>
       <div className="filter-bar">
-        <button className={`filter-btn ${filter==='active'  ?'active':''}`} onClick={() => setFilter('active')}>Active</button>
-        <button className={`filter-btn ${filter==='pending' ?'active':''}`} onClick={() => setFilter('pending')}>In Review</button>
-        <button className={`filter-btn ${filter==='done'    ?'active':''}`} onClick={() => setFilter('done')}>Done</button>
-        <button className={`filter-btn ${filter==='all'     ?'active':''}`} onClick={() => setFilter('all')}>All</button>
+        <button className={`filter-btn ${filter==='active'  ?'active':''}`} onClick={() => setFilter('active')}>{t('tasks.filterActive')}</button>
+        <button className={`filter-btn ${filter==='pending' ?'active':''}`} onClick={() => setFilter('pending')}>{t('tasks.filterReview')}</button>
+        <button className={`filter-btn ${filter==='done'    ?'active':''}`} onClick={() => setFilter('done')}>{t('tasks.filterDone')}</button>
+        <button className={`filter-btn ${filter==='all'     ?'active':''}`} onClick={() => setFilter('all')}>{t('tasks.filterAll')}</button>
       </div>
       <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-        {filtered.length === 0 && <EmptyState>No tasks here</EmptyState>}
-        {filtered.map(t => {
-          const isOpen = openId === t.id
+        {filtered.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
+        {filtered.map(tk => {
+          const isOpen = openId === tk.id
           return (
-            <div key={t.id} style={{
+            <div key={tk.id} style={{
               background:'#fff', border: `1.5px solid ${isOpen ? '#C96B3A' : '#EAE3D8'}`,
               borderRadius: 12, overflow: 'hidden',
               boxShadow: isOpen ? '0 4px 12px rgba(201,107,58,0.10)' : 'none',
               transition: 'border-color .15s, box-shadow .15s',
             }}>
-              <div onClick={() => setOpenId(prev => prev === t.id ? null : t.id)}
+              <div onClick={() => setOpenId(prev => prev === tk.id ? null : tk.id)}
                 style={{ display:'flex', alignItems:'center', gap:10, padding:'11px 13px', cursor:'pointer', background: isOpen ? '#FAECE4' : '#fff' }}>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : '#2E2420', marginBottom:5, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-                    {t.text}
+                    {tk.text}
                   </div>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:5, alignItems:'center' }}>
-                    <Badge variant={STATUS_BADGE[t.status]?.replace('badge-','')}>{STATUS_LABEL[t.status]}</Badge>
-                    {t.stage && <Badge variant="gray">{t.stage}</Badge>}
-                    {t.deadline && <span style={{ fontSize:10, color:'#B8AFA6' }}>📅 {t.deadline}</span>}
+                    <Badge variant={STATUS_BADGE[tk.status]?.replace('badge-','')}>{STATUS_LABEL[tk.status]}</Badge>
+                    {tk.stage && <Badge variant="gray">{tk.stage}</Badge>}
+                    {tk.deadline && <span style={{ fontSize:10, color:'#B8AFA6' }}>📅 {tk.deadline}</span>}
                   </div>
                 </div>
                 <span style={{ fontSize:10, color:'#B8AFA6', flexShrink:0 }}>{isOpen ? '▲' : '▼'}</span>
               </div>
               {isOpen && (
                 <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'#FDFBF8' }}>
-                  {t.description
-                    ? <div style={{ fontSize:13, color:'#2E2420', lineHeight:1.65, whiteSpace:'pre-wrap', marginBottom:10 }}>{t.description}</div>
-                    : <div style={{ fontSize:12, color:'#B8AFA6', marginBottom:10 }}>No description</div>
+                  {tk.description
+                    ? <div style={{ fontSize:13, color:'#2E2420', lineHeight:1.65, whiteSpace:'pre-wrap', marginBottom:10 }}>{tk.description}</div>
+                    : <div style={{ fontSize:12, color:'#B8AFA6', marginBottom:10 }}>{t('tasks.noDesc')}</div>
                   }
-                  <TaskMedia urls={t.photo_url} />
-                  {t.status === 'rejected' && t.reject_comment && (
+                  <TaskMedia urls={tk.photo_url} />
+                  {tk.status === 'rejected' && tk.reject_comment && (
                     <div style={{ marginTop:10, fontSize:12, color:'#A32D2D', background:'#FCEBEB', padding:'6px 10px', borderRadius:7 }}>
-                      ↩ {t.reject_comment}
+                      ↩ {tk.reject_comment}
                     </div>
                   )}
-                  {['new','rejected'].includes(t.status) && (
+                  {['new','rejected'].includes(tk.status) && (
                     <div style={{ marginTop:12, display:'flex', gap:8, alignItems:'center' }}>
                       <label className="btn btn-sm" style={{ cursor:'pointer' }}>
-                        {uploadingId===t.id ? 'Uploading...' : '📷 Photo / Video'}
+                        {uploadingId===tk.id ? t('tasks.uploadingBtn') : t('tasks.photoBtn')}
                         <input type="file" accept="image/*,video/*" capture="environment"
                           style={{ display:'none' }}
-                          onChange={e => uploadPhoto(t.id, e.target.files[0])} />
+                          onChange={e => uploadPhoto(tk.id, e.target.files[0])} />
                       </label>
-                      <Button variant="primary" size="sm" onClick={() => submitTask(t.id)}>Submit for Review</Button>
+                      <Button variant="primary" size="sm" onClick={() => submitTask(tk.id)}>{t('tasks.submitBtn')}</Button>
                     </div>
                   )}
                 </div>
@@ -980,7 +992,7 @@ export function MyTasks() {
         return (
           <div style={{ marginTop:20 }}>
             <div style={{ fontSize:12, fontWeight:700, color:'#A32D2D', letterSpacing:'.06em', textTransform:'uppercase', marginBottom:8 }}>
-              📦 My Open Shortages
+              {t('tasks.myOpenShortages')}
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
               {myShortages.map(m => (
@@ -989,7 +1001,7 @@ export function MyTasks() {
                     {m.name} <span style={{ fontSize:12, fontWeight:700 }}>× {m.qty} {m.unit}</span>
                   </div>
                   <div style={{ fontSize:11, color:'#7A6E66', marginTop:3 }}>
-                    {timeAgo(m.createdAt)} · <span style={{ color:'#B8AFA6' }}>Waiting for foreman</span>
+                    {timeAgo(m.createdAt)} · <span style={{ color:'#B8AFA6' }}>{t('tasks.waitingForeman')}</span>
                   </div>
                   {m.note && <div style={{ fontSize:11, color:'#B8AFA6', fontStyle:'italic', marginTop:2 }}>"{m.note}"</div>}
                 </div>
@@ -1004,6 +1016,7 @@ export function MyTasks() {
 
 // ─── PROCUREMENT (foreman-wide shortage checklist) ────────────────────────────
 export function Procurement() {
+  const { t } = useT()
   const { materials, projects, fetchProjects, role, profile,
           markMaterialPurchased, markMaterialNeeded, deleteMaterial } = useStore()
   const [filter,    setFilter]    = useState('open')
@@ -1039,7 +1052,7 @@ export function Procurement() {
   const groups = Object.entries(groupMap).map(([key, items]) => ({
     key,
     proj:  key === '__none__' ? null : projects.find(p => String(p.id) === key),
-    label: key === '__none__' ? 'General / No project' : (projects.find(p => String(p.id) === key)?.name || `Project ${key}`),
+    label: key === '__none__' ? t('materials.generalNoProject') : (projects.find(p => String(p.id) === key)?.name || `Project ${key}`),
     items,
     open:  items.filter(m => m.status === 'needed').length,
   }))
@@ -1047,30 +1060,30 @@ export function Procurement() {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Procurement</h1>
+        <h1 className="page-title">{t('materials.title')}</h1>
         <Button variant="primary" size="sm" onClick={() => { setModalProj(null); setShowModal(true) }}>
-          + Add item
+          {t('materials.add')}
         </Button>
       </div>
       <p style={{ fontSize:12, color:'#B8AFA6', marginTop:-8, marginBottom:12 }}>
-        Shopping list — add items to buy or see worker-reported shortages
+        {t('materials.desc')}
       </p>
 
       {/* Summary chips */}
       <div className="summary-bar" style={{ marginBottom:12 }}>
         <div className={`summary-chip ${openShortages.length > 0 ? 'danger' : 'neutral'}`}>
-          {openShortages.length} open shortage{openShortages.length !== 1 ? 's' : ''}
+          {t('materials.openShortages', { n: openShortages.length, s: openShortages.length !== 1 ? 's' : '' })}
         </div>
-        <div className="summary-chip neutral">✅ {purchasedToday} purchased today</div>
-        <div className="summary-chip neutral">{materials.length} total</div>
+        <div className="summary-chip neutral">{t('materials.purchasedToday', { n: purchasedToday })}</div>
+        <div className="summary-chip neutral">{t('materials.totalChip', { n: materials.length })}</div>
       </div>
 
       {/* Filter chips */}
       <div className="filter-bar" style={{ marginBottom:16 }}>
         {[
-          { k:'all',       l:`All (${materials.length})` },
-          { k:'open',      l:`Open (${openShortages.length})` },
-          { k:'purchased', l:'Purchased' },
+          { k:'all',       l:t('materials.filterAll', { n: materials.length }) },
+          { k:'open',      l:t('materials.filterOpen', { n: openShortages.length }) },
+          { k:'purchased', l:t('materials.filterPurchased') },
         ].map(({ k, l }) => (
           <button key={k} className={`filter-btn ${filter===k?'active':''}`} onClick={() => setFilter(k)}>{l}</button>
         ))}
@@ -1079,8 +1092,8 @@ export function Procurement() {
       {filtered.length === 0 && (
         <div style={{ textAlign:'center', padding:'48px 0', color:'#B8AFA6' }}>
           <div style={{ fontSize:40, marginBottom:10 }}>✅</div>
-          <div style={{ fontSize:15, fontWeight:700, color:'#5A9467' }}>All caught up!</div>
-          <div style={{ fontSize:12, marginTop:6 }}>No open shortages.</div>
+          <div style={{ fontSize:15, fontWeight:700, color:'#5A9467' }}>{t('materials.allCaughtUp')}</div>
+          <div style={{ fontSize:12, marginTop:6 }}>{t('materials.noOpen')}</div>
         </div>
       )}
 
@@ -1089,7 +1102,7 @@ export function Procurement() {
           <div className="procurement-group-header">
             <span>{g.key === '__none__' ? '📋' : '🏗'}</span>
             <h3>{g.label}</h3>
-            {g.open > 0 && <span className="procurement-count-badge">{g.open} needed</span>}
+            {g.open > 0 && <span className="procurement-count-badge">{t('materials.needed', { n: g.open })}</span>}
             <button
               onClick={() => { setModalProj(g.proj?.id || null); setShowModal(true) }}
               style={{ marginLeft:'auto', fontSize:11, fontWeight:600, color:'#C96B3A', background:'#FAECE4', border:'none', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
@@ -1116,7 +1129,7 @@ export function Procurement() {
             onClick={() => { setModalProj(null); setShowModal(true) }}
             style={{ fontSize:13, fontWeight:600, color:'#C96B3A', background:'#FAECE4', border:'1.5px dashed #E8C9B4', borderRadius:12, padding:'12px 24px', cursor:'pointer', width:'100%' }}
           >
-            + Add first item to shopping list
+            {t('materials.addFirst')}
           </button>
         </div>
       )}
@@ -1135,6 +1148,7 @@ export function Procurement() {
 
 // ─── TOOLS ───────────────────────────────────────────────────────────────────
 export function Tools({ canAdd }) {
+  const { t } = useT()
   const { tools, fetchTools, addTool, updateTool, deleteTool, profile, projects, fetchProjects, team, fetchAllWorkers } = useStore()
   const [tab, setTab]               = useState('all')
   const [showAdd, setShowAdd]       = useState(false)
@@ -1201,17 +1215,17 @@ export function Tools({ canAdd }) {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Tools</h1>
-        {canAdd && <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>+ Add Tool</Button>}
+        <h1 className="page-title">{t('tools.title')}</h1>
+        {canAdd && <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('tools.add')}</Button>}
       </div>
 
       {canAdd && (
         <div className="filter-bar">
           {[
-            { key:'all',       label:`All (${counts.all})` },
-            { key:'available', label:`Available (${counts.available})` },
-            { key:'on_site',   label:`On Site (${counts.on_site})` },
-            { key:'assigned',  label:`With Worker (${counts.assigned})` },
+            { key:'all',       label:t('tools.filterAll', { n: counts.all }) },
+            { key:'available', label:t('tools.filterAvailable', { n: counts.available }) },
+            { key:'on_site',   label:t('tools.filterOnSite', { n: counts.on_site }) },
+            { key:'assigned',  label:t('tools.filterWithWorker', { n: counts.assigned }) },
           ].map(({ key, label }) => (
             <button key={key} className={`filter-btn ${tab===key?'active':''}`} onClick={() => setTab(key)}>{label}</button>
           ))}
@@ -1219,31 +1233,31 @@ export function Tools({ canAdd }) {
       )}
 
       <div className="card" style={{ padding:0 }}>
-        {filtered.length === 0 && <EmptyState>No tools here</EmptyState>}
-        {filtered.map(t => {
-          const wName = workerName(t.worker_id)
-          const pName = projectName(t.project_id)
-          const isAssigned = t.project_id || t.worker_id
+        {filtered.length === 0 && <EmptyState>{t('tools.none')}</EmptyState>}
+        {filtered.map(tool => {
+          const wName = workerName(tool.worker_id)
+          const pName = projectName(tool.project_id)
+          const isAssigned = tool.project_id || tool.worker_id
           return (
-            <div className="tool-row" key={t.id} style={{ alignItems:'flex-start', padding:'12px 14px' }}>
+            <div className="tool-row" key={tool.id} style={{ alignItems:'flex-start', padding:'12px 14px' }}>
               <div className="tool-icon" style={{ marginTop:2 }}>🔧</div>
               <div style={{ flex:1, minWidth:0 }}>
-                <div className="tool-name">{t.name}</div>
-                {t.location && <div className="tool-loc">{t.location}</div>}
+                <div className="tool-name">{tool.name}</div>
+                {tool.location && <div className="tool-loc">{tool.location}</div>}
                 <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginTop:5 }}>
                   {pName && <span style={{ fontSize:10, background:'#FAECE4', color:'#C96B3A', borderRadius:6, padding:'2px 8px', fontWeight:600 }}>🏗 {pName}</span>}
                   {wName && <span style={{ fontSize:10, background:'#E8F2EB', color:'#3D7A52', borderRadius:6, padding:'2px 8px', fontWeight:600 }}>👷 {wName}</span>}
-                  {!pName && !wName && <span style={{ fontSize:10, color:'#B8AFA6' }}>— not assigned</span>}
+                  {!pName && !wName && <span style={{ fontSize:10, color:'#B8AFA6' }}>{t('tools.notAssigned')}</span>}
                 </div>
               </div>
               {canAdd && (
                 <div style={{ display:'flex', gap:5, flexShrink:0, marginTop:2 }}>
-                  <Button size="sm" onClick={() => openAssign(t)}>Assign</Button>
-                  {isAssigned && <Button size="sm" onClick={() => unassign(t)}>✕</Button>}
-                  <IconButton className="danger" onClick={() => setDeleteId(t.id)}>🗑</IconButton>
+                  <Button size="sm" onClick={() => openAssign(tool)}>{t('tools.assign')}</Button>
+                  {isAssigned && <Button size="sm" onClick={() => unassign(tool)}>✕</Button>}
+                  <IconButton className="danger" onClick={() => setDeleteId(tool.id)}>🗑</IconButton>
                 </div>
               )}
-              {!canAdd && <Badge variant={TOOL_STATUS_BADGE[t.status]?.replace('badge-','')}>{TOOL_STATUS_LABEL[t.status]}</Badge>}
+              {!canAdd && <Badge variant={TOOL_STATUS_BADGE[tool.status]?.replace('badge-','')}>{TOOL_STATUS_LABEL[tool.status]}</Badge>}
             </div>
           )
         })}
@@ -1252,19 +1266,19 @@ export function Tools({ canAdd }) {
       {showAdd && canAdd && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAdd(false)}>
           <div className="modal">
-            <div className="modal-title">Add Tool to Inventory</div>
-            <FormGroup label="Tool name *">
-              <input className="form-input" placeholder="e.g. Drill Bosch GSB 18"
+            <div className="modal-title">{t('tools.addModal')}</div>
+            <FormGroup label={t('tools.nameLabel')}>
+              <input className="form-input" placeholder={t('tools.namePlaceholder')}
                 value={form.name} onChange={setF('name')} autoFocus onKeyDown={e => e.key==='Enter' && create()} />
             </FormGroup>
-            <FormGroup label="Serial / note">
-              <input className="form-input" placeholder="e.g. SN-4821 or red handle"
+            <FormGroup label={t('tools.serialLabel')}>
+              <input className="form-input" placeholder={t('tools.serialPlaceholder')}
                 value={form.location} onChange={setF('location')} />
             </FormGroup>
             {formErr && <div style={{ fontSize:12, color:'#A32D2D', background:'#FCEBEB', padding:'6px 10px', borderRadius:6, marginBottom:8 }}>{formErr}</div>}
             <div className="modal-actions">
-              <Button size="sm" onClick={() => { setShowAdd(false); setFormErr('') }}>Cancel</Button>
-              <Button variant="primary" size="sm" onClick={create} disabled={saving}>{saving ? 'Adding...' : 'Add'}</Button>
+              <Button size="sm" onClick={() => { setShowAdd(false); setFormErr('') }}>{t('common.cancel')}</Button>
+              <Button variant="primary" size="sm" onClick={create} disabled={saving}>{saving ? t('common.adding') : t('common.add')}</Button>
             </div>
           </div>
         </div>
@@ -1273,32 +1287,32 @@ export function Tools({ canAdd }) {
       {assigning && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setAssigning(null)}>
           <div className="modal">
-            <div className="modal-title">Assign: {assigning.name}</div>
-            <FormGroup label="Project / Object">
+            <div className="modal-title">{t('tools.assignModal', { name: assigning.name })}</div>
+            <FormGroup label={t('tools.projectLabel')}>
               <select className="form-input" value={assignForm.project_id}
                 onChange={e => setAssignForm(f => ({ ...f, project_id: e.target.value }))}>
-                <option value="">— not assigned —</option>
+                <option value="">{t('tools.notAssignedOption')}</option>
                 {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </FormGroup>
-            <FormGroup label="Worker">
+            <FormGroup label={t('tools.workerLabel')}>
               <select className="form-input" value={assignForm.worker_id}
                 onChange={e => setAssignForm(f => ({ ...f, worker_id: e.target.value }))}>
-                <option value="">— not assigned —</option>
+                <option value="">{t('tools.notAssignedOption')}</option>
                 {team.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
             </FormGroup>
             {assignErr && <div style={{ fontSize:12, color:'#A32D2D', background:'#FCEBEB', padding:'6px 10px', borderRadius:6, marginBottom:8 }}>{assignErr}</div>}
             <div className="modal-actions">
-              <Button size="sm" onClick={() => setAssigning(null)}>Cancel</Button>
-              <Button variant="primary" size="sm" onClick={saveAssign}>Save</Button>
+              <Button size="sm" onClick={() => setAssigning(null)}>{t('common.cancel')}</Button>
+              <Button variant="primary" size="sm" onClick={saveAssign}>{t('common.save')}</Button>
             </div>
           </div>
         </div>
       )}
 
       {deleteId && (
-        <ConfirmModal icon="🗑️" title="Remove tool?" sub={tools.find(t => t.id === deleteId)?.name}
+        <ConfirmModal icon="🗑️" title={t('tools.deleteTitle')} sub={tools.find(tool => tool.id === deleteId)?.name}
           onConfirm={() => { deleteTool(deleteId); setDeleteId(null) }}
           onCancel={() => setDeleteId(null)} />
       )}
@@ -1318,6 +1332,7 @@ const STATUS_CYCLE = ['on_site', 'day_off', 'sick', 'vacation', 'other']
 
 // ─── TEAM ────────────────────────────────────────────────────────────────────
 export function Team() {
+  const { t } = useT()
   const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest } = useStore()
   const [showInvite, setShowInvite] = useState(false)
   const [email, setEmail]       = useState('')
@@ -1370,32 +1385,32 @@ export function Team() {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Team</h1>
+        <h1 className="page-title">{t('team.title')}</h1>
         <Button variant="primary" size="sm" onClick={() => { setShowInvite(!showInvite); setMsg('') }}>
-          {showInvite ? 'Close' : '+ Invite'}
+          {showInvite ? t('team.close') : t('team.invite')}
         </Button>
       </div>
 
       {/* ── Stats ── */}
       <div className="stat-grid" style={{ gridTemplateColumns:'repeat(3,1fr)', marginBottom:12 }}>
-        <StatCard label="Total"   value={team.length} />
-        <StatCard label="On Site" value={onSite} />
-        <StatCard label="Away"    value={away} danger={away > 0} />
+        <StatCard label={t('team.statTotal')}   value={team.length} />
+        <StatCard label={t('team.statOnSite')} value={onSite} />
+        <StatCard label={t('team.statAway')}    value={away} danger={away > 0} />
       </div>
 
       {/* ── Invite link for foreman ── */}
       {profile?.role === 'foreman' && (
         <div className="card card-body" style={{ marginBottom:12 }}>
-          <div style={{ fontSize:12, fontWeight:700, color:'#7A6E66', marginBottom:6 }}>🔗 Invite link</div>
+          <div style={{ fontSize:12, fontWeight:700, color:'#7A6E66', marginBottom:6 }}>{t('team.inviteLink')}</div>
           <div style={{ background:'#F2EDE4', borderRadius:8, padding:'8px 12px', marginBottom:8, display:'flex', alignItems:'center', gap:8 }}>
             <code style={{ flex:1, fontSize:11, color:'#C96B3A', wordBreak:'break-all' }}>
               {window.location.origin}?join={profile?.invite_code}
             </code>
           </div>
           <div style={{ display:'flex', gap:6 }}>
-            <Button size="sm" onClick={copyInviteLink}>{copied ? '✓ Copied!' : '📋 Copy link'}</Button>
+            <Button size="sm" onClick={copyInviteLink}>{copied ? t('team.copied') : t('team.copyLink')}</Button>
             <Button size="sm" onClick={() => { navigator.clipboard.writeText(profile?.invite_code || ''); setCopied(true); setTimeout(()=>setCopied(false),2000) }}>
-              Code: {profile?.invite_code}
+              {t('team.codeBtn', { code: profile?.invite_code })}
             </Button>
           </div>
         </div>
@@ -1405,7 +1420,7 @@ export function Team() {
       {profile?.role === 'foreman' && joinRequests.length > 0 && (
         <div className="card" style={{ marginBottom:12, padding:0 }}>
           <div style={{ padding:'10px 14px', borderBottom:'1px solid #EAE3D8', display:'flex', alignItems:'center', gap:8 }}>
-            <div style={{ fontSize:11, fontWeight:700, color:'#C96B3A', letterSpacing:'.08em', textTransform:'uppercase' }}>Join Requests</div>
+            <div style={{ fontSize:11, fontWeight:700, color:'#C96B3A', letterSpacing:'.08em', textTransform:'uppercase' }}>{t('team.joinRequests')}</div>
             <div style={{ background:'#FAECE4', color:'#C96B3A', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:10 }}>{joinRequests.length}</div>
           </div>
           {joinRequests.map(r => (
@@ -1415,11 +1430,11 @@ export function Team() {
               </div>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:13, fontWeight:600, color:'#2E2420' }}>{r.worker?.name}</div>
-                <div style={{ fontSize:11, color:'#B8AFA6' }}>Wants to join your team</div>
+                <div style={{ fontSize:11, color:'#B8AFA6' }}>{t('team.wantsToJoin')}</div>
               </div>
               <div style={{ display:'flex', gap:6 }}>
-                <Button size="sm" variant="primary" onClick={() => approveJoinRequest(r.id, r.worker.id)}>✓ Accept</Button>
-                <Button size="sm" variant="danger"  onClick={() => rejectJoinRequest(r.id)}>✕ Decline</Button>
+                <Button size="sm" variant="primary" onClick={() => approveJoinRequest(r.id, r.worker.id)}>{t('team.accept')}</Button>
+                <Button size="sm" variant="danger"  onClick={() => rejectJoinRequest(r.id)}>{t('team.decline')}</Button>
               </div>
             </div>
           ))}
@@ -1429,9 +1444,9 @@ export function Team() {
       {/* ── Invite by email ── */}
       {showInvite && (
         <div className="card card-body" style={{ marginBottom:12 }}>
-          <div style={{ fontSize:13, fontWeight:500, marginBottom:8 }}>Add worker by email</div>
+          <div style={{ fontSize:13, fontWeight:500, marginBottom:8 }}>{t('team.addByEmail')}</div>
           <div style={{ display:'flex', gap:8 }}>
-            <input className="form-input" placeholder="worker@email.com"
+            <input className="form-input" placeholder={t('team.emailPlaceholder')}
               value={email} onChange={e => setEmail(e.target.value)}
               onKeyDown={e => e.key==='Enter' && invite()} style={{ flex:1 }} />
             <Button variant="primary" size="sm" onClick={invite}>{loading?'...':'Add'}</Button>
@@ -1446,7 +1461,7 @@ export function Team() {
 
       {/* ── Worker cards ── */}
       <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-        {team.length === 0 && <EmptyState>No team members yet</EmptyState>}
+        {team.length === 0 && <EmptyState>{t('team.noMembers')}</EmptyState>}
         {team.map(m => {
           const st       = m.worker_status || 'on_site'
           const stCfg    = WORKER_STATUS[st] || WORKER_STATUS.on_site
@@ -1495,7 +1510,7 @@ export function Team() {
                   <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : '#2E2420', marginBottom:3 }}>{m.name}</div>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:5, alignItems:'center' }}>
                     <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:10, background: stCfg.bg, color: stCfg.color, border:`1px solid ${stCfg.border}` }}>
-                      {stCfg.label}
+                      {t('team.ws_' + st)}
                     </span>
                     {workerTasks.length > 0 && (
                       <span style={{ fontSize:10, color:'#C96B3A', fontWeight:600 }}>⚡ {workerTasks.length} tasks</span>
@@ -1532,7 +1547,7 @@ export function Team() {
                   {/* Status picker row */}
                   {profile?.role === 'foreman' && (
                     <div style={{ marginBottom:12 }}>
-                      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:6 }}>Status</div>
+                      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:6 }}>{t('team.statusHeader')}</div>
                       <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
                         {STATUS_CYCLE.map(s => {
                           const cfg = WORKER_STATUS[s]
@@ -1548,7 +1563,7 @@ export function Team() {
                                 transition:'all .12s',
                               }}
                             >
-                              {cfg.label}
+                              {t('team.ws_' + s)}
                             </button>
                           )
                         })}
@@ -1558,9 +1573,9 @@ export function Team() {
 
                   {/* Projects */}
                   <div style={{ marginBottom:10 }}>
-                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>🏗 Projects</div>
+                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>{t('team.projectsHeader')}</div>
                     {workerProjects.length === 0
-                      ? <span style={{ fontSize:11, color:'#B8AFA6' }}>—</span>
+                      ? <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('common.none')}</span>
                       : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
                           {workerProjects.map(p => (
                             <span key={p.id} style={{ fontSize:11, fontWeight:600, background:'#FAECE4', color:'#C96B3A', borderRadius:8, padding:'3px 10px' }}>{p.name}</span>
@@ -1571,9 +1586,9 @@ export function Team() {
 
                   {/* Tools */}
                   <div style={{ marginBottom:10 }}>
-                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>🔧 Tools assigned</div>
+                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>{t('team.toolsHeader')}</div>
                     {workerTools.length === 0
-                      ? <span style={{ fontSize:11, color:'#B8AFA6' }}>None</span>
+                      ? <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('team.noTools')}</span>
                       : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
                           {workerTools.map(t => (
                             <span key={t.id} style={{ fontSize:11, fontWeight:500, background:'#F2EDE4', color:'#7A6E66', borderRadius:8, padding:'3px 10px', border:'1px solid #EAE3D8' }}>{t.name}</span>
@@ -1584,7 +1599,7 @@ export function Team() {
 
                   {/* Task summary */}
                   <div>
-                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>☑ Tasks</div>
+                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>{t('team.tasksHeader')}</div>
                     <div style={{ display:'flex', gap:10 }}>
                       {workerTasks.filter(t=>['new','rejected'].includes(t.status)).length > 0 && (
                         <span style={{ fontSize:11, fontWeight:600, color:'#C96B3A' }}>⚡ {workerTasks.filter(t=>['new','rejected'].includes(t.status)).length} active</span>
@@ -1596,7 +1611,7 @@ export function Team() {
                         <span style={{ fontSize:11, fontWeight:600, color:'#3D7A52' }}>✅ {workerDone} done</span>
                       )}
                       {workerTasks.length === 0 && workerDone === 0 && (
-                        <span style={{ fontSize:11, color:'#B8AFA6' }}>No tasks assigned</span>
+                        <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('team.noTasks')}</span>
                       )}
                     </div>
                   </div>
@@ -1648,6 +1663,7 @@ function formatNotifTime(dateStr) {
 }
 
 export function Notifications({ onNavigate }) {
+  const { t } = useT()
   const { notifications, fetchNotifications, markNotifRead, role } = useStore()
   const [filter, setFilter] = useState('all')
 
@@ -1667,15 +1683,15 @@ export function Notifications({ onNavigate }) {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Notifications</h1>
-        {unread > 0 && <div style={{ background:'#C96B3A', color:'#fff', fontSize:11, fontWeight:700, borderRadius:10, padding:'2px 9px' }}>{unread} new</div>}
+        <h1 className="page-title">{t('notifications.title')}</h1>
+        {unread > 0 && <div style={{ background:'#C96B3A', color:'#fff', fontSize:11, fontWeight:700, borderRadius:10, padding:'2px 9px' }}>{t('notifications.newBadge', { n: unread })}</div>}
       </div>
       <div className="filter-bar">
-        <button className={`filter-btn ${filter==='all'?'active':''}`}    onClick={() => setFilter('all')}>All ({notifications.length})</button>
-        <button className={`filter-btn ${filter==='unread'?'active':''}`} onClick={() => setFilter('unread')}>Unread ({unread})</button>
+        <button className={`filter-btn ${filter==='all'?'active':''}`}    onClick={() => setFilter('all')}>{t('notifications.filterAll', { n: notifications.length })}</button>
+        <button className={`filter-btn ${filter==='unread'?'active':''}`} onClick={() => setFilter('unread')}>{t('notifications.filterUnread', { n: unread })}</button>
       </div>
       <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-        {filtered.length === 0 && <EmptyState>No notifications</EmptyState>}
+        {filtered.length === 0 && <EmptyState>{t('notifications.none')}</EmptyState>}
         {filtered.map(n => {
           const type   = inferNotifType(n)
           const cfg    = NOTIF_TYPE[type] || NOTIF_TYPE.general
@@ -1697,7 +1713,13 @@ export function Notifications({ onNavigate }) {
                 <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:3 }}>
                   {cfg.label && (
                     <span style={{ fontSize:10, fontWeight:700, letterSpacing:'.06em', textTransform:'uppercase', color:cfg.color, background:cfg.bg, border:`1px solid ${cfg.border}`, borderRadius:6, padding:'1px 7px' }}>
-                      {cfg.label}
+                      {type === 'task_pending'      && t('notifications.typeReview')}
+                      {type === 'task_approved'     && t('notifications.typeApproved')}
+                      {type === 'task_rejected'     && t('notifications.typeRevision')}
+                      {type === 'tool_return'       && t('notifications.typeTool')}
+                      {type === 'join_request'      && t('notifications.typeJoin')}
+                      {type === 'worker_joined'     && t('notifications.typeTeam')}
+                      {type === 'material_shortage' && t('notifications.typeShortage')}
                     </span>
                   )}
                   {!n.read && <span style={{ width:7, height:7, borderRadius:'50%', background:cfg.color, display:'inline-block' }} />}
@@ -1707,11 +1729,11 @@ export function Notifications({ onNavigate }) {
                   <span style={{ fontSize:11, color:'#B8AFA6' }}>{formatNotifTime(n.created_at)}</span>
                   {isClickable && (
                     <span style={{ fontSize:11, color:cfg.color, fontWeight:600 }}>
-                      {type === 'task_pending'  && (role === 'foreman' ? 'View in Projects →' : 'View in My Tasks →')}
-                      {type === 'task_approved' && (role === 'foreman' ? 'View in Projects →' : 'View in My Tasks →')}
-                      {type === 'task_rejected' && 'View in My Tasks →'}
-                      {type === 'tool_return'   && 'View in Tools →'}
-                      {(type === 'join_request' || type === 'worker_joined') && 'View in Team →'}
+                      {type === 'task_pending'  && (role === 'foreman' ? t('notifications.viewProjects') : t('notifications.viewTasks'))}
+                      {type === 'task_approved' && (role === 'foreman' ? t('notifications.viewProjects') : t('notifications.viewTasks'))}
+                      {type === 'task_rejected' && t('notifications.viewTasks')}
+                      {type === 'tool_return'   && t('notifications.viewTools')}
+                      {(type === 'join_request' || type === 'worker_joined') && t('notifications.viewTeam')}
                     </span>
                   )}
                 </div>
@@ -1726,6 +1748,7 @@ export function Notifications({ onNavigate }) {
 
 // ─── CLIENT DASHBOARD ────────────────────────────────────────────────────────
 export function ClientDashboard() {
+  const { t } = useT()
   const { projects, tasks, team, fetchProjects, fetchTasks, fetchTeam } = useStore()
   useEffect(() => {
     fetchProjects().then(() => {
@@ -1734,8 +1757,8 @@ export function ClientDashboard() {
     })
   }, [])
   const proj = projects[0]
-  if (!proj) return <div><div className="page-header"><h1 className="page-title">My Project</h1></div><EmptyState>No project assigned</EmptyState></div>
-  const approvedTasks = tasks.filter(t => t.status==='approved')
+  if (!proj) return <div><div className="page-header"><h1 className="page-title">My Project</h1></div><EmptyState>{t('client.noProject')}</EmptyState></div>
+  const approvedTasks = tasks.filter(tk => tk.status==='approved')
   return (
     <div>
       <div className="page-header"><h1 className="page-title">My Project</h1></div>
@@ -1744,23 +1767,23 @@ export function ClientDashboard() {
           <strong style={{ color:'#A04B22' }}>{proj.name}</strong>
           <Badge variant="blue">{proj.stage}</Badge>
         </div>
-        {proj.deadline && <div style={{ fontSize:12, color:'#C96B3A', marginBottom:6 }}>Deadline: {proj.deadline}</div>}
+        {proj.deadline && <div style={{ fontSize:12, color:'#C96B3A', marginBottom:6 }}>{t('client.deadlineLabel')} {proj.deadline}</div>}
         <ProgressBar value={proj.progress||0} />
       </div>
       <div className="stat-grid" style={{ gridTemplateColumns:'1fr 1fr' }}>
-        <StatCard label="Workers on site" value={team.length} />
-        <StatCard label="Tasks completed" value={approvedTasks.length} />
+        <StatCard label={t('client.workersOnSite')} value={team.length} />
+        <StatCard label={t('client.tasksCompleted')} value={approvedTasks.length} />
       </div>
-      <SectionTitle>Completed Work</SectionTitle>
+      <SectionTitle>{t('client.completedWork')}</SectionTitle>
       <div className="card" style={{ padding:0 }}>
-        {approvedTasks.length===0 && <EmptyState>No completed tasks yet</EmptyState>}
-        {approvedTasks.map(t => (
-          <div className="task-row" key={t.id}>
+        {approvedTasks.length===0 && <EmptyState>{t('client.noCompletedTasks')}</EmptyState>}
+        {approvedTasks.map(tk => (
+          <div className="task-row" key={tk.id}>
             <div className="task-body">
-              <div className="task-text">{t.text}</div>
+              <div className="task-text">{tk.text}</div>
               <div className="task-meta" style={{ marginTop:4 }}>
-                <Badge variant="green">Completed</Badge>
-                {t.stage && <Badge variant="gray">{t.stage}</Badge>}
+                <Badge variant="green">{t('client.completedBadge')}</Badge>
+                {tk.stage && <Badge variant="gray">{tk.stage}</Badge>}
               </div>
             </div>
           </div>
@@ -1772,21 +1795,23 @@ export function ClientDashboard() {
 
 // ─── CLIENT PROGRESS ─────────────────────────────────────────────────────────
 export function ClientProgress() {
+  const { t } = useT()
   const { fetchProjects } = useStore()
   useEffect(() => { fetchProjects() }, [])
   return (
     <div>
-      <div className="page-header"><h1 className="page-title">Progress</h1></div>
-      <EmptyState>Progress stages coming soon</EmptyState>
+      <div className="page-header"><h1 className="page-title">{t('client.progressTitle')}</h1></div>
+      <EmptyState>{t('client.progressSoon')}</EmptyState>
     </div>
   )
 }
 
 // ─── CLIENT PHOTOS ────────────────────────────────────────────────────────────
 export function ClientPhotos() {
+  const { t } = useT()
   return (
     <div>
-      <div className="page-header"><h1 className="page-title">Photo Report</h1></div>
+      <div className="page-header"><h1 className="page-title">{t('client.photosTitle')}</h1></div>
       <SectionTitle>Foundation — completed</SectionTitle>
       <div className="photo-grid">
         {[{l:'Rebar',bg:'#FAECE4',c:'#A04B22'},{l:'Pouring',bg:'#E8F2EB',c:'#3D7A52'},{l:'Done',bg:'#FBF3DC',c:'#9A6E10'}].map(p=>(

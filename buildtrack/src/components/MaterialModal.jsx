@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useStore, MATERIAL_UNITS } from '../store/useStore'
+import { useT } from '../i18n/useLanguage'
 import { Button, FormGroup } from './UI'
 
 export default function MaterialModal({ open, onClose, defaultProjectId, defaultTaskId }) {
   const { addMaterial, profile, projects } = useStore()
+  const { t } = useT()
 
   const [form, setForm] = useState({
     name:      '',
@@ -20,8 +22,8 @@ export default function MaterialModal({ open, onClose, defaultProjectId, default
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
 
   const submit = () => {
-    if (!form.name.trim())               { setErr('Enter material name'); return }
-    if (!form.qty || Number(form.qty) <= 0) { setErr('Enter a valid quantity'); return }
+    if (!form.name.trim())                   { setErr(t('materials.errName')); return }
+    if (!form.qty || Number(form.qty) <= 0)  { setErr(t('materials.errQty'));  return }
     setSaving(true)
     addMaterial({
       projectId:  form.projectId || null,
@@ -41,26 +43,21 @@ export default function MaterialModal({ open, onClose, defaultProjectId, default
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
-        <div className="modal-title">Add to Shopping List</div>
+        <div className="modal-title">{t('materials.addModal')}</div>
 
-        {/* Project selector — показываем всегда, pre-select если передан */}
-        <FormGroup label="Project">
-          <select
-            className="form-input"
-            value={form.projectId}
-            onChange={set('projectId')}
-          >
-            <option value="">— General (no project) —</option>
+        <FormGroup label={t('materials.projectLabel')}>
+          <select className="form-input" value={form.projectId} onChange={set('projectId')}>
+            <option value="">{t('materials.generalOption')}</option>
             {projects.map(p => (
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
         </FormGroup>
 
-        <FormGroup label="Material name *">
+        <FormGroup label={t('materials.nameLabel')}>
           <input
             className="form-input"
-            placeholder="e.g. White wall sockets"
+            placeholder={t('materials.namePlaceholder')}
             value={form.name}
             onChange={set('name')}
             autoFocus
@@ -69,30 +66,26 @@ export default function MaterialModal({ open, onClose, defaultProjectId, default
         </FormGroup>
 
         <div className="form-grid-2">
-          <FormGroup label="Quantity *">
+          <FormGroup label={t('materials.qtyLabel')}>
             <input
               className="form-input"
-              type="number"
-              min="0.1"
-              step="0.1"
+              type="number" min="0.1" step="0.1"
               value={form.qty}
               onChange={set('qty')}
             />
           </FormGroup>
-          <FormGroup label="Unit">
+          <FormGroup label={t('materials.unitLabel')}>
             <select className="form-input" value={form.unit} onChange={set('unit')}>
               {MATERIAL_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
             </select>
           </FormGroup>
         </div>
 
-        <FormGroup label="Note">
+        <FormGroup label={t('materials.noteLabel')}>
           <textarea
-            className="form-input"
-            rows={2}
-            placeholder="Brand, spec, where to buy…"
-            value={form.note}
-            onChange={set('note')}
+            className="form-input" rows={2}
+            placeholder={t('materials.notePlaceholder')}
+            value={form.note} onChange={set('note')}
             style={{ resize: 'vertical', minHeight: 60 }}
           />
         </FormGroup>
@@ -104,9 +97,9 @@ export default function MaterialModal({ open, onClose, defaultProjectId, default
         )}
 
         <div className="modal-actions">
-          <Button size="sm" onClick={onClose}>Cancel</Button>
+          <Button size="sm" onClick={onClose}>{t('common.cancel')}</Button>
           <Button variant="primary" size="sm" onClick={submit} disabled={saving}>
-            {saving ? 'Adding…' : 'Add to list'}
+            {saving ? t('common.adding') : t('materials.addBtn')}
           </Button>
         </div>
       </div>
