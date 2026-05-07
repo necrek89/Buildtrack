@@ -83,7 +83,10 @@ export const useStore = create((set, get) => ({
 
   // ── PROJECTS ──────────────────────────────────────────────
   fetchProjects: async () => {
-    const { data } = await supabase.from('projects').select('*')
+    const { profile } = get()
+    let query = supabase.from('projects').select('*')
+    if (profile?.role === 'foreman') query = query.eq('foreman_id', profile.id)
+    const { data } = await query
     set({ projects: data || [] })
   },
 

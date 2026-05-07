@@ -1417,25 +1417,50 @@ export function Team() {
         <StatCard label={t('team.statAway')}    value={away} danger={away > 0} />
       </div>
 
-      {/* ── Invite link for foreman ── */}
-      {profile?.role === 'foreman' && (
+      {/* ── Add workers panel (foreman only) ── */}
+      {profile?.role === 'foreman' && showInvite && (
         <div className="card card-body" style={{ marginBottom:12 }}>
-          <div style={{ fontSize:12, fontWeight:700, color:'#7A6E66', marginBottom:6 }}>{t('team.inviteLink')}</div>
-          <div style={{ background:'#F2EDE4', borderRadius:8, padding:'8px 12px', marginBottom:8, display:'flex', alignItems:'center', gap:8 }}>
-            <code style={{ flex:1, fontSize:11, color:'#C96B3A', wordBreak:'break-all' }}>
-              {window.location.origin}?join={profile?.invite_code}
-            </code>
+
+          {/* Method 1: invite code */}
+          <div style={{ marginBottom:14, paddingBottom:14, borderBottom:'1px solid #EAE3D8' }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'#7A6E66', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
+              {t('team.codeMethod')}
+            </div>
+            <div style={{ fontSize:12, color:'#7A6E66', marginBottom:8 }}>{t('team.codeDesc')}</div>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ background:'#F2EDE4', borderRadius:8, padding:'8px 14px', flex:1 }}>
+                <code style={{ fontSize:18, fontWeight:800, color:'#C96B3A', letterSpacing:'0.15em' }}>
+                  {profile?.invite_code?.toUpperCase()}
+                </code>
+              </div>
+              <Button size="sm" onClick={() => { navigator.clipboard.writeText(profile?.invite_code || ''); setCopied(true); setTimeout(()=>setCopied(false),2000) }}>
+                {copied ? t('team.copied') : t('team.copyCode')}
+              </Button>
+            </div>
           </div>
-          <div style={{ display:'flex', gap:6 }}>
-            <Button size="sm" onClick={copyInviteLink}>{copied ? t('team.copied') : t('team.copyLink')}</Button>
-            <Button size="sm" onClick={() => { navigator.clipboard.writeText(profile?.invite_code || ''); setCopied(true); setTimeout(()=>setCopied(false),2000) }}>
-              {t('team.codeBtn', { code: profile?.invite_code })}
-            </Button>
+
+          {/* Method 2: add by email */}
+          <div>
+            <div style={{ fontSize:12, fontWeight:700, color:'#7A6E66', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
+              {t('team.emailMethod')}
+            </div>
+            <div style={{ fontSize:12, color:'#7A6E66', marginBottom:8 }}>{t('team.emailDesc')}</div>
+            <div style={{ display:'flex', gap:8 }}>
+              <input className="form-input" placeholder={t('team.emailPlaceholder')}
+                value={email} onChange={e => setEmail(e.target.value)}
+                onKeyDown={e => e.key==='Enter' && invite()} style={{ flex:1 }} />
+              <Button variant="primary" size="sm" onClick={invite} disabled={loading}>{loading ? '...' : t('common.add')}</Button>
+            </div>
+            {msg && (
+              <div style={{ marginTop:8, fontSize:12, padding:'6px 10px', borderRadius:6, background: msg.includes('added') || msg.includes('!') ? '#E8F2EB' : '#FCEBEB', color: msg.includes('added') || msg.includes('!') ? '#3D7A52' : '#A32D2D' }}>
+                {msg}
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* ── Join Requests ── */}
+      {/* ── Pending join requests ── */}
       {profile?.role === 'foreman' && joinRequests.length > 0 && (
         <div className="card" style={{ marginBottom:12, padding:0 }}>
           <div style={{ padding:'10px 14px', borderBottom:'1px solid #EAE3D8', display:'flex', alignItems:'center', gap:8 }}>
@@ -1457,24 +1482,6 @@ export function Team() {
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {/* ── Invite by email ── */}
-      {showInvite && (
-        <div className="card card-body" style={{ marginBottom:12 }}>
-          <div style={{ fontSize:13, fontWeight:500, marginBottom:8 }}>{t('team.addByEmail')}</div>
-          <div style={{ display:'flex', gap:8 }}>
-            <input className="form-input" placeholder={t('team.emailPlaceholder')}
-              value={email} onChange={e => setEmail(e.target.value)}
-              onKeyDown={e => e.key==='Enter' && invite()} style={{ flex:1 }} />
-            <Button variant="primary" size="sm" onClick={invite}>{loading?'...':'Add'}</Button>
-          </div>
-          {msg && (
-            <div style={{ marginTop:8, fontSize:12, padding:'6px 10px', borderRadius:6, background: msg.includes('added') ? '#E8F2EB' : '#FCEBEB', color: msg.includes('added') ? '#3D7A52' : '#A32D2D' }}>
-              {msg}
-            </div>
-          )}
         </div>
       )}
 
