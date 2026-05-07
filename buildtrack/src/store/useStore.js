@@ -199,15 +199,22 @@ export const useStore = create((set, get) => ({
 
     // Source 2: via approved join_requests (catches workers added before any project existed)
     if (profile?.role === 'foreman') {
+      // Step 1: get worker_ids from approved requests
       const { data: reqData } = await supabase
         .from('join_requests')
-        .select('worker:profiles!join_requests_worker_id_fkey(id, name, role, worker_status)')
+        .select('worker_id')
         .eq('foreman_id', profile.id)
         .eq('status', 'approved')
-      for (const row of reqData || []) {
-        const w = row.worker
-        if (!w || map[w.id]) continue
-        map[w.id] = { ...w, project_ids: [] }
+      const workerIds = (reqData || []).map(r => r.worker_id).filter(id => id && !map[id])
+      // Step 2: fetch profiles for those workers
+      if (workerIds.length) {
+        const { data: profData } = await supabase
+          .from('profiles')
+          .select('id, name, role, worker_status')
+          .in('id', workerIds)
+        for (const w of profData || []) {
+          if (!map[w.id]) map[w.id] = { ...w, project_ids: [] }
+        }
       }
     }
 
