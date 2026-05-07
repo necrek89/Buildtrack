@@ -1135,7 +1135,7 @@ export function Procurement() {
 
 // ─── TOOLS ───────────────────────────────────────────────────────────────────
 export function Tools({ canAdd }) {
-  const { tools, fetchTools, addTool, updateTool, deleteTool, profile, projects, fetchProjects, team, fetchTeam } = useStore()
+  const { tools, fetchTools, addTool, updateTool, deleteTool, profile, projects, fetchProjects, team, fetchAllWorkers } = useStore()
   const [tab, setTab]               = useState('all')
   const [showAdd, setShowAdd]       = useState(false)
   const [assigning, setAssigning]   = useState(null)
@@ -1149,8 +1149,7 @@ export function Tools({ canAdd }) {
   useEffect(() => {
     fetchProjects().then(() => {
       fetchTools()
-      const { projects } = useStore.getState()
-      if (projects[0]) fetchTeam(projects[0].id)
+      fetchAllWorkers()
     })
   }, [])
 

@@ -1,12 +1,14 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 
-const INITIAL_MATERIALS = [
-  { id: 101, projectId: null, taskId: null, name: 'White wall sockets',     qty: 2,   unit: 'pcs', status: 'needed',    reportedBy: 'Miguel', note: 'Ran short during 2nd floor install', createdAt: '2026-05-05T14:32:00Z', purchasedAt: null },
-  { id: 102, projectId: null, taskId: null, name: 'PVC cable 3×2.5',        qty: 20,  unit: 'm',   status: 'needed',    reportedBy: 'Miguel', note: '',                                   createdAt: '2026-05-05T09:10:00Z', purchasedAt: null },
-  { id: 103, projectId: null, taskId: null, name: 'Drywall screws 35mm',    qty: 200, unit: 'pcs', status: 'purchased', reportedBy: 'Karim',  note: '',                                   createdAt: '2026-05-04T11:00:00Z', purchasedAt: '2026-05-04T18:20:00Z' },
-  { id: 104, projectId: null, taskId: null, name: 'Wago connectors 3-port', qty: 30,  unit: 'pcs', status: 'needed',    reportedBy: 'Miguel', note: 'For junction boxes',                 createdAt: '2026-05-06T08:15:00Z', purchasedAt: null },
-]
+// ── localStorage helpers for materials ────────────────────────────────────────
+const LS_KEY = 'tutuu_materials'
+function loadMaterials() {
+  try { const s = localStorage.getItem(LS_KEY); return s ? JSON.parse(s) : [] } catch { return [] }
+}
+function saveMaterials(list) {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(list)) } catch {}
+}
 
 export const MATERIAL_UNITS = ['pcs', 'm', 'm²', 'm³', 'kg', 'l', 'pack', 'roll']
 
@@ -20,7 +22,7 @@ export const useStore = create((set, get) => ({
   team: [],
   notifications: [],
   joinRequests: [],
-  materials: [...INITIAL_MATERIALS],
+  materials: loadMaterials(),
   loading: false,
   selectedProjectId: null,
   setSelectedProject: (id) => set({ selectedProjectId: id }),
@@ -261,7 +263,7 @@ export const useStore = create((set, get) => ({
 
   // ── MATERIALS ────────────────────────────────────────────
   addMaterial: (material) => {
-    const { materials, notifications, profile } = get()
+    const { materials, notifications } = get()
     const nextId = Math.max(0, ...materials.map(m => m.id)) + 1
     const entry = {
       ...material,
@@ -270,7 +272,9 @@ export const useStore = create((set, get) => ({
       createdAt: new Date().toISOString(),
       purchasedAt: null,
     }
-    set({ materials: [...materials, entry] })
+    const next = [...materials, entry]
+    saveMaterials(next)
+    set({ materials: next })
     // Push notification so foreman sees it
     set(s => ({
       notifications: [{
@@ -283,21 +287,27 @@ export const useStore = create((set, get) => ({
     }))
   },
 
-  markMaterialPurchased: (id) => set(s => ({
-    materials: s.materials.map(m =>
+  markMaterialPurchased: (id) => set(s => {
+    const next = s.materials.map(m =>
       m.id === id ? { ...m, status: 'purchased', purchasedAt: new Date().toISOString() } : m
     )
-  })),
+    saveMaterials(next)
+    return { materials: next }
+  }),
 
-  markMaterialNeeded: (id) => set(s => ({
-    materials: s.materials.map(m =>
+  markMaterialNeeded: (id) => set(s => {
+    const next = s.materials.map(m =>
       m.id === id ? { ...m, status: 'needed', purchasedAt: null } : m
     )
-  })),
+    saveMaterials(next)
+    return { materials: next }
+  }),
 
-  deleteMaterial: (id) => set(s => ({
-    materials: s.materials.filter(m => m.id !== id)
-  })),
+  deleteMaterial: (id) => set(s => {
+    const next = s.materials.filter(m => m.id !== id)
+    saveMaterials(next)
+    return { materials: next }
+  }),
 
   getProjectMaterials: (projectId) => get().materials.filter(m => m.projectId === projectId),
   getTaskMaterials:    (taskId)     => get().materials.filter(m => m.taskId    === taskId),

@@ -86,7 +86,7 @@ body {
 }
 .nav-item.active { color: #C96B3A; border-left-color: #C96B3A; background: #FAECE4; font-weight: 500; }
 .nav-item:hover:not(.active) { background: #FAF7F2; }
-.nav-icon { font-size: 14px; flex-shrink: 0; }
+.nav-icon { display: flex; align-items: center; flex-shrink: 0; }
 
 .nav-signout {
   margin-top: auto;
@@ -96,25 +96,27 @@ body {
 
 /* ── MAIN ── */
 .main { flex: 1; padding: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.tab-spacer { height: 70px; }
+.tab-spacer { height: calc(64px + env(safe-area-inset-bottom, 0px)); }
 
 /* ── BOTTOM TAB BAR ── */
 .tab-bar {
   display: flex;
   position: fixed; bottom: 0; left: 0; right: 0;
-  height: 56px; background: #FFFFFF;
-  border-top: 1px solid #EAE3D8; z-index: 30;
+  height: calc(56px + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: #FFFFFF;
+  border-top: 1px solid #EAE3D8; z-index: 30;
 }
 .tab-item {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 3px;
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px;
   background: transparent; border: none; cursor: pointer;
-  color: #B8AFA6; padding: 6px 4px; transition: color 0.1s;
+  color: #B8AFA6; padding: 8px 2px 6px; transition: color 0.15s;
 }
 .tab-item.active { color: #C96B3A; }
-.tab-icon { font-size: 18px; line-height: 1; }
-.tab-label { font-size: 10px; line-height: 1; }
+.tab-icon { display: flex; align-items: center; justify-content: center; line-height: 1; }
+.tab-label { font-size: 10px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
 /* ── PAGE ── */
 .page-header {
@@ -389,17 +391,18 @@ body {
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  /* allow scroll without stretching on small screens */
+  -webkit-overflow-scrolling: touch;
 }
 .inner-tab-bar::-webkit-scrollbar { display: none; }
 
 .inner-tab-btn {
-  flex: 1;
-  min-width: 56px;
-  padding: 7px 10px;
+  flex: 0 0 auto;           /* don't shrink — let it scroll */
+  padding: 6px 10px;
   border: none;
   border-radius: 9px;
   background: transparent;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: #7A6E66;
   cursor: pointer;

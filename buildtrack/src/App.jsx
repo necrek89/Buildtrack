@@ -7,26 +7,53 @@ import {
   ClientDashboard, ClientProgress, ClientPhotos
 } from './pages/index'
 
+// ── SVG Tab Icons ─────────────────────────────────────────────────────────────
+function TabIcon({ name, size = 22 }) {
+  const s = { width: size, height: size, display: 'block' }
+  const p = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  switch (name) {
+    case 'projects':
+      return <svg style={s} viewBox="0 0 24 24" {...p}><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
+    case 'materials':
+      return <svg style={s} viewBox="0 0 24 24" {...p}><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+    case 'tools':
+      return <svg style={s} viewBox="0 0 24 24" {...p}><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+    case 'team':
+      return <svg style={s} viewBox="0 0 24 24" {...p}><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+    case 'notifications':
+      return <svg style={s} viewBox="0 0 24 24" {...p}><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    case 'tasks':
+      return <svg style={s} viewBox="0 0 24 24" {...p}><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    case 'account':
+      return <svg style={s} viewBox="0 0 24 24" {...p}><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    default:
+      return null
+  }
+}
+
+// ── Nav icons for sidebar (slightly smaller) ──────────────────────────────────
+function NavIcon({ name }) { return <TabIcon name={name} size={18} /> }
+
 const NAV = {
   foreman: [
-    { id: 'projects',      icon: '◫', label: 'Projects'      },
-    { id: 'procurement',   icon: '◐', label: 'Procurement'   },
-    { id: 'tools',         icon: '⚙', label: 'Tools'         },
-    { id: 'team',          icon: '◉', label: 'Team'          },
-    { id: 'notifications', icon: '◆', label: 'Notifications' },
+    { id: 'projects',      icon: 'projects',      label: 'Projects'      },
+    { id: 'materials',     icon: 'materials',     label: 'Materials'     },
+    { id: 'tools',         icon: 'tools',         label: 'Tools'         },
+    { id: 'team',          icon: 'team',          label: 'Team'          },
+    { id: 'notifications', icon: 'notifications', label: 'Alerts'        },
   ],
   worker: [
-    { id: 'my-tasks',      icon: '☑', label: 'My Tasks'      },
-    { id: 'tools',         icon: '⚙', label: 'Tools'         },
-    { id: 'notifications', icon: '◆', label: 'Notifications' },
-    { id: 'account',       icon: '👤', label: 'Account'       },
+    { id: 'my-tasks',      icon: 'tasks',         label: 'My Tasks'      },
+    { id: 'tools',         icon: 'tools',         label: 'Tools'         },
+    { id: 'notifications', icon: 'notifications', label: 'Alerts'        },
+    { id: 'account',       icon: 'account',       label: 'Account'       },
   ],
   client: [
-    { id: 'dashboard',     icon: '▦', label: 'My Project'    },
-    { id: 'progress',      icon: '◫', label: 'Progress'      },
-    { id: 'photos',        icon: '◧', label: 'Photos'        },
-    { id: 'notifications', icon: '◆', label: 'Notifications' },
-    { id: 'account',       icon: '👤', label: 'Account'       },
+    { id: 'dashboard',     icon: 'projects',      label: 'My Project'    },
+    { id: 'progress',      icon: 'tasks',         label: 'Progress'      },
+    { id: 'photos',        icon: 'materials',     label: 'Photos'        },
+    { id: 'notifications', icon: 'notifications', label: 'Alerts'        },
+    { id: 'account',       icon: 'account',       label: 'Account'       },
   ],
 }
 
@@ -37,7 +64,7 @@ function PageContent({ role, page, onNavigate }) {
   if (page === 'account') return <AccountPage />
   if (role === 'foreman') {
     if (page === 'projects')      return <Projects />
-    if (page === 'procurement')   return <Procurement />
+    if (page === 'materials')     return <Procurement />
     if (page === 'tools')         return <Tools canAdd={true} />
     if (page === 'team')          return <Team />
     if (page === 'notifications') return <Notifications onNavigate={onNavigate} />
@@ -58,10 +85,10 @@ function PageContent({ role, page, onNavigate }) {
 
 export default function App() {
   const { role, profile, checkSession, signOut, setSelectedProject } = useStore()
-  const [page, setPage]             = useState('dashboard')
+  const [page, setPage]               = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [authed, setAuthed]         = useState(false)
-  const [checking, setChecking]     = useState(true)
+  const [authed, setAuthed]           = useState(false)
+  const [checking, setChecking]       = useState(true)
 
   useEffect(() => {
     checkSession().then(() => {
@@ -102,7 +129,6 @@ export default function App() {
   const navItems = NAV[role] || NAV.worker
   const tabItems = navItems.slice(0, 4)
 
-  // Аватарка в топбаре
   const avatarStyle = {
     width: 32, height: 32, borderRadius: '50%',
     background: profile?.avatar_color || '#C96B3A',
@@ -142,7 +168,6 @@ export default function App() {
         <nav className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
           <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>✕</button>
 
-          {/* Профиль в сайдбаре */}
           <div className="sidebar-user"
             onClick={() => { setPage('account'); setSidebarOpen(false) }}
             style={{ cursor:'pointer', padding:'44px 16px 12px', display:'flex', alignItems:'center', gap:10 }}
@@ -165,14 +190,18 @@ export default function App() {
               className={`nav-item ${page === item.id ? 'active' : ''}`}
               onClick={() => { setPage(item.id); setSidebarOpen(false); if (item.id !== 'projects') setSelectedProject(null); }}
             >
-              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-icon"><NavIcon name={item.icon} /></span>
               <span>{item.label}</span>
             </div>
           ))}
 
           <div className="nav-signout">
             <div className="nav-item" style={{ color:'#A32D2D' }} onClick={handleSignOut}>
-              <span className="nav-icon">→</span>
+              <span className="nav-icon">
+                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+              </span>
               <span>Sign Out</span>
             </div>
           </div>
@@ -191,7 +220,7 @@ export default function App() {
             className={`tab-item ${page === item.id ? 'active' : ''}`}
             onClick={() => { setPage(item.id); if (item.id !== 'projects') setSelectedProject(null); }}
           >
-            <span className="tab-icon">{item.icon}</span>
+            <TabIcon name={item.icon} />
             <span className="tab-label">{item.label}</span>
           </button>
         ))}
