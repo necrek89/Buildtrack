@@ -7,25 +7,27 @@ export default function LanguagePicker({ compact = false }) {
   const [open, setOpen]   = useState(false)
   const [pos,  setPos]    = useState({ top: 0, left: 0 })
   const btnRef            = useRef(null)
+  const dropRef           = useRef(null)
 
-  // Calculate dropdown position based on button's screen coords
   const toggle = () => {
     if (!open && btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect()
-      // try to open below; if not enough space open above
-      const spaceBelow = window.innerHeight - r.bottom
-      const dropH      = LANGUAGES.length * 42 + 8   // approx height
-      const top  = spaceBelow >= dropH ? r.bottom + 6 : r.top - dropH - 6
-      const left = Math.min(r.left, window.innerWidth - 180) // keep in viewport
-      setPos({ top, left })
+      const r       = btnRef.current.getBoundingClientRect()
+      const dropH   = LANGUAGES.length * 42 + 8
+      const below   = window.innerHeight - r.bottom
+      const top     = below >= dropH ? r.bottom + 6 : r.top - dropH - 6
+      const left    = Math.min(r.left, window.innerWidth - 185)
+      setPos({ top: Math.max(8, top), left: Math.max(8, left) })
     }
     setOpen(o => !o)
   }
 
+  // Close when clicking outside BOTH the button AND the dropdown
   useEffect(() => {
     if (!open) return
     function onOutside(e) {
-      if (btnRef.current && !btnRef.current.contains(e.target)) setOpen(false)
+      const inBtn  = btnRef.current  && btnRef.current.contains(e.target)
+      const inDrop = dropRef.current && dropRef.current.contains(e.target)
+      if (!inBtn && !inDrop) setOpen(false)
     }
     document.addEventListener('mousedown', onOutside)
     return () => document.removeEventListener('mousedown', onOutside)
@@ -56,6 +58,7 @@ export default function LanguagePicker({ compact = false }) {
 
       {open && createPortal(
         <div
+          ref={dropRef}
           style={{
             position: 'fixed',
             top: pos.top,
@@ -65,7 +68,7 @@ export default function LanguagePicker({ compact = false }) {
             borderRadius: 12,
             boxShadow: '0 6px 24px rgba(0,0,0,0.15)',
             zIndex: 9999,
-            minWidth: 175,
+            minWidth: 178,
             overflow: 'hidden',
             padding: '4px 0',
           }}
@@ -73,7 +76,6 @@ export default function LanguagePicker({ compact = false }) {
           {LANGUAGES.map(l => (
             <button
               key={l.code}
-              onMouseDown={e => e.preventDefault()}   // prevent outside-click from firing first
               onClick={() => { setLang(l.code); setOpen(false) }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
