@@ -4,10 +4,12 @@ import { useT } from './i18n/useLanguage'
 import LanguagePicker from './components/LanguagePicker'
 import LoginPage from './pages/LoginPage'
 import AccountPage from './pages/AccountPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import {
   Projects, MyTasks, Tools, Team, Notifications, Procurement,
   ClientDashboard, ClientProgress, ClientPhotos
 } from './pages/index'
+import { supabase } from './lib/supabase'
 
 // ── SVG Tab Icons ─────────────────────────────────────────────────────────────
 function TabIcon({ name, size = 22 }) {
@@ -92,8 +94,16 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [authed, setAuthed]           = useState(false)
   const [checking, setChecking]       = useState(true)
+  const [recovering, setRecovering]   = useState(false)   // password recovery mode
 
   useEffect(() => {
+    // Detect PASSWORD_RECOVERY event — fires when user opens reset link from email
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setRecovering(true)
+        setChecking(false)
+      }
+    })
     checkSession().then(() => {
       const { profile } = useStore.getState()
       if (profile) {
@@ -104,6 +114,7 @@ export default function App() {
       }
       setChecking(false)
     })
+    return () => subscription.unsubscribe()
   }, [])
 
   const handleLogin = () => {
@@ -126,6 +137,11 @@ export default function App() {
       </div>
     )
   }
+
+  // Password recovery — shown when user opens reset link from email
+  if (recovering) return (
+    <ResetPasswordPage onDone={() => { setRecovering(false); setAuthed(false) }} />
+  )
 
   if (!authed) return <LoginPage onLogin={handleLogin} />
 
