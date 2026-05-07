@@ -1186,14 +1186,21 @@ export function Tools({ canAdd }) {
 
   const saveAssign = async () => {
     setAssignErr('')
-    const updates = { project_id: assignForm.project_id || null }
-    if (assignForm.worker_id !== undefined) updates.worker_id = assignForm.worker_id || null
+    const isAssigning = !!(assignForm.project_id || assignForm.worker_id)
+    const updates = {
+      project_id: assignForm.project_id || null,
+      worker_id:  assignForm.worker_id  || null,
+      assigned_at:       isAssigning ? new Date().toISOString() : null,
+      assigned_by_name:  isAssigning ? (profile?.name || '') : null,
+    }
     const { error } = await updateTool(assigning.id, updates)
     if (error) { setAssignErr(error.message || 'Failed to assign'); return }
     setAssigning(null)
   }
 
-  const unassign = async (tool) => { await updateTool(tool.id, { project_id: null, worker_id: null }) }
+  const unassign = async (tool) => {
+    await updateTool(tool.id, { project_id: null, worker_id: null, assigned_at: null, assigned_by_name: null })
+  }
 
   const counts = {
     all:       tools.length,
@@ -1249,6 +1256,18 @@ export function Tools({ canAdd }) {
                   {wName && <span style={{ fontSize:10, background:'#E8F2EB', color:'#3D7A52', borderRadius:6, padding:'2px 8px', fontWeight:600 }}>👷 {wName}</span>}
                   {!pName && !wName && <span style={{ fontSize:10, color:'#B8AFA6' }}>{t('tools.notAssigned')}</span>}
                 </div>
+                {isAssigned && tool.assigned_at && (
+                  <div style={{ marginTop:5, display:'flex', flexWrap:'wrap', gap:5 }}>
+                    <span style={{ fontSize:10, color:'#7A6E66' }}>
+                      📅 {t('tools.assignedOn')} {new Date(tool.assigned_at).toLocaleDateString()}
+                    </span>
+                    {tool.assigned_by_name && (
+                      <span style={{ fontSize:10, color:'#7A6E66' }}>
+                        · {t('tools.assignedBy')} <strong>{tool.assigned_by_name}</strong>
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
               {canAdd && (
                 <div style={{ display:'flex', gap:5, flexShrink:0, marginTop:2 }}>

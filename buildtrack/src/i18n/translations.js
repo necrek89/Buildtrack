@@ -127,6 +127,7 @@ const t = {
       projectLabel: 'Project / Object', workerLabel: 'Worker',
       notAssignedOption: '— not assigned —',
       deleteTitle: 'Remove tool?',
+      assignedOn: 'Assigned', assignedBy: 'by',
     },
     team: {
       title: 'Team', invite: '+ Invite', close: 'Close',
@@ -325,6 +326,7 @@ const t = {
       projectLabel: 'Объект', workerLabel: 'Рабочий',
       notAssignedOption: '— не назначен —',
       deleteTitle: 'Удалить инструмент?',
+      assignedOn: 'Назначен', assignedBy: 'прорабом',
     },
     team: {
       title: 'Бригада', invite: '+ Пригласить', close: 'Закрыть',
@@ -523,6 +525,7 @@ const t = {
       projectLabel: 'Projekat / Objekat', workerLabel: 'Radnik',
       notAssignedOption: '— nije dodijeljeno —',
       deleteTitle: 'Ukloniti alat?',
+      assignedOn: 'Dodijeljeno', assignedBy: 'od',
     },
     team: {
       title: 'Tim', invite: '+ Pozovi', close: 'Zatvori',
@@ -721,6 +724,7 @@ const t = {
       projectLabel: 'Proyecto / Obra', workerLabel: 'Obrero',
       notAssignedOption: '— sin asignar —',
       deleteTitle: '¿Quitar herramienta?',
+      assignedOn: 'Asignado', assignedBy: 'por',
     },
     team: {
       title: 'Equipo', invite: '+ Invitar', close: 'Cerrar',
@@ -919,6 +923,7 @@ const t = {
       projectLabel: 'Projeto / Canteiro', workerLabel: 'Trabalhador',
       notAssignedOption: '— não atribuído —',
       deleteTitle: 'Remover ferramenta?',
+      assignedOn: 'Atribuído', assignedBy: 'por',
     },
     team: {
       title: 'Equipe', invite: '+ Convidar', close: 'Fechar',
@@ -1117,6 +1122,7 @@ const t = {
       projectLabel: 'Projekt / Baustelle', workerLabel: 'Arbeiter',
       notAssignedOption: '— nicht zugewiesen —',
       deleteTitle: 'Werkzeug entfernen?',
+      assignedOn: 'Zugewiesen', assignedBy: 'von',
     },
     team: {
       title: 'Team', invite: '+ Einladen', close: 'Schließen',
@@ -1315,6 +1321,7 @@ const t = {
       projectLabel: 'Projet / Chantier', workerLabel: 'Ouvrier',
       notAssignedOption: '— non assigné —',
       deleteTitle: 'Retirer l\'outil ?',
+      assignedOn: 'Assigné', assignedBy: 'par',
     },
     team: {
       title: 'Équipe', invite: '+ Inviter', close: 'Fermer',

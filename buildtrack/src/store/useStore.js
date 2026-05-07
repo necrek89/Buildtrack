@@ -180,20 +180,37 @@ export const useStore = create((set, get) => ({
 
   // Fetch all unique workers across all foreman's projects, with project membership
   fetchAllWorkers: async () => {
-    const { projects } = get()
-    if (!projects.length) return []
-    const { data } = await supabase
-      .from('project_workers')
-      .select('worker:profiles(id, name, role, worker_status), project_id')
-      .in('project_id', projects.map(p => p.id))
-    // Deduplicate workers, collect project_ids per worker
+    const { profile, projects } = get()
     const map = {}
-    for (const row of data || []) {
-      const w = row.worker
-      if (!w) continue
-      if (!map[w.id]) map[w.id] = { ...w, project_ids: [] }
-      map[w.id].project_ids.push(row.project_id)
+
+    // Source 1: via project_workers
+    if (projects.length) {
+      const { data } = await supabase
+        .from('project_workers')
+        .select('worker:profiles(id, name, role, worker_status), project_id')
+        .in('project_id', projects.map(p => p.id))
+      for (const row of data || []) {
+        const w = row.worker
+        if (!w) continue
+        if (!map[w.id]) map[w.id] = { ...w, project_ids: [] }
+        map[w.id].project_ids.push(row.project_id)
+      }
     }
+
+    // Source 2: via approved join_requests (catches workers added before any project existed)
+    if (profile?.role === 'foreman') {
+      const { data: reqData } = await supabase
+        .from('join_requests')
+        .select('worker:profiles!join_requests_worker_id_fkey(id, name, role, worker_status)')
+        .eq('foreman_id', profile.id)
+        .eq('status', 'approved')
+      for (const row of reqData || []) {
+        const w = row.worker
+        if (!w || map[w.id]) continue
+        map[w.id] = { ...w, project_ids: [] }
+      }
+    }
+
     const workers = Object.values(map)
     set({ team: workers })
     return workers
