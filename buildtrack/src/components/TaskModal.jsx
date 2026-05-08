@@ -4,7 +4,7 @@ import { Button, FormGroup } from './UI'
 import { supabase } from '../lib/supabase'
 import DatePicker from './DatePicker'
 
-const DEFAULT_STAGES = ['Foundation', 'Electrical', 'Walls', 'Roofing', 'Finishing']
+// No default stages — each project defines its own
 const PRIORITY_OPTIONS = [
   { value: 'high',   label: 'High'   },
   { value: 'normal', label: 'Normal' },
@@ -26,7 +26,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
     description: task?.description || '',
     project_id:  task?.project_id  || defaultProjectId || projects[0]?.id || '',
     worker_id:   task?.worker_id   || '',
-    stage:       task?.stage       || 'Electrical',
+    stage:       task?.stage       || '',
     priority:    task?.priority    || 'normal',
     deadline:    task?.deadline    || '',
   })
@@ -59,7 +59,9 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
     if (field === 'project_id' && val) {
       const w = await fetchWorkers(val)
       setWorkers(w)
-      setForm(f => ({ ...f, project_id: val, worker_id: '' }))
+      const proj = useStore.getState().projects.find(p => p.id === val)
+      const firstStage = Array.isArray(proj?.stages) && proj.stages.length > 0 ? proj.stages[0] : ''
+      setForm(f => ({ ...f, project_id: val, worker_id: '', stage: firstStage }))
     }
   }
 
@@ -142,13 +144,21 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
               </select>
             </FormGroup>
             <FormGroup label="Stage">
-              <select className="form-input" value={form.stage} onChange={set('stage')}>
-                {(() => {
-                  const proj = projects.find(p => p.id === form.project_id)
-                  const stageList = proj?.stages?.length > 0 ? proj.stages : DEFAULT_STAGES
-                  return stageList.map(s => <option key={s}>{s}</option>)
-                })()}
-              </select>
+              {(() => {
+                const proj = projects.find(p => p.id === form.project_id)
+                const stageList = Array.isArray(proj?.stages) ? proj.stages : []
+                return (
+                  <select className="form-input" value={form.stage} onChange={set('stage')}>
+                    {stageList.length === 0
+                      ? <option value="">— add stages to project first —</option>
+                      : <>
+                          <option value="">— no stage —</option>
+                          {stageList.map(s => <option key={s} value={s}>{s}</option>)}
+                        </>
+                    }
+                  </select>
+                )
+              })()}
             </FormGroup>
           </div>
 

@@ -765,55 +765,68 @@ function ProjectList({ onSelect, onEdit, onDelete }) {
 // ─── STAGE MANAGER (reusable: edit stages list) ──────────────────────────────
 function StageManager({ stages, onChange, t }) {
   const [newStage, setNewStage] = useState('')
+  // Guarantee stages is always an array (SQL column may not exist yet)
+  const safeStages = Array.isArray(stages) ? stages : []
 
   const addStage = () => {
     const trimmed = newStage.trim()
     if (!trimmed) return
-    onChange([...stages, trimmed])
+    onChange([...safeStages, trimmed])
     setNewStage('')
   }
-  const removeStage = (i) => onChange(stages.filter((_, idx) => idx !== i))
+  const removeStage = (i) => onChange(safeStages.filter((_, idx) => idx !== i))
 
   return (
     <div>
-      {/* Existing stages */}
-      {stages.length > 0 && (
-        <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
-          {stages.map((s, i) => (
+      {/* Existing stage chips */}
+      {safeStages.length > 0 && (
+        <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:10 }}>
+          {safeStages.map((s, i) => (
             <div key={i} style={{
-              display:'flex', alignItems:'center', gap:4,
-              background:'var(--bg-accent, #F2EDE4)', borderRadius:20,
-              padding:'4px 10px', fontSize:12, color:'var(--text-1, #2E2420)',
+              display:'flex', alignItems:'center', gap:5,
+              background:'var(--bg-accent, #F2EDE4)', borderRadius:20, border:'1px solid #E0D5CC',
+              padding:'5px 12px 5px 10px', fontSize:12, color:'var(--text-1, #2E2420)',
             }}>
               <span>{s}</span>
-              <button onClick={() => removeStage(i)} style={{ background:'none', border:'none', cursor:'pointer', color:'#A32D2D', fontSize:13, lineHeight:1, padding:0, marginLeft:2 }}>×</button>
+              <button
+                type="button"
+                onClick={e => { e.preventDefault(); e.stopPropagation(); removeStage(i) }}
+                style={{ background:'none', border:'none', cursor:'pointer', color:'#A32D2D', fontSize:15, lineHeight:1, padding:0 }}
+              >×</button>
             </div>
           ))}
         </div>
       )}
-      {stages.length === 0 && (
-        <div style={{ fontSize:11, color:'#B8AFA6', marginBottom:8 }}>{t('detail.noStages')}</div>
-      )}
-      {/* Add new stage */}
+
+      {/* Add new stage row */}
       <div style={{ display:'flex', gap:6 }}>
         <input
+          type="text"
           className="form-input"
-          style={{ flex:1, fontSize:12 }}
+          style={{ flex:1, fontSize:13 }}
           value={newStage}
           onChange={e => setNewStage(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && addStage()}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addStage() } }}
           placeholder={t('projects.stagePlaceholder')}
         />
         <button
-          onClick={addStage}
+          type="button"
+          onClick={e => { e.preventDefault(); e.stopPropagation(); addStage() }}
+          disabled={!newStage.trim()}
           style={{
-            background:'#C96B3A', color:'#fff', border:'none', borderRadius:10,
-            padding:'0 14px', fontSize:12, fontWeight:600, cursor:'pointer', flexShrink:0,
+            background: newStage.trim() ? '#C96B3A' : '#EAE3D8',
+            color: newStage.trim() ? '#fff' : '#B8AFA6',
+            border:'none', borderRadius:10, width:42, height:42,
+            fontSize:22, fontWeight:400, cursor: newStage.trim() ? 'pointer' : 'default',
+            flexShrink:0, transition:'background .15s, color .15s',
+            display:'flex', alignItems:'center', justifyContent:'center',
           }}
-        >
-          +
-        </button>
+        >+</button>
       </div>
+
+      {safeStages.length === 0 && (
+        <div style={{ fontSize:11, color:'#B8AFA6', marginTop:8 }}>{t('detail.noStages')}</div>
+      )}
     </div>
   )
 }
