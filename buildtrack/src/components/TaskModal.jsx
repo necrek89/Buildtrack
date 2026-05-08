@@ -4,7 +4,7 @@ import { Button, FormGroup } from './UI'
 import { supabase } from '../lib/supabase'
 import DatePicker from './DatePicker'
 
-const STAGES = ['Foundation', 'Electrical', 'Walls', 'Roofing', 'Finishing']
+const DEFAULT_STAGES = ['Foundation', 'Electrical', 'Walls', 'Roofing', 'Finishing']
 const PRIORITY_OPTIONS = [
   { value: 'high',   label: 'High'   },
   { value: 'normal', label: 'Normal' },
@@ -143,7 +143,11 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
             </FormGroup>
             <FormGroup label="Stage">
               <select className="form-input" value={form.stage} onChange={set('stage')}>
-                {STAGES.map(s => <option key={s}>{s}</option>)}
+                {(() => {
+                  const proj = projects.find(p => p.id === form.project_id)
+                  const stageList = proj?.stages?.length > 0 ? proj.stages : DEFAULT_STAGES
+                  return stageList.map(s => <option key={s}>{s}</option>)
+                })()}
               </select>
             </FormGroup>
           </div>

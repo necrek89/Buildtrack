@@ -256,85 +256,180 @@ function StatusSection({ icon, label, color, bg, tasks, openId, setOpenId, onEdi
 }
 
 // ─── OVERVIEW TAB ────────────────────────────────────────────────────────────
-function OverviewTab({ proj, tasks, tools, onEdit }) {
+function OverviewTab({ proj, tasks, tools, team, onEdit }) {
   const { t } = useT()
-  const pTasks  = tasks.filter(t => t.project_id === proj.id)
-  const pDone   = pTasks.filter(t => t.status === 'approved').length
-  const pActive = pTasks.filter(t => t.status !== 'approved').length
-  const pPct    = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
+  const pTasks   = tasks.filter(tk => tk.project_id === proj.id)
+  const pDone    = pTasks.filter(tk => tk.status === 'approved').length
+  const pPct     = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
   const daysLeft = proj.deadline ? Math.max(0, Math.ceil((new Date(proj.deadline) - new Date()) / 86400000)) : null
-  const projTools = tools.filter(t => t.project_id === proj.id)
+  const projTools = tools.filter(tk => tk.project_id === proj.id)
+
+  // Use project's custom stages; fallback: collect unique stage values from tasks
+  const projectStages = (proj.stages && proj.stages.length > 0)
+    ? proj.stages
+    : [...new Set(pTasks.map(tk => tk.stage).filter(Boolean))]
+
+  const [openStages, setOpenStages] = useState([])
+  const STATUS_DOT = { approved:'#5A9467', pending:'#D4A843', new:'#B8AFA6', rejected:'#A32D2D' }
+
+  const toggleStage = (name) =>
+    setOpenStages(prev => prev.includes(name) ? prev.filter(x => x !== name) : [...prev, name])
 
   return (
     <div style={{ padding:'0 0 24px' }}>
-      {/* Stats */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8, marginBottom:14 }}>
+      {/* ── 2×2 Stats ── */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:8, marginBottom:12 }}>
         {[
-          { v: pPct+'%',  l: t('detail.progress'), c: '#C96B3A' },
-          { v: pActive,   l: t('detail.active'),   c: pActive > 0 ? '#C96B3A' : '#2E2420' },
-          { v: daysLeft !== null ? daysLeft+'d' : '—', l: t('detail.daysLeft'), c: daysLeft !== null && daysLeft < 7 ? '#A32D2D' : '#2E2420' },
+          { v: pPct+'%',                  l: t('detail.progress'),  c: '#C96B3A' },
+          { v: team.length,               l: t('detail.workers'),   c: '#2E2420' },
+          { v: daysLeft !== null ? daysLeft+'d' : '—',
+            l: t('detail.daysLeft'),
+            c: daysLeft !== null && daysLeft < 7 ? '#A32D2D' : '#2E2420' },
+          { v: `${pDone}/${pTasks.length}`, l: t('detail.tasksDone'), c: '#2E2420' },
         ].map(s => (
-          <div key={s.l} style={{ background:'#F2EDE4', borderRadius:10, padding:'10px 8px', textAlign:'center' }}>
+          <div key={s.l} style={{ background:'var(--bg-accent, #F2EDE4)', borderRadius:10, padding:'10px 8px', textAlign:'center' }}>
             <div style={{ fontSize:18, fontWeight:700, color:s.c }}>{s.v}</div>
             <div style={{ fontSize:10, color:'#B8AFA6', marginTop:2 }}>{s.l}</div>
           </div>
         ))}
       </div>
 
-      {/* Progress bar */}
-      <div style={{ height:5, background:'#EAE3D8', borderRadius:5, overflow:'hidden', marginBottom:16 }}>
+      {/* ── Progress bar ── */}
+      <div style={{ height:5, background:'var(--border, #EAE3D8)', borderRadius:5, overflow:'hidden', marginBottom:12 }}>
         <div style={{ height:5, borderRadius:5, background:'#C96B3A', width:`${pPct}%`, transition:'width .4s' }} />
       </div>
 
-      {/* Address */}
+      {/* ── Address / Deadline ── */}
       {(proj.address || proj.deadline) && (
-        <div style={{ background:'#F2EDE4', borderRadius:10, padding:'10px 12px', marginBottom:14 }}>
+        <div style={{ background:'var(--bg-accent, #F2EDE4)', borderRadius:10, padding:'10px 12px', marginBottom:12 }}>
           {proj.address && (
             <div onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(proj.address)}`, '_blank')}
-              style={{ fontSize:12, fontWeight:600, color:'#C96B3A', cursor:'pointer', textDecoration:'underline', marginBottom:4 }}>
+              style={{ fontSize:12, fontWeight:600, color:'#C96B3A', cursor:'pointer', textDecoration:'underline', marginBottom: proj.deadline ? 4 : 0 }}>
               📍 {proj.address}
             </div>
           )}
           {proj.deadline && (
             <div style={{ fontSize:11, color:'#B8AFA6' }}>
               📅 {t('detail.deadlineLabel')} {proj.deadline}
-              {daysLeft !== null && <span style={{ color: daysLeft < 7 ? '#A32D2D' : '#C96B3A', fontWeight:600, marginLeft:6 }}>· {t('detail.daysLeftText', { n: daysLeft })}</span>}
+              {daysLeft !== null && (
+                <span style={{ color: daysLeft < 7 ? '#A32D2D' : '#C96B3A', fontWeight:600, marginLeft:6 }}>
+                  · {t('detail.daysLeftText', { n: daysLeft })}
+                </span>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {/* Edit button */}
+      {/* ── Edit button ── */}
       {onEdit && (
         <Button size="sm" onClick={() => onEdit(proj)} style={{ marginBottom:14 }}>✏️ {t('detail.editProject')}</Button>
       )}
 
-      {/* Active tasks preview */}
-      <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:8 }}>⚡ {t('detail.activeTasks')}</div>
-      {pTasks.filter(t => t.status !== 'approved').length === 0
-        ? <div style={{ fontSize:12, color:'#B8AFA6', marginBottom:14 }}>{t('detail.noActiveTasks')}</div>
-        : pTasks.filter(t => t.status !== 'approved').slice(0,4).map(t => (
-          <div key={t.id} style={{ display:'flex', alignItems:'center', gap:7, marginBottom:6 }}>
-            <div style={{ width:5, height:5, borderRadius:'50%', background: t.status==='pending'?'#D4A843':'#C96B3A', flexShrink:0 }} />
-            <div style={{ flex:1, fontSize:12, color:'#2E2420' }}>{t.text}</div>
-            <div style={{ fontSize:10, fontWeight:700, padding:'2px 7px', borderRadius:10, background: t.status==='pending'?'#FBF3DC':'#FAECE4', color: t.status==='pending'?'#9A6E10':'#C96B3A' }}>
-              {STATUS_LABEL[t.status]}
-            </div>
-          </div>
-        ))
-      }
+      {/* ── Stages ── */}
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:8 }}>
+        📋 {t('detail.stages')}
+      </div>
 
-      {/* Tools on site */}
-      <div style={{ height:1, background:'#EAE3D8', margin:'12px 0 10px' }} />
-      <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:8 }}>🔧 {t('detail.toolsOnSite')}</div>
-      {projTools.length === 0
-        ? <div style={{ fontSize:12, color:'#B8AFA6' }}>{t('detail.noTools')}</div>
-        : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
-            {projTools.map(t => (
-              <div key={t.id} style={{ background:'#F2EDE4', borderRadius:6, padding:'3px 9px', fontSize:10, color:'#7A6E66' }}>{t.name}</div>
+      {projectStages.length === 0 ? (
+        <div style={{ fontSize:12, color:'#B8AFA6', textAlign:'center', padding:'16px 0 8px' }}>
+          {t('detail.noStages')}
+        </div>
+      ) : (
+        <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
+          {projectStages.map(stageName => {
+            const stageTasks = pTasks.filter(tk => tk.stage === stageName)
+            const sDone  = stageTasks.filter(tk => tk.status === 'approved').length
+            const inWork = stageTasks.filter(tk => ['new','pending','rejected'].includes(tk.status)).length
+            const total  = stageTasks.length
+            const pct    = total === 0 ? 0 : Math.round((sDone / total) * 100)
+            const isOpen = openStages.includes(stageName)
+            const isDone = pct === 100 && total > 0
+            const barColor = isDone ? '#5A9467' : inWork > 0 ? '#C96B3A' : 'var(--border, #EAE3D8)'
+
+            return (
+              <div key={stageName} style={{
+                background:'var(--surface, #fff)',
+                border:`1.5px solid ${isOpen ? '#C96B3A' : 'var(--border, #EAE3D8)'}`,
+                borderRadius:10, overflow:'hidden',
+                transition:'border-color .15s',
+              }}>
+                {/* Stage header */}
+                <div
+                  onClick={() => total > 0 && toggleStage(stageName)}
+                  style={{
+                    display:'flex', alignItems:'center', gap:8, padding:'10px 12px',
+                    cursor: total > 0 ? 'pointer' : 'default',
+                    background: isOpen ? '#FAECE4' : 'var(--surface, #fff)',
+                  }}
+                >
+                  {/* done checkmark or number dot */}
+                  <div style={{
+                    width:22, height:22, borderRadius:'50%', flexShrink:0,
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    fontSize:11, fontWeight:700,
+                    background: isDone ? '#E8F2EB' : inWork > 0 ? '#FAECE4' : 'var(--bg-accent, #F2EDE4)',
+                    color: isDone ? '#3D7A52' : inWork > 0 ? '#C96B3A' : '#B8AFA6',
+                  }}>
+                    {isDone ? '✓' : total}
+                  </div>
+
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : 'var(--text-1, #2E2420)', marginBottom:3 }}>
+                      {stageName}
+                    </div>
+                    <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+                      <div style={{ flex:1, height:3, background:'var(--border, #EAE3D8)', borderRadius:3, overflow:'hidden' }}>
+                        <div style={{ height:3, borderRadius:3, background:barColor, width:`${pct}%`, transition:'width .3s' }} />
+                      </div>
+                      <span style={{ fontSize:10, color:'#B8AFA6', flexShrink:0 }}>{sDone}/{total}</span>
+                    </div>
+                  </div>
+
+                  {inWork > 0 && (
+                    <span style={{ fontSize:10, background:'#FAECE4', color:'#C96B3A', borderRadius:6, padding:'2px 7px', fontWeight:700, flexShrink:0 }}>
+                      {inWork}
+                    </span>
+                  )}
+                  {total > 0 && (
+                    <span style={{ fontSize:10, color:'#B8AFA6', marginLeft:2 }}>{isOpen ? '▲' : '▼'}</span>
+                  )}
+                </div>
+
+                {/* Task list */}
+                {isOpen && stageTasks.length > 0 && (
+                  <div style={{ borderTop:'1px solid var(--border, #EAE3D8)', background:'var(--surface-2, #FDFBF8)' }}>
+                    {stageTasks.map((tk, i) => (
+                      <div key={tk.id} style={{
+                        display:'flex', alignItems:'center', gap:8, padding:'8px 12px',
+                        borderBottom: i < stageTasks.length - 1 ? '1px solid var(--border, #F0EAE0)' : 'none',
+                      }}>
+                        <div style={{ width:7, height:7, borderRadius:'50%', background: STATUS_DOT[tk.status] || '#B8AFA6', flexShrink:0 }} />
+                        <div style={{ flex:1, fontSize:12, color:'var(--text-1, #2E2420)' }}>{tk.text}</div>
+                        <Badge variant={STATUS_BADGE[tk.status]?.replace('badge-','')}>{STATUS_LABEL[tk.status]}</Badge>
+                        {tk.deadline && <span style={{ fontSize:10, color:'#B8AFA6' }}>{tk.deadline}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── Tools on site ── */}
+      {projTools.length > 0 && (
+        <>
+          <div style={{ height:1, background:'var(--border, #EAE3D8)', margin:'14px 0 10px' }} />
+          <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:8 }}>🔧 {t('detail.toolsOnSite')}</div>
+          <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
+            {projTools.map(tk => (
+              <div key={tk.id} style={{ background:'var(--bg-accent, #F2EDE4)', borderRadius:6, padding:'3px 9px', fontSize:10, color:'#7A6E66' }}>{tk.name}</div>
             ))}
           </div>
-      }
+        </>
+      )}
     </div>
   )
 }
@@ -487,70 +582,6 @@ function MaterialsTab({ proj }) {
   )
 }
 
-// ─── STAGES TAB ──────────────────────────────────────────────────────────────
-function StagesTab({ proj }) {
-  const { t } = useT()
-  const { tasks } = useStore()
-  const [openStages, setOpenStages] = useState([])
-
-  const pTasks = tasks.filter(t => t.project_id === proj.id)
-  const STATUS_DOT = { approved:'#5A9467', pending:'#D4A843', new:'#B8AFA6', rejected:'#A32D2D' }
-
-  const stageList = STAGE_OPTIONS.map((name, i) => {
-    const stageTasks = pTasks.filter(t => t.stage === name)
-    const done   = stageTasks.filter(t => t.status === 'approved').length
-    const inWork = stageTasks.filter(t => ['new','pending','rejected'].includes(t.status)).length
-    const total  = stageTasks.length
-    const pct    = total === 0 ? 0 : Math.round((done / total) * 100)
-    let cls = ''
-    if (pct === 100 && total > 0) cls = 'done'
-    else if (inWork > 0) cls = 'current'
-    return { n: i+1, name, pct, cls, done, total, inWork, tasks: stageTasks }
-  })
-
-  return (
-    <div style={{ paddingBottom:24 }}>
-      <div className="tl-wrap">
-        {stageList.map(s => {
-          const isOpen   = openStages.includes(s.name)
-          const barColor = s.cls==='done' ? '#5A9467' : s.cls==='current' ? '#C96B3A' : '#EAE3D8'
-          const pctColor = s.cls==='done' ? '#5A9467' : s.cls==='current' ? '#C96B3A' : '#B8AFA6'
-          return (
-            <div key={s.n} className="tl-stage">
-              <div className={`tl-dot ${s.cls || 'future'}`}>{s.cls==='done' ? '✓' : s.n}</div>
-              <div className={`tl-card ${s.cls || 'future'}`}>
-                <div className="tl-card-header" onClick={() => setOpenStages(prev => prev.includes(s.name) ? prev.filter(x => x !== s.name) : [...prev, s.name])}>
-                  <div className="tl-card-name">{s.name}</div>
-                  {s.inWork > 0 && <div className="tl-inwork">{t('tasks.inWork', { n: s.inWork })}</div>}
-                  <div className="tl-bar-bg"><div className="tl-bar" style={{ width:`${s.pct}%`, background:barColor }} /></div>
-                  <div className="tl-pct" style={{ color:pctColor }}>{s.pct}%</div>
-                  <div className="tl-count">{s.total===0 ? '—' : `${s.done}/${s.total}`}</div>
-                  <div className="tl-arrow">{isOpen ? '▲' : '▼'}</div>
-                </div>
-                {isOpen && (
-                  <div className="tl-card-body">
-                    {s.tasks.length === 0
-                      ? <div className="tl-empty">{t('tasks.noTasksStage')}</div>
-                      : s.tasks.map(tk => (
-                        <div key={tk.id} className="tl-task">
-                          <div className="tl-task-dot" style={{ background: STATUS_DOT[tk.status] || '#B8AFA6' }} />
-                          <div className="tl-task-name">{tk.text}</div>
-                          <Badge variant={STATUS_BADGE[tk.status]?.replace('badge-','')}>{STATUS_LABEL[tk.status]}</Badge>
-                          {tk.deadline && <div className="tl-task-due">{t('tasks.due', { date: tk.deadline })}</div>}
-                        </div>
-                      ))
-                    }
-                  </div>
-                )}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
 // ─── PHOTOS TAB ──────────────────────────────────────────────────────────────
 function PhotosTab({ proj }) {
   const { tasks } = useStore()
@@ -610,25 +641,25 @@ function ProjectTeamTab({ proj }) {
 // ─── PROJECT DETAIL ──────────────────────────────────────────────────────────
 function ProjectDetail({ proj, onBack, onEdit }) {
   const { t } = useT()
-  const { tasks, tools, fetchTasks, fetchTools } = useStore()
+  const { tasks, tools, team, fetchTasks, fetchTools, fetchTeam } = useStore()
   const [tab, setTab] = useState('overview')
   const TABS = [
-    { id:'overview',   label: t('detail.overview')   },
-    { id:'tasks',      label: t('detail.tasks')      },
-    { id:'materials',  label: t('detail.materials')  },
-    { id:'stages',     label: t('detail.stages')     },
-    { id:'photos',     label: t('detail.photos')     },
-    { id:'team',       label: t('detail.team')       },
+    { id:'overview',  label: t('detail.overview')  },
+    { id:'tasks',     label: t('detail.tasks')     },
+    { id:'materials', label: t('detail.materials') },
+    { id:'photos',    label: t('detail.photos')    },
+    { id:'team',      label: t('detail.team')      },
   ]
 
   useEffect(() => {
     fetchTasks(proj.id)
     fetchTools(proj.id)
+    fetchTeam(proj.id)
   }, [proj.id])
 
   const pct = (() => {
-    const pt = tasks.filter(t => t.project_id === proj.id)
-    return pt.length === 0 ? 0 : Math.round((pt.filter(t => t.status==='approved').length / pt.length) * 100)
+    const pt = tasks.filter(tk => tk.project_id === proj.id)
+    return pt.length === 0 ? 0 : Math.round((pt.filter(tk => tk.status==='approved').length / pt.length) * 100)
   })()
 
   return (
@@ -639,7 +670,7 @@ function ProjectDetail({ proj, onBack, onEdit }) {
           {t('common.back')}
         </button>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:16, fontWeight:700, color:'#2E2420', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+          <div style={{ fontSize:16, fontWeight:700, color:'var(--text-1, #2E2420)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
             🏗 {proj.name}
           </div>
         </div>
@@ -647,26 +678,25 @@ function ProjectDetail({ proj, onBack, onEdit }) {
       </div>
 
       {/* ── Progress strip ── */}
-      <div style={{ height:4, background:'#EAE3D8', borderRadius:4, overflow:'hidden', marginBottom:0 }}>
+      <div style={{ height:4, background:'var(--border, #EAE3D8)', borderRadius:4, overflow:'hidden', marginBottom:0 }}>
         <div style={{ height:4, borderRadius:4, background:'#C96B3A', width:`${pct}%`, transition:'width .4s' }} />
       </div>
 
       {/* ── Inner tab bar ── */}
       <div className="inner-tab-bar">
-        {TABS.map(t => (
-          <button key={t.id} className={`inner-tab-btn ${tab===t.id?'active':''}`} onClick={() => setTab(t.id)}>
-            {t.label}
+        {TABS.map(tb => (
+          <button key={tb.id} className={`inner-tab-btn ${tab===tb.id?'active':''}`} onClick={() => setTab(tb.id)}>
+            {tb.label}
           </button>
         ))}
       </div>
 
       {/* ── Tab content ── */}
-      {tab === 'overview'   && <OverviewTab proj={proj} tasks={tasks} tools={tools} onEdit={onEdit} />}
-      {tab === 'tasks'      && <ProjectTasksTab proj={proj} />}
-      {tab === 'materials'  && <MaterialsTab proj={proj} />}
-      {tab === 'stages'     && <StagesTab proj={proj} />}
-      {tab === 'photos'     && <PhotosTab proj={proj} />}
-      {tab === 'team'       && <ProjectTeamTab proj={proj} />}
+      {tab === 'overview'  && <OverviewTab proj={proj} tasks={tasks} tools={tools} team={team} onEdit={onEdit} />}
+      {tab === 'tasks'     && <ProjectTasksTab proj={proj} />}
+      {tab === 'materials' && <MaterialsTab proj={proj} />}
+      {tab === 'photos'    && <PhotosTab proj={proj} />}
+      {tab === 'team'      && <ProjectTeamTab proj={proj} />}
     </div>
   )
 }
@@ -732,6 +762,62 @@ function ProjectList({ onSelect, onEdit, onDelete }) {
   )
 }
 
+// ─── STAGE MANAGER (reusable: edit stages list) ──────────────────────────────
+function StageManager({ stages, onChange, t }) {
+  const [newStage, setNewStage] = useState('')
+
+  const addStage = () => {
+    const trimmed = newStage.trim()
+    if (!trimmed) return
+    onChange([...stages, trimmed])
+    setNewStage('')
+  }
+  const removeStage = (i) => onChange(stages.filter((_, idx) => idx !== i))
+
+  return (
+    <div>
+      {/* Existing stages */}
+      {stages.length > 0 && (
+        <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
+          {stages.map((s, i) => (
+            <div key={i} style={{
+              display:'flex', alignItems:'center', gap:4,
+              background:'var(--bg-accent, #F2EDE4)', borderRadius:20,
+              padding:'4px 10px', fontSize:12, color:'var(--text-1, #2E2420)',
+            }}>
+              <span>{s}</span>
+              <button onClick={() => removeStage(i)} style={{ background:'none', border:'none', cursor:'pointer', color:'#A32D2D', fontSize:13, lineHeight:1, padding:0, marginLeft:2 }}>×</button>
+            </div>
+          ))}
+        </div>
+      )}
+      {stages.length === 0 && (
+        <div style={{ fontSize:11, color:'#B8AFA6', marginBottom:8 }}>{t('detail.noStages')}</div>
+      )}
+      {/* Add new stage */}
+      <div style={{ display:'flex', gap:6 }}>
+        <input
+          className="form-input"
+          style={{ flex:1, fontSize:12 }}
+          value={newStage}
+          onChange={e => setNewStage(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && addStage()}
+          placeholder={t('projects.stagePlaceholder')}
+        />
+        <button
+          onClick={addStage}
+          style={{
+            background:'#C96B3A', color:'#fff', border:'none', borderRadius:10,
+            padding:'0 14px', fontSize:12, fontWeight:600, cursor:'pointer', flexShrink:0,
+          }}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ─── PROJECTS (two-mode: list ↔ detail) ─────────────────────────────────────
 export function Projects() {
   const { t } = useT()
@@ -739,9 +825,9 @@ export function Projects() {
   const [showAdd,    setShowAdd]    = useState(false)
   const [confirmId,  setConfirmId]  = useState(null)
   const [editProject, setEditProject] = useState(null)
-  const [editForm,   setEditForm]   = useState({ name:'', stage:'Foundation', deadline:'', address:'', progress:0 })
+  const [editForm,   setEditForm]   = useState({ name:'', stage:'Foundation', deadline:'', address:'', progress:0, stages:[] })
   const [editSaving, setEditSaving] = useState(false)
-  const [addForm,    setAddForm]    = useState({ name:'', stage:'Foundation', deadline:'', address:'' })
+  const [addForm,    setAddForm]    = useState({ name:'', stage:'Foundation', deadline:'', address:'', stages:[] })
 
   useEffect(() => {
     fetchProjects()
@@ -759,17 +845,18 @@ export function Projects() {
       deadline: addForm.deadline || null,
       address: addForm.address || null,
       foreman_id: profile.id, progress: 0,
+      stages: addForm.stages || [],
     })
     if (!error) {
       fetchProjects()
       setShowAdd(false)
-      setAddForm({ name:'', stage:'Foundation', deadline:'', address:'' })
+      setAddForm({ name:'', stage:'Foundation', deadline:'', address:'', stages:[] })
     }
   }
 
   const openEdit = (p) => {
     setEditProject(p)
-    setEditForm({ name: p.name||'', stage: p.stage||'Foundation', deadline: p.deadline||'', address: p.address||'', progress: p.progress??0 })
+    setEditForm({ name: p.name||'', stage: p.stage||'Foundation', deadline: p.deadline||'', address: p.address||'', progress: p.progress??0, stages: p.stages || [] })
   }
 
   const saveEdit = async () => {
@@ -779,6 +866,7 @@ export function Projects() {
       name: editForm.name.trim(), stage: editForm.stage,
       deadline: editForm.deadline || null, address: editForm.address || null,
       progress: Number(editForm.progress),
+      stages: editForm.stages || [],
     })
     setEditSaving(false)
     setEditProject(null)
@@ -822,24 +910,29 @@ export function Projects() {
       {/* ── Add Project Modal ── */}
       {showAdd && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAdd(false)}>
-          <div className="modal">
+          <div className="modal" style={{ maxHeight:'90dvh', display:'flex', flexDirection:'column' }}>
             <div className="modal-title">{t('projects.newModal')}</div>
-            <FormGroup label={t('projects.nameLabel')}>
-              <input className="form-input" placeholder={t('projects.namePlaceholder')}
-                value={addForm.name} onChange={setA('name')} autoFocus />
-            </FormGroup>
-            <FormGroup label={t('projects.addressLabel')}>
-              <input className="form-input" placeholder={t('projects.addressPlaceholder')}
-                value={addForm.address} onChange={setA('address')} />
-            </FormGroup>
-            <div className="form-grid-2">
-              <FormGroup label={t('projects.stageLabel')}>
-                <select className="form-input" value={addForm.stage} onChange={setA('stage')}>
-                  {STAGE_OPTIONS.map(s => <option key={s}>{s}</option>)}
-                </select>
+            <div style={{ overflowY:'auto', flex:1 }}>
+              <FormGroup label={t('projects.nameLabel')}>
+                <input className="form-input" placeholder={t('projects.namePlaceholder')}
+                  value={addForm.name} onChange={setA('name')} autoFocus />
               </FormGroup>
-              <FormGroup label={t('projects.deadlineLabel')}>
-                <DatePicker value={addForm.deadline} onChange={v => setAddForm(f => ({ ...f, deadline: v }))} />
+              <FormGroup label={t('projects.addressLabel')}>
+                <input className="form-input" placeholder={t('projects.addressPlaceholder')}
+                  value={addForm.address} onChange={setA('address')} />
+              </FormGroup>
+              <div className="form-grid-2">
+                <FormGroup label={t('projects.stageLabel')}>
+                  <select className="form-input" value={addForm.stage} onChange={setA('stage')}>
+                    {STAGE_OPTIONS.map(s => <option key={s}>{s}</option>)}
+                  </select>
+                </FormGroup>
+                <FormGroup label={t('projects.deadlineLabel')}>
+                  <DatePicker value={addForm.deadline} onChange={v => setAddForm(f => ({ ...f, deadline: v }))} />
+                </FormGroup>
+              </div>
+              <FormGroup label={t('projects.stagesLabel')}>
+                <StageManager stages={addForm.stages} onChange={stages => setAddForm(f => ({ ...f, stages }))} t={t} />
               </FormGroup>
             </div>
             <div className="modal-actions">
@@ -853,34 +946,39 @@ export function Projects() {
       {/* ── Edit Project Modal ── */}
       {editProject && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setEditProject(null)}>
-          <div className="modal">
+          <div className="modal" style={{ maxHeight:'90dvh', display:'flex', flexDirection:'column' }}>
             <div className="modal-title">{t('projects.editModal')}: {editProject.name}</div>
-            <FormGroup label={t('projects.nameLabel')}>
-              <input className="form-input" value={editForm.name} onChange={setE('name')} autoFocus />
-            </FormGroup>
-            <FormGroup label={t('projects.addressLabel')}>
-              <input className="form-input" placeholder={t('projects.addressPlaceholder')} value={editForm.address} onChange={setE('address')} />
-            </FormGroup>
-            <div className="form-grid-2">
-              <FormGroup label={t('projects.stageLabel')}>
-                <select className="form-input" value={editForm.stage} onChange={setE('stage')}>
-                  {STAGE_OPTIONS.map(s => <option key={s}>{s}</option>)}
-                </select>
+            <div style={{ overflowY:'auto', flex:1 }}>
+              <FormGroup label={t('projects.nameLabel')}>
+                <input className="form-input" value={editForm.name} onChange={setE('name')} autoFocus />
               </FormGroup>
-              <FormGroup label={t('projects.deadlineLabel')}>
-                <DatePicker value={editForm.deadline} onChange={v => setEditForm(f => ({ ...f, deadline: v }))} />
+              <FormGroup label={t('projects.addressLabel')}>
+                <input className="form-input" placeholder={t('projects.addressPlaceholder')} value={editForm.address} onChange={setE('address')} />
+              </FormGroup>
+              <div className="form-grid-2">
+                <FormGroup label={t('projects.stageLabel')}>
+                  <select className="form-input" value={editForm.stage} onChange={setE('stage')}>
+                    {STAGE_OPTIONS.map(s => <option key={s}>{s}</option>)}
+                  </select>
+                </FormGroup>
+                <FormGroup label={t('projects.deadlineLabel')}>
+                  <DatePicker value={editForm.deadline} onChange={v => setEditForm(f => ({ ...f, deadline: v }))} />
+                </FormGroup>
+              </div>
+              <FormGroup label={t('projects.progressLabel', { pct: editForm.progress })}>
+                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                  <input type="range" min={0} max={100} step={1} value={editForm.progress}
+                    onChange={setE('progress')} style={{ flex:1, accentColor:'#C96B3A' }} />
+                  <span style={{ fontSize:13, fontWeight:700, color:'#C96B3A', minWidth:36, textAlign:'right' }}>{editForm.progress}%</span>
+                </div>
+                <div style={{ height:4, background:'#EAE3D8', borderRadius:4, overflow:'hidden', marginTop:6 }}>
+                  <div style={{ height:4, borderRadius:4, background:'#C96B3A', width:`${editForm.progress}%`, transition:'width .2s' }} />
+                </div>
+              </FormGroup>
+              <FormGroup label={t('projects.stagesLabel')}>
+                <StageManager stages={editForm.stages} onChange={stages => setEditForm(f => ({ ...f, stages }))} t={t} />
               </FormGroup>
             </div>
-            <FormGroup label={t('projects.progressLabel', { pct: editForm.progress })}>
-              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                <input type="range" min={0} max={100} step={1} value={editForm.progress}
-                  onChange={setE('progress')} style={{ flex:1, accentColor:'#C96B3A' }} />
-                <span style={{ fontSize:13, fontWeight:700, color:'#C96B3A', minWidth:36, textAlign:'right' }}>{editForm.progress}%</span>
-              </div>
-              <div style={{ height:4, background:'#EAE3D8', borderRadius:4, overflow:'hidden', marginTop:6 }}>
-                <div style={{ height:4, borderRadius:4, background:'#C96B3A', width:`${editForm.progress}%`, transition:'width .2s' }} />
-              </div>
-            </FormGroup>
             <div className="modal-actions">
               <Button size="sm" onClick={() => setEditProject(null)}>{t('common.cancel')}</Button>
               <Button variant="primary" size="sm" onClick={saveEdit} disabled={editSaving}>

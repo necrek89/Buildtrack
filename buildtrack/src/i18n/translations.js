@@ -67,6 +67,8 @@ const t = {
       deleteTitle: 'Delete project?',
       deleteSub: '"{name}" will be permanently deleted.',
       overdue: '{n} overdue', forReview: '{n} for review',
+      stagesLabel: 'Task Stages',
+      stagePlaceholder: 'Stage name (e.g. Walls)',
     },
     detail: {
       overview: 'Overview', tasks: 'Tasks', materials: 'Materials',
@@ -77,6 +79,9 @@ const t = {
       activeTasks: 'Active Tasks', noActiveTasks: 'No active tasks',
       toolsOnSite: 'Tools on Site', noTools: 'No tools assigned',
       noTeam: 'No team members on this project',
+      workers: 'Workers',
+      tasksDone: 'Tasks done',
+      noStages: 'Add stages to organize tasks',
     },
     tasks: {
       title: 'My Tasks', add: '+ Task',
@@ -277,6 +282,8 @@ const t = {
       deleteTitle: 'Удалить объект?',
       deleteSub: '«{name}» будет удалён безвозвратно.',
       overdue: '{n} просроченных', forReview: '{n} на проверке',
+      stagesLabel: 'Этапы задач',
+      stagePlaceholder: 'Название этапа (например: Стены)',
     },
     detail: {
       overview: 'Обзор', tasks: 'Задачи', materials: 'Материалы',
@@ -287,6 +294,9 @@ const t = {
       activeTasks: 'Активные задачи', noActiveTasks: 'Активных задач нет',
       toolsOnSite: 'Инструменты на объекте', noTools: 'Инструменты не назначены',
       noTeam: 'На этом объекте нет рабочих',
+      workers: 'Рабочих',
+      tasksDone: 'Задач выполнено',
+      noStages: 'Добавьте этапы для организации задач',
     },
     tasks: {
       title: 'Мои задачи', add: '+ Задача',
@@ -487,6 +497,7 @@ const t = {
       deleteTitle: 'Obrisati projekat?',
       deleteSub: '"{name}" će biti trajno obrisan.',
       overdue: '{n} u kašnjenju', forReview: '{n} na pregledu',
+      stagesLabel: 'Faze zadataka', stagePlaceholder: 'Naziv faze (npr. Zidovi)',
     },
     detail: {
       overview: 'Pregled', tasks: 'Zadaci', materials: 'Materijali',
@@ -497,6 +508,7 @@ const t = {
       activeTasks: 'Aktivni zadaci', noActiveTasks: 'Nema aktivnih zadataka',
       toolsOnSite: 'Alati na gradilištu', noTools: 'Nema dodijeljenih alata',
       noTeam: 'Nema članova tima na ovom projektu',
+      workers: 'Radnika', tasksDone: 'Završenih zadataka', noStages: 'Dodajte faze za organizaciju zadataka',
     },
     tasks: {
       title: 'Moji zadaci', add: '+ Zadatak',
@@ -697,6 +709,7 @@ const t = {
       deleteTitle: '¿Eliminar proyecto?',
       deleteSub: '"{name}" se eliminará permanentemente.',
       overdue: '{n} atrasados', forReview: '{n} en revisión',
+      stagesLabel: 'Etapas de tareas', stagePlaceholder: 'Nombre de etapa (ej. Paredes)',
     },
     detail: {
       overview: 'Resumen', tasks: 'Tareas', materials: 'Materiales',
@@ -707,6 +720,7 @@ const t = {
       activeTasks: 'Tareas activas', noActiveTasks: 'No hay tareas activas',
       toolsOnSite: 'Herramientas en obra', noTools: 'Sin herramientas asignadas',
       noTeam: 'No hay miembros en este proyecto',
+      workers: 'Trabajadores', tasksDone: 'Tareas completadas', noStages: 'Agrega etapas para organizar tareas',
     },
     tasks: {
       title: 'Mis tareas', add: '+ Tarea',
@@ -907,6 +921,7 @@ const t = {
       deleteTitle: 'Excluir projeto?',
       deleteSub: '"{name}" será excluído permanentemente.',
       overdue: '{n} atrasados', forReview: '{n} para revisão',
+      stagesLabel: 'Etapas de tarefas', stagePlaceholder: 'Nome da etapa (ex. Paredes)',
     },
     detail: {
       overview: 'Visão geral', tasks: 'Tarefas', materials: 'Materiais',
@@ -917,6 +932,7 @@ const t = {
       activeTasks: 'Tarefas ativas', noActiveTasks: 'Sem tarefas ativas',
       toolsOnSite: 'Ferramentas no canteiro', noTools: 'Sem ferramentas atribuídas',
       noTeam: 'Sem membros neste projeto',
+      workers: 'Trabalhadores', tasksDone: 'Tarefas concluídas', noStages: 'Adicione etapas para organizar tarefas',
     },
     tasks: {
       title: 'Minhas tarefas', add: '+ Tarefa',
@@ -1117,6 +1133,7 @@ const t = {
       deleteTitle: 'Projekt löschen?',
       deleteSub: '"{name}" wird dauerhaft gelöscht.',
       overdue: '{n} überfällig', forReview: '{n} zur Prüfung',
+      stagesLabel: 'Aufgabenphasen', stagePlaceholder: 'Phasenname (z.B. Wände)',
     },
     detail: {
       overview: 'Übersicht', tasks: 'Aufgaben', materials: 'Materialien',
@@ -1127,6 +1144,7 @@ const t = {
       activeTasks: 'Aktive Aufgaben', noActiveTasks: 'Keine aktiven Aufgaben',
       toolsOnSite: 'Werkzeuge vor Ort', noTools: 'Keine Werkzeuge zugewiesen',
       noTeam: 'Keine Teammitglieder in diesem Projekt',
+      workers: 'Mitarbeiter', tasksDone: 'Aufgaben erledigt', noStages: 'Fügen Sie Phasen hinzu',
     },
     tasks: {
       title: 'Meine Aufgaben', add: '+ Aufgabe',
@@ -1327,6 +1345,7 @@ const t = {
       deleteTitle: 'Supprimer le projet ?',
       deleteSub: '"{name}" sera supprimé définitivement.',
       overdue: '{n} en retard', forReview: '{n} à réviser',
+      stagesLabel: 'Phases des tâches', stagePlaceholder: 'Nom de phase (ex. Murs)',
     },
     detail: {
       overview: 'Aperçu', tasks: 'Tâches', materials: 'Matériaux',
@@ -1337,6 +1356,7 @@ const t = {
       activeTasks: 'Tâches actives', noActiveTasks: 'Aucune tâche active',
       toolsOnSite: 'Outils sur chantier', noTools: 'Aucun outil assigné',
       noTeam: 'Aucun membre dans ce projet',
+      workers: 'Ouvriers', tasksDone: 'Tâches accomplies', noStages: 'Ajoutez des phases pour organiser',
     },
     tasks: {
       title: 'Mes tâches', add: '+ Tâche',
