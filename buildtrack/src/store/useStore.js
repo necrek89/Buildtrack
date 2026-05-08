@@ -367,6 +367,32 @@ export const useStore = create((set, get) => ({
     await supabase.from('notifications').update({ read: true }).eq('id', id)
     set(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, read: true } : n) }))
   },
+
+  // ── TASK COMMENTS ─────────────────────────────────────────────────
+  fetchComments: async (taskId) => {
+    const { data } = await supabase
+      .from('task_comments')
+      .select('*')
+      .eq('task_id', taskId)
+      .order('created_at', { ascending: true })
+    return data || []
+  },
+
+  addComment: async (taskId, text) => {
+    const { profile } = get()
+    if (!profile) return { error: 'Not authenticated' }
+    const { data, error } = await supabase
+      .from('task_comments')
+      .insert({
+        task_id:     taskId,
+        author_id:   profile.id,
+        author_name: profile.name || 'Unknown',
+        text:        text.trim(),
+      })
+      .select()
+      .single()
+    return { data, error }
+  },
 }))
 
 export const STAGES = ['Foundation', 'Electrical', 'Walls', 'Roofing', 'Finishing']

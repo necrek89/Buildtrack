@@ -7,6 +7,7 @@ import ConfirmModal from '../components/ConfirmModal'
 import MaterialModal from '../components/MaterialModal'
 import MaterialList  from '../components/MaterialList'
 import DatePicker from '../components/DatePicker'
+import TaskComments from '../components/TaskComments'
 import { supabase } from '../lib/supabase'
 
 const STAGE_OPTIONS = ['Foundation','Electrical','Walls','Roofing','Finishing']
@@ -162,22 +163,22 @@ function TaskMaterialSection({ task }) {
 }
 
 // ─── TASK ACCORDION CARD ─────────────────────────────────────────────────────
-function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApprove, onReject, showProject, projects }) {
+function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApprove, onReject, onMarkDone, showProject, projects }) {
   const { t: tr } = useT()
   const isOpen = openId === t.id
   const projName = showProject && projects ? projects.find(p => p.id === t.project_id)?.name : null
   return (
     <div style={{
-      background: '#fff',
-      border: `1.5px solid ${isOpen ? '#C96B3A' : '#EAE3D8'}`,
+      background: 'var(--surface, #fff)',
+      border: `1.5px solid ${isOpen ? '#C96B3A' : 'var(--border, #EAE3D8)'}`,
       borderRadius: 10, overflow: 'hidden',
       boxShadow: isOpen ? '0 3px 10px rgba(201,107,58,0.10)' : 'none',
       transition: 'border-color .15s, box-shadow .15s',
     }}>
       <div onClick={() => setOpenId(prev => prev === t.id ? null : t.id)}
-        style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 12px', cursor:'pointer', background: isOpen ? '#FAECE4' : '#fff' }}>
+        style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 12px', cursor:'pointer', background: isOpen ? '#FAECE4' : 'var(--surface, #fff)' }}>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : '#2E2420', marginBottom:4, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+          <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : 'var(--text-1, #2E2420)', marginBottom:4, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
             {t.text}
           </div>
           <div style={{ display:'flex', flexWrap:'wrap', gap:4, alignItems:'center' }}>
@@ -195,22 +196,38 @@ function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApprove, onReject,
         </div>
       </div>
       {isOpen && (
-        <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 13px', background:'#FDFBF8' }}>
+        <div style={{ borderTop:'1px solid var(--border, #EAE3D8)', padding:'12px 13px', background:'var(--surface-2, #FDFBF8)' }}>
           {t.description
-            ? <div style={{ fontSize:13, color:'#2E2420', lineHeight:1.65, whiteSpace:'pre-wrap', marginBottom:10 }}>{t.description}</div>
+            ? <div style={{ fontSize:13, color:'var(--text-1, #2E2420)', lineHeight:1.65, whiteSpace:'pre-wrap', marginBottom:10 }}>{t.description}</div>
             : <div style={{ fontSize:12, color:'#B8AFA6', marginBottom:10 }}>{tr('tasks.noDesc')}</div>
           }
           <TaskMedia urls={t.photo_url} />
           {t.status === 'rejected' && t.reject_comment && (
             <div style={{ marginTop:10, fontSize:12, color:'#A32D2D', background:'#FCEBEB', padding:'6px 10px', borderRadius:7 }}>↩ {t.reject_comment}</div>
           )}
-          {t.status === 'pending' && onApprove && (
-            <div style={{ marginTop:12, display:'flex', gap:8 }}>
-              <Button size="sm" variant="primary" onClick={() => onApprove(t.id)}>{tr('tasks.approve')}</Button>
-              <Button size="sm" variant="danger"  onClick={() => onReject(t.id)}>{tr('tasks.reject')}</Button>
-            </div>
-          )}
+          {/* Foreman actions */}
+          <div style={{ marginTop:12, display:'flex', gap:8, flexWrap:'wrap' }}>
+            {t.status === 'pending' && onApprove && (
+              <>
+                <Button size="sm" variant="primary" onClick={() => onApprove(t.id)}>{tr('tasks.approve')}</Button>
+                <Button size="sm" variant="danger"  onClick={() => onReject(t.id)}>{tr('tasks.reject')}</Button>
+              </>
+            )}
+            {t.status !== 'approved' && onMarkDone && (
+              <button
+                onClick={() => onMarkDone(t.id)}
+                style={{
+                  fontSize:12, fontWeight:600, padding:'5px 12px', borderRadius:8,
+                  background:'#E8F2EB', color:'#3D7A52', border:'1px solid #A8D4B4',
+                  cursor:'pointer',
+                }}
+              >
+                {tr('tasks.markDone')}
+              </button>
+            )}
+          </div>
           <TaskMaterialSection task={t} />
+          <TaskComments taskId={t.id} />
         </div>
       )}
     </div>
@@ -218,7 +235,7 @@ function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApprove, onReject,
 }
 
 // ─── STATUS SECTION ──────────────────────────────────────────────────────────
-function StatusSection({ icon, label, color, bg, tasks, openId, setOpenId, onEdit, onDelete, onApprove, onReject, showProject, projects }) {
+function StatusSection({ icon, label, color, bg, tasks, openId, setOpenId, onEdit, onDelete, onApprove, onReject, onMarkDone, showProject, projects }) {
   if (tasks.length === 0) return null
   return (
     <div style={{ marginBottom:6 }}>
@@ -230,7 +247,7 @@ function StatusSection({ icon, label, color, bg, tasks, openId, setOpenId, onEdi
       <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
         {tasks.map(t => (
           <TaskCard key={t.id} t={t} openId={openId} setOpenId={setOpenId}
-            onEdit={onEdit} onDelete={onDelete} onApprove={onApprove} onReject={onReject}
+            onEdit={onEdit} onDelete={onDelete} onApprove={onApprove} onReject={onReject} onMarkDone={onMarkDone}
             showProject={showProject} projects={projects} />
         ))}
       </div>
@@ -364,9 +381,9 @@ function ProjectTasksTab({ proj }) {
 
       <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
         <StatusSection icon="⚡" label={t('tasks.filterActive')}    color="#C96B3A" bg="#FAECE4" tasks={active}  openId={openId} setOpenId={setOpenId}
-          onEdit={setEditTask} onDelete={setDeleteId} />
+          onEdit={setEditTask} onDelete={setDeleteId} onMarkDone={approveTask} />
         <StatusSection icon="🕐" label={t('tasks.filterReview')} color="#9A6E10" bg="#FBF3DC" tasks={pending} openId={openId} setOpenId={setOpenId}
-          onEdit={setEditTask} onDelete={setDeleteId} onApprove={approveTask} onReject={(id) => rejectTask(id, 'Needs revision')} />
+          onEdit={setEditTask} onDelete={setDeleteId} onApprove={approveTask} onReject={(id) => rejectTask(id, 'Needs revision')} onMarkDone={approveTask} />
         <StatusSection icon="✅" label={t('tasks.filterDone')}      color="#3D7A52" bg="#E8F2EB" tasks={done}    openId={openId} setOpenId={setOpenId}
           onEdit={setEditTask} onDelete={setDeleteId} />
       </div>
@@ -979,6 +996,7 @@ export function MyTasks() {
                       <Button variant="primary" size="sm" onClick={() => submitTask(tk.id)}>{t('tasks.submitBtn')}</Button>
                     </div>
                   )}
+                  <TaskComments taskId={tk.id} />
                 </div>
               )}
             </div>
