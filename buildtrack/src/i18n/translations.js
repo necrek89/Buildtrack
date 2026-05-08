@@ -20,6 +20,7 @@ const t = {
       uploading: 'Uploading...', none: 'None', yes: 'Yes', confirm: 'Confirm',
       remove: 'Remove', all: 'All', open: 'Open', total: 'Total',
     },
+    calendar: { clear: 'Clear', today: 'Today', noDate: 'No date' },
     auth: {
       signinTitle: 'Sign in to your account',
       signupTitle: 'Create a new account',
@@ -221,6 +222,7 @@ const t = {
       uploading: 'Загрузка...', none: 'Нет', yes: 'Да', confirm: 'Подтвердить',
       remove: 'Удалить', all: 'Все', open: 'Открытые', total: 'Всего',
     },
+    calendar: { clear: 'Удалить', today: 'Сегодня', noDate: 'Не выбрана' },
     auth: {
       signinTitle: 'Войти в аккаунт',
       signupTitle: 'Создать аккаунт',
@@ -422,6 +424,7 @@ const t = {
       uploading: 'Otpremanje...', none: 'Nema', yes: 'Da', confirm: 'Potvrdi',
       remove: 'Ukloni', all: 'Sve', open: 'Otvoreni', total: 'Ukupno',
     },
+    calendar: { clear: 'Obriši', today: 'Danas', noDate: 'Nije odabrano' },
     auth: {
       signinTitle: 'Prijavite se na nalog',
       signupTitle: 'Kreirajte novi nalog',
@@ -623,6 +626,7 @@ const t = {
       uploading: 'Subiendo...', none: 'Ninguno', yes: 'Sí', confirm: 'Confirmar',
       remove: 'Quitar', all: 'Todos', open: 'Abiertos', total: 'Total',
     },
+    calendar: { clear: 'Limpiar', today: 'Hoy', noDate: 'Sin fecha' },
     auth: {
       signinTitle: 'Iniciar sesión',
       signupTitle: 'Crear una nueva cuenta',
@@ -824,6 +828,7 @@ const t = {
       uploading: 'Enviando...', none: 'Nenhum', yes: 'Sim', confirm: 'Confirmar',
       remove: 'Remover', all: 'Todos', open: 'Abertos', total: 'Total',
     },
+    calendar: { clear: 'Limpar', today: 'Hoje', noDate: 'Sem data' },
     auth: {
       signinTitle: 'Entrar na sua conta',
       signupTitle: 'Criar nova conta',
@@ -1025,6 +1030,7 @@ const t = {
       uploading: 'Hochladen...', none: 'Keine', yes: 'Ja', confirm: 'Bestätigen',
       remove: 'Entfernen', all: 'Alle', open: 'Offen', total: 'Gesamt',
     },
+    calendar: { clear: 'Löschen', today: 'Heute', noDate: 'Kein Datum' },
     auth: {
       signinTitle: 'In Ihr Konto einloggen',
       signupTitle: 'Neues Konto erstellen',
@@ -1226,6 +1232,7 @@ const t = {
       uploading: 'Envoi...', none: 'Aucun', yes: 'Oui', confirm: 'Confirmer',
       remove: 'Retirer', all: 'Tous', open: 'Ouverts', total: 'Total',
     },
+    calendar: { clear: 'Effacer', today: 'Aujourd\'hui', noDate: 'Pas de date' },
     auth: {
       signinTitle: 'Connectez-vous à votre compte',
       signupTitle: 'Créer un nouveau compte',

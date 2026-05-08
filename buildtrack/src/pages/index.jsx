@@ -6,6 +6,7 @@ import TaskModal from '../components/TaskModal'
 import ConfirmModal from '../components/ConfirmModal'
 import MaterialModal from '../components/MaterialModal'
 import MaterialList  from '../components/MaterialList'
+import DatePicker from '../components/DatePicker'
 import { supabase } from '../lib/supabase'
 
 const STAGE_OPTIONS = ['Foundation','Electrical','Walls','Roofing','Finishing']
@@ -821,7 +822,7 @@ export function Projects() {
                 </select>
               </FormGroup>
               <FormGroup label={t('projects.deadlineLabel')}>
-                <input className="form-input" type="date" value={addForm.deadline} onChange={setA('deadline')} />
+                <DatePicker value={addForm.deadline} onChange={v => setAddForm(f => ({ ...f, deadline: v }))} />
               </FormGroup>
             </div>
             <div className="modal-actions">
@@ -850,7 +851,7 @@ export function Projects() {
                 </select>
               </FormGroup>
               <FormGroup label={t('projects.deadlineLabel')}>
-                <input className="form-input" type="date" value={editForm.deadline} onChange={setE('deadline')} />
+                <DatePicker value={editForm.deadline} onChange={v => setEditForm(f => ({ ...f, deadline: v }))} />
               </FormGroup>
             </div>
             <FormGroup label={t('projects.progressLabel', { pct: editForm.progress })}>

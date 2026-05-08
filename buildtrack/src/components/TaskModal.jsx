@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useStore } from '../store/useStore'
 import { Button, FormGroup } from './UI'
 import { supabase } from '../lib/supabase'
+import DatePicker from './DatePicker'
 
 const STAGES = ['Foundation', 'Electrical', 'Walls', 'Roofing', 'Finishing']
 const PRIORITY_OPTIONS = [
@@ -154,7 +155,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
               </select>
             </FormGroup>
             <FormGroup label="Deadline">
-              <input className="form-input" type="date" value={form.deadline} onChange={set('deadline')} />
+              <DatePicker value={form.deadline} onChange={v => setForm(f => ({ ...f, deadline: v }))} />
             </FormGroup>
           </div>
 
