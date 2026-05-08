@@ -11,6 +11,7 @@ const t = {
       team: 'Team', alerts: 'Alerts', myTasks: 'My Tasks',
       account: 'Account', progress: 'Progress', photos: 'Photos',
       myProject: 'My Project', signOut: 'Sign Out',
+      darkMode: 'Dark Mode', lightMode: 'Light Mode',
     },
     roles: { foreman: 'Foreman', worker: 'Worker', client: 'Client' },
     common: {
@@ -213,6 +214,7 @@ const t = {
       team: 'Бригада', alerts: 'Уведомления', myTasks: 'Мои задачи',
       account: 'Аккаунт', progress: 'Прогресс', photos: 'Фото',
       myProject: 'Мой объект', signOut: 'Выйти',
+      darkMode: 'Тёмный режим', lightMode: 'Светлый режим',
     },
     roles: { foreman: 'Прораб', worker: 'Рабочий', client: 'Клиент' },
     common: {
@@ -415,6 +417,7 @@ const t = {
       team: 'Tim', alerts: 'Obavještenja', myTasks: 'Moji zadaci',
       account: 'Nalog', progress: 'Napredak', photos: 'Fotografije',
       myProject: 'Moj projekat', signOut: 'Odjava',
+      darkMode: 'Tamni način', lightMode: 'Svijetli način',
     },
     roles: { foreman: 'Poslovođa', worker: 'Radnik', client: 'Klijent' },
     common: {
@@ -617,6 +620,7 @@ const t = {
       team: 'Equipo', alerts: 'Alertas', myTasks: 'Mis tareas',
       account: 'Cuenta', progress: 'Progreso', photos: 'Fotos',
       myProject: 'Mi proyecto', signOut: 'Cerrar sesión',
+      darkMode: 'Modo oscuro', lightMode: 'Modo claro',
     },
     roles: { foreman: 'Capataz', worker: 'Obrero', client: 'Cliente' },
     common: {
@@ -819,6 +823,7 @@ const t = {
       team: 'Equipe', alerts: 'Alertas', myTasks: 'Minhas tarefas',
       account: 'Conta', progress: 'Progresso', photos: 'Fotos',
       myProject: 'Meu projeto', signOut: 'Sair',
+      darkMode: 'Modo escuro', lightMode: 'Modo claro',
     },
     roles: { foreman: 'Mestre de obras', worker: 'Trabalhador', client: 'Cliente' },
     common: {
@@ -1021,6 +1026,7 @@ const t = {
       team: 'Team', alerts: 'Benachrichtigungen', myTasks: 'Meine Aufgaben',
       account: 'Konto', progress: 'Fortschritt', photos: 'Fotos',
       myProject: 'Mein Projekt', signOut: 'Abmelden',
+      darkMode: 'Dunkelmodus', lightMode: 'Hellmodus',
     },
     roles: { foreman: 'Vorarbeiter', worker: 'Arbeiter', client: 'Auftraggeber' },
     common: {
@@ -1223,6 +1229,7 @@ const t = {
       team: 'Équipe', alerts: 'Alertes', myTasks: 'Mes tâches',
       account: 'Compte', progress: 'Avancement', photos: 'Photos',
       myProject: 'Mon projet', signOut: 'Déconnexion',
+      darkMode: 'Mode sombre', lightMode: 'Mode clair',
     },
     roles: { foreman: 'Contremaître', worker: 'Ouvrier', client: 'Client' },
     common: {

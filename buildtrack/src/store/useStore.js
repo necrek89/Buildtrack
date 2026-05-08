@@ -1,6 +1,11 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 
+// ── Theme init ────────────────────────────────────────────────────────────────
+const savedTheme = localStorage.getItem('tutuu_theme') || 'light'
+// apply immediately on load
+if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark')
+
 // ── localStorage helpers for materials ────────────────────────────────────────
 const LS_KEY = 'tutuu_materials'
 function loadMaterials() {
@@ -26,6 +31,15 @@ export const useStore = create((set, get) => ({
   loading: false,
   selectedProjectId: null,
   setSelectedProject: (id) => set({ selectedProjectId: id }),
+
+  // ── THEME ─────────────────────────────────────────────────
+  theme: savedTheme,
+  toggleTheme: () => {
+    const next = get().theme === 'dark' ? 'light' : 'dark'
+    localStorage.setItem('tutuu_theme', next)
+    document.documentElement.setAttribute('data-theme', next)
+    set({ theme: next })
+  },
 
   // ── AUTH ──────────────────────────────────────────────────
   signIn: async (email, password) => {
