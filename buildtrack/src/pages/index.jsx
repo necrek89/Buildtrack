@@ -258,30 +258,76 @@ function StatusSection({ icon, label, color, bg, tasks, openId, setOpenId, onEdi
 // ─── OVERVIEW TAB ────────────────────────────────────────────────────────────
 function OverviewTab({ proj, tasks, tools, team, onEdit }) {
   const { t } = useT()
+  const { updateProject, role } = useStore()
+  const isForeman = role === 'foreman'
+
   const pTasks   = tasks.filter(tk => tk.project_id === proj.id)
   const pDone    = pTasks.filter(tk => tk.status === 'approved').length
   const pPct     = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
   const daysLeft = proj.deadline ? Math.max(0, Math.ceil((new Date(proj.deadline) - new Date()) / 86400000)) : null
   const projTools = tools.filter(tk => tk.project_id === proj.id)
 
-  // Use project's custom stages; fallback: collect unique stage values from tasks
-  const projectStages = (proj.stages && proj.stages.length > 0)
+  const projectStages = Array.isArray(proj.stages) && proj.stages.length > 0
     ? proj.stages
     : [...new Set(pTasks.map(tk => tk.stage).filter(Boolean))]
 
-  const [openStages, setOpenStages] = useState([])
+  const [openStages,   setOpenStages]   = useState([])
+  const [editingIdx,   setEditingIdx]   = useState(null)
+  const [editingName,  setEditingName]  = useState('')
+  const [newStageName, setNewStageName] = useState('')
+
   const STATUS_DOT = { approved:'#5A9467', pending:'#D4A843', new:'#B8AFA6', rejected:'#A32D2D' }
 
   const toggleStage = (name) =>
     setOpenStages(prev => prev.includes(name) ? prev.filter(x => x !== name) : [...prev, name])
+
+  const saveStages = (newStages) => updateProject(proj.id, { stages: newStages })
+
+  const addStage = () => {
+    const trimmed = newStageName.trim()
+    if (!trimmed) return
+    saveStages([...projectStages, trimmed])
+    setNewStageName('')
+  }
+
+  const startEdit = (i) => { setEditingIdx(i); setEditingName(projectStages[i]) }
+
+  const confirmEdit = (i) => {
+    const trimmed = editingName.trim()
+    if (trimmed && trimmed !== projectStages[i]) {
+      saveStages(projectStages.map((s, idx) => idx === i ? trimmed : s))
+    }
+    setEditingIdx(null)
+  }
+
+  const deleteStage = (i) => saveStages(projectStages.filter((_, idx) => idx !== i))
+
+  const moveStage = (i, dir) => {
+    const j = i + dir
+    if (j < 0 || j >= projectStages.length) return
+    const next = [...projectStages]
+    ;[next[i], next[j]] = [next[j], next[i]]
+    saveStages(next)
+  }
+
+  // Small icon button styles
+  const iconBtn = (color = '#7A6E66') => ({
+    background:'none', border:'none', cursor:'pointer', padding:'4px 6px',
+    borderRadius:6, fontSize:14, color, lineHeight:1, flexShrink:0,
+  })
+  const arrowBtn = (disabled) => ({
+    background:'none', border:'none', cursor: disabled ? 'default' : 'pointer',
+    padding:'2px 5px', borderRadius:4, fontSize:11, color: disabled ? '#D9D0C7' : '#B8AFA6',
+    lineHeight:1, display:'block', transition:'color .15s',
+  })
 
   return (
     <div style={{ padding:'0 0 24px' }}>
       {/* ── 2×2 Stats ── */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:8, marginBottom:12 }}>
         {[
-          { v: pPct+'%',                  l: t('detail.progress'),  c: '#C96B3A' },
-          { v: team.length,               l: t('detail.workers'),   c: '#2E2420' },
+          { v: pPct+'%',                    l: t('detail.progress'),  c: '#C96B3A' },
+          { v: team.length,                 l: t('detail.workers'),   c: '#2E2420' },
           { v: daysLeft !== null ? daysLeft+'d' : '—',
             l: t('detail.daysLeft'),
             c: daysLeft !== null && daysLeft < 7 ? '#A32D2D' : '#2E2420' },
@@ -326,44 +372,69 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
         <Button size="sm" onClick={() => onEdit(proj)} style={{ marginBottom:14 }}>✏️ {t('detail.editProject')}</Button>
       )}
 
-      {/* ── Stages ── */}
+      {/* ── Stages header ── */}
       <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:8 }}>
         📋 {t('detail.stages')}
       </div>
 
-      {projectStages.length === 0 ? (
-        <div style={{ fontSize:12, color:'#B8AFA6', textAlign:'center', padding:'16px 0 8px' }}>
-          {t('detail.noStages')}
-        </div>
-      ) : (
-        <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
-          {projectStages.map(stageName => {
-            const stageTasks = pTasks.filter(tk => tk.stage === stageName)
-            const sDone  = stageTasks.filter(tk => tk.status === 'approved').length
-            const inWork = stageTasks.filter(tk => ['new','pending','rejected'].includes(tk.status)).length
-            const total  = stageTasks.length
-            const pct    = total === 0 ? 0 : Math.round((sDone / total) * 100)
-            const isOpen = openStages.includes(stageName)
-            const isDone = pct === 100 && total > 0
-            const barColor = isDone ? '#5A9467' : inWork > 0 ? '#C96B3A' : 'var(--border, #EAE3D8)'
+      {/* ── Stage cards ── */}
+      <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
+        {projectStages.length === 0 && (
+          <div style={{ fontSize:12, color:'#B8AFA6', textAlign:'center', padding:'10px 0 6px' }}>
+            {t('detail.noStages')}
+          </div>
+        )}
 
-            return (
-              <div key={stageName} style={{
-                background:'var(--surface, #fff)',
-                border:`1.5px solid ${isOpen ? '#C96B3A' : 'var(--border, #EAE3D8)'}`,
-                borderRadius:10, overflow:'hidden',
-                transition:'border-color .15s',
+        {projectStages.map((stageName, idx) => {
+          const stageTasks = pTasks.filter(tk => tk.stage === stageName)
+          const sDone  = stageTasks.filter(tk => tk.status === 'approved').length
+          const inWork = stageTasks.filter(tk => ['new','pending','rejected'].includes(tk.status)).length
+          const total  = stageTasks.length
+          const pct    = total === 0 ? 0 : Math.round((sDone / total) * 100)
+          const isOpen    = openStages.includes(stageName)
+          const isDone    = pct === 100 && total > 0
+          const isEditing = editingIdx === idx
+          const barColor  = isDone ? '#5A9467' : inWork > 0 ? '#C96B3A' : 'var(--border, #EAE3D8)'
+
+          return (
+            <div key={idx} style={{ display:'flex', alignItems:'stretch', gap:4 }}>
+
+              {/* ── Reorder column (foreman only) ── */}
+              {isForeman && (
+                <div style={{ display:'flex', flexDirection:'column', justifyContent:'center', gap:2, flexShrink:0 }}>
+                  <button
+                    type="button"
+                    onClick={() => moveStage(idx, -1)}
+                    disabled={idx === 0}
+                    style={arrowBtn(idx === 0)}
+                    title="Move up"
+                  >▲</button>
+                  <button
+                    type="button"
+                    onClick={() => moveStage(idx, 1)}
+                    disabled={idx === projectStages.length - 1}
+                    style={arrowBtn(idx === projectStages.length - 1)}
+                    title="Move down"
+                  >▼</button>
+                </div>
+              )}
+
+              {/* ── Stage card ── */}
+              <div style={{
+                flex:1, background:'var(--surface, #fff)',
+                border:`1.5px solid ${isOpen ? '#C96B3A' : isEditing ? '#C96B3A' : 'var(--border, #EAE3D8)'}`,
+                borderRadius:10, overflow:'hidden', transition:'border-color .15s',
               }}>
-                {/* Stage header */}
+                {/* Card header */}
                 <div
-                  onClick={() => total > 0 && toggleStage(stageName)}
+                  onClick={() => !isEditing && total > 0 && toggleStage(stageName)}
                   style={{
                     display:'flex', alignItems:'center', gap:8, padding:'10px 12px',
-                    cursor: total > 0 ? 'pointer' : 'default',
+                    cursor: (!isEditing && total > 0) ? 'pointer' : 'default',
                     background: isOpen ? '#FAECE4' : 'var(--surface, #fff)',
                   }}
                 >
-                  {/* done checkmark or number dot */}
+                  {/* Number / checkmark dot */}
                   <div style={{
                     width:22, height:22, borderRadius:'50%', flexShrink:0,
                     display:'flex', alignItems:'center', justifyContent:'center',
@@ -371,29 +442,69 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
                     background: isDone ? '#E8F2EB' : inWork > 0 ? '#FAECE4' : 'var(--bg-accent, #F2EDE4)',
                     color: isDone ? '#3D7A52' : inWork > 0 ? '#C96B3A' : '#B8AFA6',
                   }}>
-                    {isDone ? '✓' : total}
+                    {isDone ? '✓' : idx + 1}
                   </div>
 
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : 'var(--text-1, #2E2420)', marginBottom:3 }}>
-                      {stageName}
-                    </div>
-                    <div style={{ display:'flex', gap:6, alignItems:'center' }}>
-                      <div style={{ flex:1, height:3, background:'var(--border, #EAE3D8)', borderRadius:3, overflow:'hidden' }}>
-                        <div style={{ height:3, borderRadius:3, background:barColor, width:`${pct}%`, transition:'width .3s' }} />
+                  {/* Name / edit input */}
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      autoFocus
+                      value={editingName}
+                      onChange={e => setEditingName(e.target.value)}
+                      onClick={e => e.stopPropagation()}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter')  { e.preventDefault(); confirmEdit(idx) }
+                        if (e.key === 'Escape') setEditingIdx(null)
+                      }}
+                      style={{
+                        flex:1, border:'none', outline:'none', background:'transparent',
+                        fontSize:13, fontWeight:600, color:'var(--text-1, #2E2420)',
+                        fontFamily:'inherit',
+                      }}
+                    />
+                  ) : (
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : 'var(--text-1, #2E2420)', marginBottom:3 }}>
+                        {stageName}
                       </div>
-                      <span style={{ fontSize:10, color:'#B8AFA6', flexShrink:0 }}>{sDone}/{total}</span>
+                      <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+                        <div style={{ flex:1, height:3, background:'var(--border, #EAE3D8)', borderRadius:3, overflow:'hidden' }}>
+                          <div style={{ height:3, borderRadius:3, background:barColor, width:`${pct}%`, transition:'width .3s' }} />
+                        </div>
+                        <span style={{ fontSize:10, color:'#B8AFA6', flexShrink:0 }}>{sDone}/{total}</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {inWork > 0 && (
-                    <span style={{ fontSize:10, background:'#FAECE4', color:'#C96B3A', borderRadius:6, padding:'2px 7px', fontWeight:700, flexShrink:0 }}>
-                      {inWork}
-                    </span>
-                  )}
-                  {total > 0 && (
-                    <span style={{ fontSize:10, color:'#B8AFA6', marginLeft:2 }}>{isOpen ? '▲' : '▼'}</span>
-                  )}
+                  {/* Actions */}
+                  <div style={{ display:'flex', alignItems:'center', gap:1, flexShrink:0 }} onClick={e => e.stopPropagation()}>
+                    {isEditing ? (
+                      <>
+                        <button type="button" onClick={() => confirmEdit(idx)}   style={iconBtn('#3D7A52')} title="Save">✓</button>
+                        <button type="button" onClick={() => setEditingIdx(null)} style={iconBtn('#A32D2D')} title="Cancel">✕</button>
+                      </>
+                    ) : (
+                      <>
+                        {inWork > 0 && (
+                          <span style={{ fontSize:10, background:'#FAECE4', color:'#C96B3A', borderRadius:6, padding:'2px 7px', fontWeight:700, marginRight:2 }}>
+                            {inWork}
+                          </span>
+                        )}
+                        {isForeman && (
+                          <button type="button" onClick={() => startEdit(idx)}    style={iconBtn()} title="Rename">✏️</button>
+                        )}
+                        {isForeman && (
+                          <button type="button" onClick={() => deleteStage(idx)}  style={iconBtn('#A32D2D')} title="Delete">🗑</button>
+                        )}
+                        {total > 0 && (
+                          <button type="button" onClick={() => toggleStage(stageName)} style={iconBtn()} title="Expand">
+                            {isOpen ? '▲' : '▼'}
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 {/* Task list */}
@@ -413,8 +524,36 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
                   </div>
                 )}
               </div>
-            )
-          })}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ── Add stage (foreman only) ── */}
+      {isForeman && (
+        <div style={{ display:'flex', gap:7, marginTop:10 }}>
+          <input
+            type="text"
+            className="form-input"
+            style={{ flex:1, fontSize:13 }}
+            value={newStageName}
+            onChange={e => setNewStageName(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addStage() } }}
+            placeholder={t('projects.stagePlaceholder')}
+          />
+          <button
+            type="button"
+            onClick={addStage}
+            disabled={!newStageName.trim()}
+            style={{
+              width:42, height:42, flexShrink:0,
+              background: newStageName.trim() ? '#C96B3A' : 'var(--border, #EAE3D8)',
+              color: newStageName.trim() ? '#fff' : '#B8AFA6',
+              border:'none', borderRadius:10, fontSize:22, cursor: newStageName.trim() ? 'pointer' : 'default',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              transition:'background .15s, color .15s',
+            }}
+          >+</button>
         </div>
       )}
 
@@ -762,75 +901,6 @@ function ProjectList({ onSelect, onEdit, onDelete }) {
   )
 }
 
-// ─── STAGE MANAGER (reusable: edit stages list) ──────────────────────────────
-function StageManager({ stages, onChange, t }) {
-  const [newStage, setNewStage] = useState('')
-  // Guarantee stages is always an array (SQL column may not exist yet)
-  const safeStages = Array.isArray(stages) ? stages : []
-
-  const addStage = () => {
-    const trimmed = newStage.trim()
-    if (!trimmed) return
-    onChange([...safeStages, trimmed])
-    setNewStage('')
-  }
-  const removeStage = (i) => onChange(safeStages.filter((_, idx) => idx !== i))
-
-  return (
-    <div>
-      {/* Existing stage chips */}
-      {safeStages.length > 0 && (
-        <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:10 }}>
-          {safeStages.map((s, i) => (
-            <div key={i} style={{
-              display:'flex', alignItems:'center', gap:5,
-              background:'var(--bg-accent, #F2EDE4)', borderRadius:20, border:'1px solid #E0D5CC',
-              padding:'5px 12px 5px 10px', fontSize:12, color:'var(--text-1, #2E2420)',
-            }}>
-              <span>{s}</span>
-              <button
-                type="button"
-                onClick={e => { e.preventDefault(); e.stopPropagation(); removeStage(i) }}
-                style={{ background:'none', border:'none', cursor:'pointer', color:'#A32D2D', fontSize:15, lineHeight:1, padding:0 }}
-              >×</button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Add new stage row */}
-      <div style={{ display:'flex', gap:6 }}>
-        <input
-          type="text"
-          className="form-input"
-          style={{ flex:1, fontSize:13 }}
-          value={newStage}
-          onChange={e => setNewStage(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addStage() } }}
-          placeholder={t('projects.stagePlaceholder')}
-        />
-        <button
-          type="button"
-          onClick={e => { e.preventDefault(); e.stopPropagation(); addStage() }}
-          disabled={!newStage.trim()}
-          style={{
-            background: newStage.trim() ? '#C96B3A' : '#EAE3D8',
-            color: newStage.trim() ? '#fff' : '#B8AFA6',
-            border:'none', borderRadius:10, width:42, height:42,
-            fontSize:22, fontWeight:400, cursor: newStage.trim() ? 'pointer' : 'default',
-            flexShrink:0, transition:'background .15s, color .15s',
-            display:'flex', alignItems:'center', justifyContent:'center',
-          }}
-        >+</button>
-      </div>
-
-      {safeStages.length === 0 && (
-        <div style={{ fontSize:11, color:'#B8AFA6', marginTop:8 }}>{t('detail.noStages')}</div>
-      )}
-    </div>
-  )
-}
-
 // ─── PROJECTS (two-mode: list ↔ detail) ─────────────────────────────────────
 export function Projects() {
   const { t } = useT()
@@ -944,9 +1014,6 @@ export function Projects() {
                   <DatePicker value={addForm.deadline} onChange={v => setAddForm(f => ({ ...f, deadline: v }))} />
                 </FormGroup>
               </div>
-              <FormGroup label={t('projects.stagesLabel')}>
-                <StageManager stages={addForm.stages} onChange={stages => setAddForm(f => ({ ...f, stages }))} t={t} />
-              </FormGroup>
             </div>
             <div className="modal-actions">
               <Button size="sm" onClick={() => setShowAdd(false)}>{t('common.cancel')}</Button>
@@ -987,9 +1054,6 @@ export function Projects() {
                 <div style={{ height:4, background:'#EAE3D8', borderRadius:4, overflow:'hidden', marginTop:6 }}>
                   <div style={{ height:4, borderRadius:4, background:'#C96B3A', width:`${editForm.progress}%`, transition:'width .2s' }} />
                 </div>
-              </FormGroup>
-              <FormGroup label={t('projects.stagesLabel')}>
-                <StageManager stages={editForm.stages} onChange={stages => setEditForm(f => ({ ...f, stages }))} t={t} />
               </FormGroup>
             </div>
             <div className="modal-actions">
