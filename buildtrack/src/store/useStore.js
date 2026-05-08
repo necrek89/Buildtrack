@@ -26,6 +26,7 @@ export const useStore = create((set, get) => ({
   projects: [],
   team: [],
   notifications: [],
+  activityLog: [],
   joinRequests: [],
   materials: loadMaterials(),
   loading: false,
@@ -124,7 +125,10 @@ export const useStore = create((set, get) => ({
 
   addTask: async (task) => {
     const { data, error } = await supabase.from('tasks').insert(task).select().single()
-    if (!error) set(s => ({ tasks: [data, ...s.tasks] }))
+    if (!error) {
+      set(s => ({ tasks: [data, ...s.tasks] }))
+      get().logActivity({ action_type: 'task_created', entity_name: task.text, entity_id: String(data.id), project_id: task.project_id })
+    }
     return { error }
   },
 
@@ -139,9 +143,26 @@ export const useStore = create((set, get) => ({
     if (!error) set(s => ({ tasks: s.tasks.filter(t => t.id !== id) }))
   },
 
-  submitTask: async (id) => get().updateTask(id, { status: 'pending' }),
-  approveTask: async (id) => get().updateTask(id, { status: 'approved' }),
-  rejectTask:  async (id, comment) => get().updateTask(id, { status: 'rejected', reject_comment: comment }),
+  submitTask: async (id) => {
+    const task = get().tasks.find(t => t.id === id)
+    const result = await get().updateTask(id, { status: 'pending' })
+    if (!result?.error && task) get().logActivity({ action_type: 'task_submitted', entity_name: task.text, entity_id: String(id), project_id: task.project_id })
+    return result
+  },
+
+  approveTask: async (id) => {
+    const task = get().tasks.find(t => t.id === id)
+    const result = await get().updateTask(id, { status: 'approved' })
+    if (!result?.error && task) get().logActivity({ action_type: 'task_approved', entity_name: task.text, entity_id: String(id), project_id: task.project_id })
+    return result
+  },
+
+  rejectTask: async (id, comment) => {
+    const task = get().tasks.find(t => t.id === id)
+    const result = await get().updateTask(id, { status: 'rejected', reject_comment: comment })
+    if (!result?.error && task) get().logActivity({ action_type: 'task_rejected', entity_name: task.text, entity_id: String(id), project_id: task.project_id })
+    return result
+  },
 
   // ── TOOLS ─────────────────────────────────────────────────
   fetchTools: async (projectId) => {
@@ -160,7 +181,10 @@ export const useStore = create((set, get) => ({
     if (tool.project_id) payload.project_id = tool.project_id
     if (tool.worker_id)  payload.worker_id  = tool.worker_id
     const { data, error } = await supabase.from('tools').insert(payload).select().single()
-    if (!error) set(s => ({ tools: [data, ...s.tools] }))
+    if (!error) {
+      set(s => ({ tools: [data, ...s.tools] }))
+      get().logActivity({ action_type: 'tool_added', entity_name: tool.name, entity_id: String(data.id), project_id: tool.project_id || null })
+    }
     return { error }
   },
 
@@ -287,13 +311,16 @@ export const useStore = create((set, get) => ({
 
   // Прораб одобряет заявку
   approveJoinRequest: async (requestId, workerId) => {
-    const { projects } = get()
+    const { projects, joinRequests } = get()
+    const req = joinRequests.find(r => r.id === requestId)
+    const workerName = req?.worker?.name || 'Worker'
     // Добавляем рабочего во все проекты прораба
     const inserts = projects.map(p => ({ project_id: p.id, worker_id: workerId }))
     await supabase.from('project_workers').insert(inserts)
     // Обновляем статус заявки
     await supabase.from('join_requests').update({ status: 'approved' }).eq('id', requestId)
     set(s => ({ joinRequests: s.joinRequests.filter(r => r.id !== requestId) }))
+    get().logActivity({ action_type: 'worker_joined', entity_name: workerName, entity_id: workerId })
   },
 
   // Прораб отклоняет заявку
@@ -304,7 +331,7 @@ export const useStore = create((set, get) => ({
 
   // ── MATERIALS ────────────────────────────────────────────
   addMaterial: (material) => {
-    const { materials, notifications } = get()
+    const { materials } = get()
     const nextId = Math.max(0, ...materials.map(m => m.id)) + 1
     const entry = {
       ...material,
@@ -316,25 +343,25 @@ export const useStore = create((set, get) => ({
     const next = [...materials, entry]
     saveMaterials(next)
     set({ materials: next })
-    // Push notification so foreman sees it
-    set(s => ({
-      notifications: [{
-        id: Date.now(),
-        text: `${material.reportedBy} needs ${material.qty} ${material.unit} — ${material.name}`,
-        read: false,
-        created_at: new Date().toISOString(),
-        type: 'material_shortage',
-      }, ...s.notifications]
-    }))
+    get().logActivity({
+      action_type: 'material_added',
+      entity_name: material.name,
+      project_id:  material.projectId || null,
+      meta: { qty: material.qty, unit: material.unit },
+    })
   },
 
-  markMaterialPurchased: (id) => set(s => {
-    const next = s.materials.map(m =>
-      m.id === id ? { ...m, status: 'purchased', purchasedAt: new Date().toISOString() } : m
-    )
-    saveMaterials(next)
-    return { materials: next }
-  }),
+  markMaterialPurchased: (id) => {
+    const material = get().materials.find(m => m.id === id)
+    set(s => {
+      const next = s.materials.map(m =>
+        m.id === id ? { ...m, status: 'purchased', purchasedAt: new Date().toISOString() } : m
+      )
+      saveMaterials(next)
+      return { materials: next }
+    })
+    if (material) get().logActivity({ action_type: 'material_purchased', entity_name: material.name, project_id: material.projectId || null })
+  },
 
   markMaterialNeeded: (id) => set(s => {
     const next = s.materials.map(m =>
@@ -368,6 +395,32 @@ export const useStore = create((set, get) => ({
     set(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, read: true } : n) }))
   },
 
+  // ── ACTIVITY LOG ──────────────────────────────────────────
+  logActivity: async ({ action_type, entity_name, entity_id, project_id, meta }) => {
+    const { profile } = get()
+    if (!profile) return
+    try {
+      await supabase.from('activity_log').insert({
+        actor_id:    profile.id,
+        actor_name:  profile.name || 'Unknown',
+        action_type,
+        entity_name: entity_name || null,
+        entity_id:   entity_id ? String(entity_id) : null,
+        project_id:  project_id || null,
+        meta:        meta || null,
+      })
+    } catch (_) { /* silent — log failures never break the app */ }
+  },
+
+  fetchActivityLog: async () => {
+    const { data } = await supabase
+      .from('activity_log')
+      .select('*, project:projects(name)')
+      .order('created_at', { ascending: false })
+      .limit(200)
+    set({ activityLog: data || [] })
+  },
+
   // ── TASK COMMENTS ─────────────────────────────────────────────────
   fetchComments: async (taskId) => {
     const { data } = await supabase
@@ -379,7 +432,7 @@ export const useStore = create((set, get) => ({
   },
 
   addComment: async (taskId, text) => {
-    const { profile } = get()
+    const { profile, tasks } = get()
     if (!profile) return { error: 'Not authenticated' }
     const { data, error } = await supabase
       .from('task_comments')
@@ -391,6 +444,10 @@ export const useStore = create((set, get) => ({
       })
       .select()
       .single()
+    if (!error) {
+      const task = tasks.find(t => t.id === taskId || t.id === Number(taskId))
+      get().logActivity({ action_type: 'comment_added', entity_name: task?.text || null, entity_id: String(taskId), project_id: task?.project_id || null })
+    }
     return { data, error }
   },
 }))

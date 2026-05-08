@@ -1846,116 +1846,146 @@ export function Team() {
   )
 }
 
-// ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
-function inferNotifType(n) {
-  if (n.type && n.type !== 'general') return n.type
-  const t = (n.text || '').toLowerCase()
-  if (t.includes('needs') && (t.includes('pcs') || t.includes(' m ') || t.includes('kg') || t.includes('pack') || t.includes('roll'))) return 'material_shortage'
-  if (t.includes('submitted') || t.includes('pending') || t.includes('review')) return 'task_pending'
-  if (t.includes('approved') || t.includes('completed')) return 'task_approved'
-  if (t.includes('rejected') || t.includes('revision')) return 'task_rejected'
-  if (t.includes('returned') || t.includes('tool')) return 'tool_return'
-  if (t.includes('join request') || t.includes('wants to join')) return 'join_request'
-  if (t.includes('joined')) return 'worker_joined'
-  return 'general'
+// ─── NOTIFICATIONS / ACTIVITY LOG ────────────────────────────────────────────
+
+const ACTIVITY_CFG = {
+  task_created:       { icon:'📝', color:'#2E6FB5', bg:'#E4EEFA', border:'#A3C2E8', group:'tasks'     },
+  task_submitted:     { icon:'🕐', color:'#C96B3A', bg:'#FBF3DC', border:'#F0D897', group:'tasks'     },
+  task_approved:      { icon:'✅', color:'#3D7A52', bg:'#E8F2EB', border:'#A8D4B4', group:'tasks'     },
+  task_rejected:      { icon:'↩️', color:'#A32D2D', bg:'#FCEBEB', border:'#F0AAAA', group:'tasks'     },
+  material_added:     { icon:'📦', color:'#C96B3A', bg:'#FBF3DC', border:'#F0D897', group:'materials' },
+  material_purchased: { icon:'🛒', color:'#3D7A52', bg:'#E8F2EB', border:'#A8D4B4', group:'materials' },
+  tool_added:         { icon:'🔧', color:'#2E6FB5', bg:'#E4EEFA', border:'#A3C2E8', group:'tools'     },
+  worker_joined:      { icon:'👷', color:'#6E4AAB', bg:'#F0EAF8', border:'#C4AADF', group:'team'      },
+  comment_added:      { icon:'💬', color:'#7A6E66', bg:'#F2EDE4', border:'#D9D0C7', group:'tasks'     },
+}
+const ACTIVITY_CFG_DEFAULT = { icon:'📋', color:'#7A6E66', bg:'#F2EDE4', border:'#D9D0C7', group:'other' }
+
+const ACTIVITY_GROUPS = ['all', 'tasks', 'materials', 'tools', 'team']
+
+const ACTIVITY_LABELS = {
+  ru: {
+    all: 'Все', tasks: 'Задачи', materials: 'Материалы', tools: 'Инструменты', team: 'Команда',
+    title: 'Активность', none: 'Нет активности',
+  },
+  en: {
+    all: 'All', tasks: 'Tasks', materials: 'Materials', tools: 'Tools', team: 'Team',
+    title: 'Activity', none: 'No activity yet',
+  },
+}
+function activityLabel(lang, key) {
+  return (ACTIVITY_LABELS[lang] || ACTIVITY_LABELS.en)[key] || (ACTIVITY_LABELS.en)[key]
 }
 
-const NOTIF_TYPE = {
-  task_pending:       { icon:'🕐', color:'#C96B3A', bg:'#FBF3DC', border:'#F0D897', label:'Review',        navForeman:'projects',    navWorker:'my-tasks' },
-  task_approved:      { icon:'✅', color:'#3D7A52', bg:'#E8F2EB', border:'#A8D4B4', label:'Approved',      navForeman:'projects',    navWorker:'my-tasks' },
-  task_rejected:      { icon:'↩️', color:'#A32D2D', bg:'#FCEBEB', border:'#F0AAAA', label:'Revision',      navForeman:'projects',    navWorker:'my-tasks' },
-  tool_return:        { icon:'🔧', color:'#2E6FB5', bg:'#E4EEFA', border:'#A3C2E8', label:'Tool',          navForeman:'tools',       navWorker:'tools'    },
-  join_request:       { icon:'👋', color:'#6E4AAB', bg:'#F0EAF8', border:'#C4AADF', label:'Join Request',  navForeman:'team',        navWorker:null       },
-  worker_joined:      { icon:'👷', color:'#2E6FB5', bg:'#E4EEFA', border:'#A3C2E8', label:'Team',          navForeman:'team',        navWorker:null       },
-  material_shortage:  { icon:'📦', color:'#A32D2D', bg:'#FCEBEB', border:'#F0AAAA', label:'Shortage',      navForeman:'procurement', navWorker:null       },
-  general:            { icon:'💬', color:'#7A6E66', bg:'#F2EDE4', border:'#D9D0C7', label:null,            navForeman:null,          navWorker:null       },
+function formatActivityText(e, lang) {
+  const a  = e.actor_name || '—'
+  const nm = e.entity_name ? `"${e.entity_name}"` : ''
+  const m  = e.meta || {}
+  const ru = lang === 'ru'
+
+  switch (e.action_type) {
+    case 'task_created':       return ru ? `${a} создал(а) задачу ${nm}` : `${a} created task ${nm}`
+    case 'task_submitted':     return ru ? `${a} отправил(а) задачу ${nm} на проверку` : `${a} submitted task ${nm} for review`
+    case 'task_approved':      return ru ? `${a} принял(а) задачу ${nm}` : `${a} approved task ${nm}`
+    case 'task_rejected':      return ru ? `${a} отправил(а) задачу ${nm} на доработку` : `${a} sent task ${nm} for revision`
+    case 'material_added':     return ru
+      ? `${a} запросил(а) ${m.qty || ''} ${m.unit || ''} — ${e.entity_name || ''}`
+      : `${a} requested ${m.qty || ''} ${m.unit || ''} — ${e.entity_name || ''}`
+    case 'material_purchased': return ru ? `${a} закупил(а) ${nm}` : `${a} purchased ${nm}`
+    case 'tool_added':         return ru ? `${a} добавил(а) инструмент ${nm}` : `${a} added tool ${nm}`
+    case 'worker_joined':      return ru ? `${e.entity_name || a} присоединился к команде` : `${e.entity_name || a} joined the team`
+    case 'comment_added':      return ru ? `${a} прокомментировал(а) задачу ${nm}` : `${a} commented on task ${nm}`
+    default:                   return `${a} — ${e.action_type}`
+  }
 }
 
-function formatNotifTime(dateStr) {
-  const d = new Date(dateStr)
-  const now = new Date()
-  const diff = (now - d) / 1000
-  if (diff < 60)   return 'just now'
-  if (diff < 3600) return `${Math.floor(diff/60)}m ago`
-  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`
-  if (diff < 86400*7) return `${Math.floor(diff/86400)}d ago`
-  return d.toLocaleDateString('en', { day:'numeric', month:'short' })
+function formatActivityTime(dateStr, lang) {
+  if (!dateStr) return ''
+  const d    = new Date(dateStr)
+  const diff = (Date.now() - d) / 1000
+  const ru   = lang === 'ru'
+  if (diff < 60)         return ru ? 'только что' : 'just now'
+  if (diff < 3600)       return ru ? `${Math.floor(diff / 60)} мин` : `${Math.floor(diff / 60)}m ago`
+  if (diff < 86400)      return ru ? `${Math.floor(diff / 3600)} ч` : `${Math.floor(diff / 3600)}h ago`
+  if (diff < 86400 * 7)  return ru ? `${Math.floor(diff / 86400)} д` : `${Math.floor(diff / 86400)}d ago`
+  return new Intl.DateTimeFormat(lang === 'ru' ? 'ru' : 'en', { day: 'numeric', month: 'short' }).format(d)
 }
 
-export function Notifications({ onNavigate }) {
-  const { t } = useT()
-  const { notifications, fetchNotifications, markNotifRead, role } = useStore()
+export function Notifications() {
+  const { lang } = useT()
+  const { activityLog, fetchActivityLog } = useStore()
   const [filter, setFilter] = useState('all')
 
-  useEffect(() => { fetchNotifications() }, [])
+  useEffect(() => { fetchActivityLog() }, [])
 
-  const unread   = notifications.filter(n => !n.read).length
-  const filtered = notifications.filter(n => filter === 'unread' ? !n.read : true)
+  const counts = ACTIVITY_GROUPS.reduce((acc, g) => {
+    acc[g] = g === 'all'
+      ? activityLog.length
+      : activityLog.filter(e => (ACTIVITY_CFG[e.action_type] || ACTIVITY_CFG_DEFAULT).group === g).length
+    return acc
+  }, {})
 
-  const handleClick = (n) => {
-    if (!n.read) markNotifRead(n.id)
-    const type   = inferNotifType(n)
-    const config = NOTIF_TYPE[type] || NOTIF_TYPE.general
-    const target = role === 'worker' ? config.navWorker : config.navForeman
-    if (target && onNavigate) onNavigate(target)
-  }
+  const filtered = filter === 'all'
+    ? activityLog
+    : activityLog.filter(e => (ACTIVITY_CFG[e.action_type] || ACTIVITY_CFG_DEFAULT).group === filter)
 
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">{t('notifications.title')}</h1>
-        {unread > 0 && <div style={{ background:'#C96B3A', color:'#fff', fontSize:11, fontWeight:700, borderRadius:10, padding:'2px 9px' }}>{t('notifications.newBadge', { n: unread })}</div>}
+        <h1 className="page-title">{activityLabel(lang, 'title')}</h1>
       </div>
-      <div className="filter-bar">
-        <button className={`filter-btn ${filter==='all'?'active':''}`}    onClick={() => setFilter('all')}>{t('notifications.filterAll', { n: notifications.length })}</button>
-        <button className={`filter-btn ${filter==='unread'?'active':''}`} onClick={() => setFilter('unread')}>{t('notifications.filterUnread', { n: unread })}</button>
+
+      {/* Filter bar */}
+      <div className="filter-bar" style={{ flexWrap:'wrap', gap:6 }}>
+        {ACTIVITY_GROUPS.map(g => (
+          <button key={g} className={`filter-btn ${filter === g ? 'active' : ''}`} onClick={() => setFilter(g)}>
+            {activityLabel(lang, g)}{counts[g] > 0 ? ` · ${counts[g]}` : ''}
+          </button>
+        ))}
       </div>
+
       <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-        {filtered.length === 0 && <EmptyState>{t('notifications.none')}</EmptyState>}
-        {filtered.map(n => {
-          const type   = inferNotifType(n)
-          const cfg    = NOTIF_TYPE[type] || NOTIF_TYPE.general
-          const target = role === 'worker' ? cfg.navWorker : cfg.navForeman
-          const isClickable = !!target
+        {filtered.length === 0 && <EmptyState>{activityLabel(lang, 'none')}</EmptyState>}
+
+        {filtered.map(entry => {
+          const cfg = ACTIVITY_CFG[entry.action_type] || ACTIVITY_CFG_DEFAULT
           return (
-            <div key={n.id} onClick={() => handleClick(n)} style={{
+            <div key={entry.id} style={{
               display:'flex', alignItems:'flex-start', gap:12,
-              background: n.read ? '#fff' : cfg.bg,
-              border: `1.5px solid ${n.read ? '#EAE3D8' : cfg.border}`,
+              background: cfg.bg,
+              border: `1.5px solid ${cfg.border}`,
               borderRadius: 14, padding:'12px 14px',
-              cursor: isClickable ? 'pointer' : 'default',
-              transition: 'opacity .15s', opacity: n.read ? 0.72 : 1,
             }}>
-              <div style={{ width:38, height:38, borderRadius:'50%', flexShrink:0, background:cfg.bg, border:`1.5px solid ${cfg.border}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 }}>
+              {/* Icon */}
+              <div style={{
+                width:40, height:40, borderRadius:'50%', flexShrink:0,
+                background:'#fff', border:`1.5px solid ${cfg.border}`,
+                display:'flex', alignItems:'center', justifyContent:'center', fontSize:19,
+              }}>
                 {cfg.icon}
               </div>
+
+              {/* Content */}
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:3 }}>
-                  {cfg.label && (
-                    <span style={{ fontSize:10, fontWeight:700, letterSpacing:'.06em', textTransform:'uppercase', color:cfg.color, background:cfg.bg, border:`1px solid ${cfg.border}`, borderRadius:6, padding:'1px 7px' }}>
-                      {type === 'task_pending'      && t('notifications.typeReview')}
-                      {type === 'task_approved'     && t('notifications.typeApproved')}
-                      {type === 'task_rejected'     && t('notifications.typeRevision')}
-                      {type === 'tool_return'       && t('notifications.typeTool')}
-                      {type === 'join_request'      && t('notifications.typeJoin')}
-                      {type === 'worker_joined'     && t('notifications.typeTeam')}
-                      {type === 'material_shortage' && t('notifications.typeShortage')}
-                    </span>
-                  )}
-                  {!n.read && <span style={{ width:7, height:7, borderRadius:'50%', background:cfg.color, display:'inline-block' }} />}
+                <div style={{ fontSize:13, color:'var(--text-1,#2E2420)', lineHeight:1.5, fontWeight:500 }}>
+                  {formatActivityText(entry, lang)}
                 </div>
-                <div style={{ fontSize:13, color:'#2E2420', lineHeight:1.45, fontWeight: n.read ? 400 : 500 }}>{n.text}</div>
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:5 }}>
-                  <span style={{ fontSize:11, color:'#B8AFA6' }}>{formatNotifTime(n.created_at)}</span>
-                  {isClickable && (
-                    <span style={{ fontSize:11, color:cfg.color, fontWeight:600 }}>
-                      {type === 'task_pending'  && (role === 'foreman' ? t('notifications.viewProjects') : t('notifications.viewTasks'))}
-                      {type === 'task_approved' && (role === 'foreman' ? t('notifications.viewProjects') : t('notifications.viewTasks'))}
-                      {type === 'task_rejected' && t('notifications.viewTasks')}
-                      {type === 'tool_return'   && t('notifications.viewTools')}
-                      {(type === 'join_request' || type === 'worker_joined') && t('notifications.viewTeam')}
+
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:6, flexWrap:'wrap' }}>
+                  {/* Project badge */}
+                  {entry.project?.name && (
+                    <span style={{
+                      fontSize:11, color:cfg.color, fontWeight:600,
+                      background:'#fff', border:`1px solid ${cfg.border}`,
+                      borderRadius:7, padding:'2px 8px',
+                    }}>
+                      📍 {entry.project.name}
                     </span>
                   )}
+                  {/* Time — pushed to the right */}
+                  <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', whiteSpace:'nowrap' }}>
+                    {formatActivityTime(entry.created_at, lang)}
+                  </span>
                 </div>
               </div>
             </div>

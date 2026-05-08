@@ -17,7 +17,7 @@ function formatTime(dateStr, lang) {
 
 export default function TaskComments({ taskId }) {
   const { t, lang } = useT()
-  const { profile } = useStore()
+  const { profile, addComment } = useStore()
   const [comments, setComments] = useState([])
   const [text,     setText]     = useState('')
   const [sending,  setSending]  = useState(false)
@@ -44,16 +44,7 @@ export default function TaskComments({ taskId }) {
   const send = async () => {
     if (!text.trim() || sending) return
     setSending(true)
-    const { data, error } = await supabase
-      .from('task_comments')
-      .insert({
-        task_id:     taskId,
-        author_id:   profile.id,
-        author_name: profile.name || 'Unknown',
-        text:        text.trim(),
-      })
-      .select()
-      .single()
+    const { data, error } = await addComment(taskId, text.trim())
     if (!error && data) {
       setComments(prev => [...prev, data])
       setText('')
