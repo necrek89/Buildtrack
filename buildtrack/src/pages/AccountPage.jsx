@@ -220,23 +220,6 @@ export default function AccountPage() {
         </div>
       )}
 
-      {/* ── Onboarding ── */}
-      <div className="card card-body" style={{ marginBottom:12 }}>
-        <div className="section-title">📖 Онбординг</div>
-        <p style={{ fontSize:12, color:'#7A6E66', marginBottom:10 }}>
-          Посмотреть вводное руководство по приложению ещё раз
-        </p>
-        <button
-          className="btn btn-sm"
-          onClick={() => {
-            localStorage.removeItem('tutuu_onboarded')
-            window.location.reload()
-          }}
-          style={{ fontSize:13 }}
-        >
-          🚀 Пройти онбординг снова
-        </button>
-      </div>
     </div>
   )
 }

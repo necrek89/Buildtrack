@@ -209,6 +209,16 @@ export default function LoginPage({ onLogin }) {
           </>
         )}
       </div>
+
+      {/* Onboarding link */}
+      <div style={{ textAlign: 'center', marginTop: 16 }}>
+        <span
+          style={{ fontSize: 12, color: '#B8AFA6', cursor: 'pointer' }}
+          onClick={() => { localStorage.removeItem('tutuu_onboarded'); window.location.reload() }}
+        >
+          📖 Посмотреть руководство
+        </span>
+      </div>
     </div>
   )
 }
