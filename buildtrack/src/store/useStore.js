@@ -123,11 +123,22 @@ export const useStore = create((set, get) => ({
     set({ tasks: data || [] })
   },
 
+  // Recalculate project progress = approved / total * 100 (auto, no manual slider)
+  recalcProgress: async (projectId) => {
+    if (!projectId) return
+    const all = get().tasks.filter(t => t.project_id === projectId)
+    if (!all.length) return
+    const approved = all.filter(t => t.status === 'approved').length
+    const pct = Math.round((approved / all.length) * 100)
+    await get().updateProject(projectId, { progress: pct })
+  },
+
   addTask: async (task) => {
     const { data, error } = await supabase.from('tasks').insert(task).select().single()
     if (!error) {
       set(s => ({ tasks: [data, ...s.tasks] }))
       get().logActivity({ action_type: 'task_created', entity_name: task.text, entity_id: String(data.id), project_id: task.project_id })
+      get().recalcProgress(task.project_id)
     }
     return { error }
   },
@@ -139,37 +150,59 @@ export const useStore = create((set, get) => ({
   },
 
   deleteTask: async (id) => {
+    const task = get().tasks.find(t => t.id === id)
     const { error } = await supabase.from('tasks').delete().eq('id', id)
-    if (!error) set(s => ({ tasks: s.tasks.filter(t => t.id !== id) }))
+    if (!error) {
+      set(s => ({ tasks: s.tasks.filter(t => t.id !== id) }))
+      if (task?.project_id) get().recalcProgress(task.project_id)
+    }
   },
 
   submitTask: async (id) => {
     const task = get().tasks.find(t => t.id === id)
     const result = await get().updateTask(id, { status: 'pending' })
-    if (!result?.error && task) get().logActivity({ action_type: 'task_submitted', entity_name: task.text, entity_id: String(id), project_id: task.project_id })
+    if (!result?.error && task) {
+      get().logActivity({ action_type: 'task_submitted', entity_name: task.text, entity_id: String(id), project_id: task.project_id })
+      get().recalcProgress(task.project_id)
+    }
     return result
   },
 
   approveTask: async (id) => {
     const task = get().tasks.find(t => t.id === id)
     const result = await get().updateTask(id, { status: 'approved' })
-    if (!result?.error && task) get().logActivity({ action_type: 'task_approved', entity_name: task.text, entity_id: String(id), project_id: task.project_id })
+    if (!result?.error && task) {
+      get().logActivity({ action_type: 'task_approved', entity_name: task.text, entity_id: String(id), project_id: task.project_id })
+      get().recalcProgress(task.project_id)
+    }
     return result
   },
 
   rejectTask: async (id, comment) => {
     const task = get().tasks.find(t => t.id === id)
     const result = await get().updateTask(id, { status: 'rejected', reject_comment: comment })
-    if (!result?.error && task) get().logActivity({ action_type: 'task_rejected', entity_name: task.text, entity_id: String(id), project_id: task.project_id })
+    if (!result?.error && task) {
+      get().logActivity({ action_type: 'task_rejected', entity_name: task.text, entity_id: String(id), project_id: task.project_id })
+      get().recalcProgress(task.project_id)
+    }
     return result
   },
 
   // ── TOOLS ─────────────────────────────────────────────────
   fetchTools: async (projectId) => {
-    const { profile } = get()
+    const { profile, role } = get()
     let query = supabase.from('tools').select('*')
-    if (projectId) query = query.eq('project_id', projectId)
-    else if (profile?.role === 'foreman') query = query.eq('foreman_id', profile.id)
+    if (projectId) {
+      query = query.eq('project_id', projectId)
+    } else if (role === 'foreman') {
+      query = query.eq('foreman_id', profile.id)
+    } else if (role === 'worker') {
+      // Worker sees only tools from projects they belong to
+      const { data: pw } = await supabase.from('project_workers').select('project_id').eq('worker_id', profile.id)
+      const ids = (pw || []).map(r => r.project_id)
+      if (!ids.length) { set({ tools: [] }); return }
+      query = query.in('project_id', ids)
+    }
     const { data } = await query
     set({ tools: data || [] })
   },
@@ -413,11 +446,16 @@ export const useStore = create((set, get) => ({
   },
 
   fetchActivityLog: async () => {
-    const { data } = await supabase
-      .from('activity_log')
-      .select('*, project:projects(name)')
-      .order('created_at', { ascending: false })
-      .limit(200)
+    const { profile, role } = get()
+    let query = supabase.from('activity_log').select('*, project:projects(name)').order('created_at', { ascending: false }).limit(200)
+    if (role === 'worker') {
+      // Worker sees only activity from their assigned projects
+      const { data: pw } = await supabase.from('project_workers').select('project_id').eq('worker_id', profile.id)
+      const ids = (pw || []).map(r => r.project_id)
+      if (!ids.length) { set({ activityLog: [] }); return }
+      query = query.in('project_id', ids)
+    }
+    const { data } = await query
     set({ activityLog: data || [] })
   },
 

@@ -1,17 +1,48 @@
 import { useState, useEffect, useRef } from 'react'
 import { useStore } from '../store/useStore'
+import { useT } from '../i18n/useLanguage'
 import { Button, FormGroup } from './UI'
 import { supabase } from '../lib/supabase'
 import DatePicker from './DatePicker'
 
 // No default stages — each project defines its own
 const PRIORITY_OPTIONS = [
-  { value: 'high',   label: 'High'   },
-  { value: 'normal', label: 'Normal' },
-  { value: 'low',    label: 'Low'    },
+  { value: 'high',   labelKey: 'High'   },
+  { value: 'normal', labelKey: 'Normal' },
+  { value: 'low',    labelKey: 'Low'    },
 ]
 
+// ── Image compression (canvas) ───────────────────────────────────────────────
+async function compressImage(file, maxPx = 1400, quality = 0.82) {
+  // Only compress images, pass videos through unchanged
+  if (!file.type.startsWith('image/')) return file
+  return new Promise((resolve) => {
+    const img = new Image()
+    const objectUrl = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl)
+      const { naturalWidth: w, naturalHeight: h } = img
+      // If already small enough, skip compression
+      if (w <= maxPx && h <= maxPx) { resolve(file); return }
+      const scale  = maxPx / Math.max(w, h)
+      const canvas = document.createElement('canvas')
+      canvas.width  = Math.round(w * scale)
+      canvas.height = Math.round(h * scale)
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      canvas.toBlob(
+        blob => resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' })),
+        'image/jpeg',
+        quality,
+      )
+    }
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file) }
+    img.src = objectUrl
+  })
+}
+
 export default function TaskModal({ task, onClose, defaultProjectId }) {
+  const { t } = useT()
   const { addTask, updateTask, projects, fetchProjects, fetchWorkers, profile } = useStore()
   const isEdit = !!task
   const [workers,   setWorkers]   = useState([])
@@ -69,7 +100,9 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
     if (!files?.length) return
     setUploading(true)
     const newUrls = []
-    for (const file of Array.from(files)) {
+    for (const rawFile of Array.from(files)) {
+      // Compress images before upload
+      const file = await compressImage(rawFile)
       const ext  = file.name.split('.').pop()
       const path = `${profile?.id || 'anon'}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
       const { error } = await supabase.storage.from('task-photos').upload(path, file, { upsert: true })
@@ -104,32 +137,32 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ maxHeight:'90dvh', display:'flex', flexDirection:'column' }}>
-        <div className="modal-title">{isEdit ? 'Edit Task' : 'New Task'}</div>
+        <div className="modal-title">{isEdit ? t('tasks.editTitle') : t('tasks.newTitle')}</div>
 
         <div style={{ overflowY:'auto', flex:1, paddingRight:2 }}>
 
-          <FormGroup label="Project *">
+          <FormGroup label={`${t('tasks.projectLabel')} *`}>
             <select className="form-input" value={form.project_id} onChange={set('project_id')}>
-              <option value="">Select project</option>
+              <option value="">—</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </FormGroup>
 
-          <FormGroup label="Task title *">
+          <FormGroup label={`${t('tasks.titleLabel')} *`}>
             <input
               className="form-input"
-              placeholder="e.g. Clean 3 rooms on 2nd floor"
+              placeholder={t('tasks.titlePlaceholder')}
               value={form.text}
               onChange={set('text')}
               autoFocus
             />
           </FormGroup>
 
-          <FormGroup label="Details">
+          <FormGroup label={t('tasks.detailsLabel')}>
             <textarea
               className="form-input"
               rows={4}
-              placeholder="Detailed description — what exactly needs to be done, notes, requirements..."
+              placeholder={t('tasks.detailsPlaceholder')}
               value={form.description}
               onChange={set('description')}
               style={{ resize:'vertical', minHeight:80 }}
@@ -137,22 +170,22 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
           </FormGroup>
 
           <div className="form-grid-2">
-            <FormGroup label="Assignee">
+            <FormGroup label={t('tasks.assigneeLabel')}>
               <select className="form-input" value={form.worker_id} onChange={set('worker_id')}>
-                <option value="">Unassigned</option>
+                <option value="">{t('tasks.unassigned')}</option>
                 {workers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
               </select>
             </FormGroup>
-            <FormGroup label="Stage">
+            <FormGroup label={t('tasks.stageLabel')}>
               {(() => {
                 const proj = projects.find(p => p.id === form.project_id)
                 const stageList = Array.isArray(proj?.stages) ? proj.stages : []
                 return (
                   <select className="form-input" value={form.stage} onChange={set('stage')}>
                     {stageList.length === 0
-                      ? <option value="">— add stages to project first —</option>
+                      ? <option value="">{t('tasks.noStagesHint')}</option>
                       : <>
-                          <option value="">— no stage —</option>
+                          <option value="">{t('tasks.noStage')}</option>
                           {stageList.map(s => <option key={s} value={s}>{s}</option>)}
                         </>
                     }
@@ -163,18 +196,18 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
           </div>
 
           <div className="form-grid-2">
-            <FormGroup label="Priority">
+            <FormGroup label={t('tasks.priorityLabel')}>
               <select className="form-input" value={form.priority} onChange={set('priority')}>
-                {PRIORITY_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                {PRIORITY_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.labelKey}</option>)}
               </select>
             </FormGroup>
-            <FormGroup label="Deadline">
+            <FormGroup label={t('tasks.deadlineLabel')}>
               <DatePicker value={form.deadline} onChange={v => setForm(f => ({ ...f, deadline: v }))} />
             </FormGroup>
           </div>
 
           {/* ── Media attachments ── */}
-          <FormGroup label="Photos / Videos">
+          <FormGroup label={t('tasks.mediaLabel')}>
             <input
               ref={fileRef}
               type="file"
@@ -194,7 +227,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
                 display:'flex', alignItems:'center', justifyContent:'center', gap:8,
               }}
             >
-              {uploading ? '⏳ Uploading...' : '📎 Attach photo or video'}
+              {uploading ? `⏳ ${t('common.uploading')}` : t('tasks.attachBtn')}
             </button>
 
             {mediaUrls.length > 0 && (
@@ -244,9 +277,9 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
         </div>
 
         <div className="modal-actions" style={{ paddingTop:12, borderTop:'1px solid #EAE3D8', marginTop:4 }}>
-          <Button size="sm" onClick={onClose}>Cancel</Button>
+          <Button size="sm" onClick={onClose}>{t('common.cancel')}</Button>
           <Button variant="primary" size="sm" onClick={save}>
-            {isEdit ? 'Save' : 'Add Task'}
+            {isEdit ? t('common.save') : t('tasks.addBtn')}
           </Button>
         </div>
       </div>

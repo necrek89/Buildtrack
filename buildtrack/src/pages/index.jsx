@@ -948,8 +948,8 @@ export function Projects() {
     await updateProject(editProject.id, {
       name: editForm.name.trim(), stage: editForm.stage,
       deadline: editForm.deadline || null, address: editForm.address || null,
-      progress: Number(editForm.progress),
       stages: editForm.stages || [],
+      // progress is auto-calculated from tasks, not saved here
     })
     setEditSaving(false)
     setEditProject(null)
@@ -1045,16 +1045,7 @@ export function Projects() {
                   <DatePicker value={editForm.deadline} onChange={v => setEditForm(f => ({ ...f, deadline: v }))} />
                 </FormGroup>
               </div>
-              <FormGroup label={t('projects.progressLabel', { pct: editForm.progress })}>
-                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                  <input type="range" min={0} max={100} step={1} value={editForm.progress}
-                    onChange={setE('progress')} style={{ flex:1, accentColor:'#C96B3A' }} />
-                  <span style={{ fontSize:13, fontWeight:700, color:'#C96B3A', minWidth:36, textAlign:'right' }}>{editForm.progress}%</span>
-                </div>
-                <div style={{ height:4, background:'#EAE3D8', borderRadius:4, overflow:'hidden', marginTop:6 }}>
-                  <div style={{ height:4, borderRadius:4, background:'#C96B3A', width:`${editForm.progress}%`, transition:'width .2s' }} />
-                </div>
-              </FormGroup>
+              {/* Progress is auto-calculated from approved tasks — not editable here */}
             </div>
             <div className="modal-actions">
               <Button size="sm" onClick={() => setEditProject(null)}>{t('common.cancel')}</Button>
