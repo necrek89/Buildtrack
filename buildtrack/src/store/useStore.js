@@ -98,9 +98,14 @@ export const useStore = create((set, get) => ({
 
   // ── PROJECTS ──────────────────────────────────────────────
   fetchProjects: async () => {
-    const { profile } = get()
+    const { profile, role } = get()
     let query = supabase.from('projects').select('*')
-    if (profile?.role === 'foreman') query = query.eq('foreman_id', profile.id)
+    if (role === 'foreman') {
+      query = query.eq('foreman_id', profile.id)
+    } else if (role === 'manager') {
+      if (!profile?.linked_foreman_id) { set({ projects: [] }); return }
+      query = query.eq('foreman_id', profile.linked_foreman_id)
+    }
     const { data } = await query
     set({ projects: data || [] })
   },
@@ -113,12 +118,19 @@ export const useStore = create((set, get) => ({
 
   // ── TASKS ─────────────────────────────────────────────────
   fetchTasks: async (projectId) => {
+    const { role, projects } = get()
     let query = supabase.from('tasks').select(`
       id, text, description, status, priority, stage, deadline,
       photo_url, reject_comment, worker_id, project_id,
       worker:profiles(id, name)
     `)
-    if (projectId) query = query.eq('project_id', projectId)
+    if (projectId) {
+      query = query.eq('project_id', projectId)
+    } else if (role === 'manager') {
+      const ids = projects.map(p => p.id)
+      if (!ids.length) { set({ tasks: [] }); return }
+      query = query.in('project_id', ids)
+    }
     const { data } = await query.order('created_at', { ascending: false })
     set({ tasks: data || [] })
   },
@@ -190,12 +202,14 @@ export const useStore = create((set, get) => ({
 
   // ── TOOLS ─────────────────────────────────────────────────
   fetchTools: async (projectId) => {
-    const { profile, role } = get()
+    const { profile, role, projects } = get()
     let query = supabase.from('tools').select('*')
     if (projectId) {
       query = query.eq('project_id', projectId)
     } else if (role === 'foreman') {
       query = query.eq('foreman_id', profile.id)
+    } else if (role === 'manager') {
+      query = query.eq('foreman_id', profile.linked_foreman_id || '__none__')
     } else if (role === 'worker') {
       // Worker sees only tools from projects they belong to
       const { data: pw } = await supabase.from('project_workers').select('project_id').eq('worker_id', profile.id)
@@ -344,13 +358,20 @@ export const useStore = create((set, get) => ({
 
   // Прораб одобряет заявку
   approveJoinRequest: async (requestId, workerId) => {
-    const { projects, joinRequests } = get()
+    const { projects, joinRequests, profile } = get()
     const req = joinRequests.find(r => r.id === requestId)
-    const workerName = req?.worker?.name || 'Worker'
-    // Добавляем рабочего во все проекты прораба
-    const inserts = projects.map(p => ({ project_id: p.id, worker_id: workerId }))
-    await supabase.from('project_workers').insert(inserts)
-    // Обновляем статус заявки
+    const workerName = req?.worker?.name || 'Unknown'
+    const workerRole = req?.worker?.role
+
+    if (workerRole === 'manager') {
+      // Менеджер получает ссылку на прораба, а не добавляется в project_workers
+      await supabase.from('profiles').update({ linked_foreman_id: profile.id }).eq('id', workerId)
+    } else {
+      // Рабочий добавляется во все проекты прораба
+      const inserts = projects.map(p => ({ project_id: p.id, worker_id: workerId }))
+      await supabase.from('project_workers').insert(inserts)
+    }
+
     await supabase.from('join_requests').update({ status: 'approved' }).eq('id', requestId)
     set(s => ({ joinRequests: s.joinRequests.filter(r => r.id !== requestId) }))
     get().logActivity({ action_type: 'worker_joined', entity_name: workerName, entity_id: workerId })
@@ -446,12 +467,17 @@ export const useStore = create((set, get) => ({
   },
 
   fetchActivityLog: async () => {
-    const { profile, role } = get()
+    const { profile, role, projects } = get()
     let query = supabase.from('activity_log').select('*, project:projects(name)').order('created_at', { ascending: false }).limit(200)
     if (role === 'worker') {
       // Worker sees only activity from their assigned projects
       const { data: pw } = await supabase.from('project_workers').select('project_id').eq('worker_id', profile.id)
       const ids = (pw || []).map(r => r.project_id)
+      if (!ids.length) { set({ activityLog: [] }); return }
+      query = query.in('project_id', ids)
+    } else if (role === 'manager') {
+      // Manager sees activity from the linked foreman's projects
+      const ids = projects.map(p => p.id)
       if (!ids.length) { set({ activityLog: [] }); return }
       query = query.in('project_id', ids)
     }

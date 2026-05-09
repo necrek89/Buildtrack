@@ -36,8 +36,8 @@ export default function MaterialList({
       {materials.map(m => {
         const isPurchased = m.status === 'purchased'
         const projName    = showProject ? (projects.find(p => String(p.id) === String(m.projectId))?.name || (m.projectId ? 'Unknown project' : null)) : null
-        const canCheck    = role === 'foreman' && !!onTogglePurchased
-        const canDelete   = role === 'foreman' || m.reportedBy === profile?.name
+        const canCheck    = (role === 'foreman' || role === 'manager') && !!onTogglePurchased
+        const canDelete   = role === 'foreman' || role === 'manager' || m.reportedBy === profile?.name
 
         return (
           <div key={m.id} className={`material-row ${m.status}`}>

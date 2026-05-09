@@ -47,6 +47,13 @@ const NAV = {
     { id: 'team',          icon: 'team',          labelKey: 'team'          },
     { id: 'notifications', icon: 'notifications', labelKey: 'alerts'        },
   ],
+  manager: [
+    { id: 'projects',      icon: 'projects',      labelKey: 'projects'      },
+    { id: 'materials',     icon: 'materials',     labelKey: 'materials'     },
+    { id: 'tools',         icon: 'tools',         labelKey: 'tools'         },
+    { id: 'team',          icon: 'team',          labelKey: 'team'          },
+    { id: 'notifications', icon: 'notifications', labelKey: 'alerts'        },
+  ],
   worker: [
     { id: 'my-tasks',      icon: 'tasks',         labelKey: 'myTasks'       },
     { id: 'tools',         icon: 'tools',         labelKey: 'tools'         },
@@ -62,15 +69,16 @@ const NAV = {
   ],
 }
 
-const DEFAULT_PAGE = { foreman: 'projects', worker: 'my-tasks', client: 'dashboard' }
+const DEFAULT_PAGE = { foreman: 'projects', manager: 'projects', worker: 'my-tasks', client: 'dashboard' }
 
 function PageContent({ role, page, onNavigate }) {
   if (page === 'account') return <AccountPage />
-  if (role === 'foreman') {
-    if (page === 'projects')      return <Projects />
-    if (page === 'materials')     return <Procurement />
-    if (page === 'tools')         return <Tools canAdd={true} />
-    if (page === 'team')          return <Team />
+  if (role === 'foreman' || role === 'manager') {
+    const canDelete = role === 'foreman'
+    if (page === 'projects')      return <Projects canDelete={canDelete} />
+    if (page === 'materials')     return <Procurement canDelete={canDelete} />
+    if (page === 'tools')         return <Tools canAdd={true} canDelete={canDelete} />
+    if (page === 'team')          return <Team canManage={canDelete} />
     if (page === 'notifications') return <Notifications onNavigate={onNavigate} />
   }
   if (role === 'worker') {

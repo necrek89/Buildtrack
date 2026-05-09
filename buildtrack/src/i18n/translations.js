@@ -13,7 +13,7 @@ const t = {
       myProject: 'My Project', signOut: 'Sign Out',
       darkMode: 'Dark Mode', lightMode: 'Light Mode',
     },
-    roles: { foreman: 'Foreman', worker: 'Worker', client: 'Client' },
+    roles: { foreman: 'Foreman', manager: 'Manager', worker: 'Worker', client: 'Client' },
     common: {
       cancel: 'Cancel', save: 'Save', delete: 'Delete', edit: 'Edit',
       add: 'Add', back: '← Back', create: 'Create', close: 'Close',
@@ -245,7 +245,7 @@ const t = {
       myProject: 'Мой объект', signOut: 'Выйти',
       darkMode: 'Тёмный режим', lightMode: 'Светлый режим',
     },
-    roles: { foreman: 'Прораб', worker: 'Рабочий', client: 'Клиент' },
+    roles: { foreman: 'Прораб', manager: 'Менеджер', worker: 'Рабочий', client: 'Клиент' },
     common: {
       cancel: 'Отмена', save: 'Сохранить', delete: 'Удалить', edit: 'Изменить',
       add: 'Добавить', back: '← Назад', create: 'Создать', close: 'Закрыть',
@@ -477,7 +477,7 @@ const t = {
       myProject: 'Moj projekat', signOut: 'Odjava',
       darkMode: 'Tamni način', lightMode: 'Svijetli način',
     },
-    roles: { foreman: 'Poslovođa', worker: 'Radnik', client: 'Klijent' },
+    roles: { foreman: 'Poslovođa', manager: 'Menadžer', worker: 'Radnik', client: 'Klijent' },
     common: {
       cancel: 'Otkaži', save: 'Sačuvaj', delete: 'Obriši', edit: 'Uredi',
       add: 'Dodaj', back: '← Nazad', create: 'Kreiraj', close: 'Zatvori',
@@ -706,7 +706,7 @@ const t = {
       myProject: 'Mi proyecto', signOut: 'Cerrar sesión',
       darkMode: 'Modo oscuro', lightMode: 'Modo claro',
     },
-    roles: { foreman: 'Capataz', worker: 'Obrero', client: 'Cliente' },
+    roles: { foreman: 'Capataz', manager: 'Gerente', worker: 'Obrero', client: 'Cliente' },
     common: {
       cancel: 'Cancelar', save: 'Guardar', delete: 'Eliminar', edit: 'Editar',
       add: 'Agregar', back: '← Atrás', create: 'Crear', close: 'Cerrar',
@@ -935,7 +935,7 @@ const t = {
       myProject: 'Meu projeto', signOut: 'Sair',
       darkMode: 'Modo escuro', lightMode: 'Modo claro',
     },
-    roles: { foreman: 'Mestre de obras', worker: 'Trabalhador', client: 'Cliente' },
+    roles: { foreman: 'Mestre de obras', manager: 'Gerente', worker: 'Trabalhador', client: 'Cliente' },
     common: {
       cancel: 'Cancelar', save: 'Salvar', delete: 'Excluir', edit: 'Editar',
       add: 'Adicionar', back: '← Voltar', create: 'Criar', close: 'Fechar',
@@ -1164,7 +1164,7 @@ const t = {
       myProject: 'Mein Projekt', signOut: 'Abmelden',
       darkMode: 'Dunkelmodus', lightMode: 'Hellmodus',
     },
-    roles: { foreman: 'Vorarbeiter', worker: 'Arbeiter', client: 'Auftraggeber' },
+    roles: { foreman: 'Vorarbeiter', manager: 'Manager', worker: 'Arbeiter', client: 'Auftraggeber' },
     common: {
       cancel: 'Abbrechen', save: 'Speichern', delete: 'Löschen', edit: 'Bearbeiten',
       add: 'Hinzufügen', back: '← Zurück', create: 'Erstellen', close: 'Schließen',
@@ -1393,7 +1393,7 @@ const t = {
       myProject: 'Mon projet', signOut: 'Déconnexion',
       darkMode: 'Mode sombre', lightMode: 'Mode clair',
     },
-    roles: { foreman: 'Contremaître', worker: 'Ouvrier', client: 'Client' },
+    roles: { foreman: 'Contremaître', manager: 'Manager', worker: 'Ouvrier', client: 'Client' },
     common: {
       cancel: 'Annuler', save: 'Enregistrer', delete: 'Supprimer', edit: 'Modifier',
       add: 'Ajouter', back: '← Retour', create: 'Créer', close: 'Fermer',
