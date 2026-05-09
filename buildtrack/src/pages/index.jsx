@@ -1494,17 +1494,19 @@ const STATUS_CYCLE = ['on_site', 'day_off', 'sick', 'vacation', 'other']
 // ─── TEAM ────────────────────────────────────────────────────────────────────
 export function Team() {
   const { t } = useT()
-  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject } = useStore()
+  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam } = useStore()
   const [showInvite, setShowInvite] = useState(false)
-  const [email, setEmail]       = useState('')
-  const [loading, setLoading]   = useState(false)
-  const [msg, setMsg]           = useState('')
-  const [copied, setCopied]     = useState(false)
-  const [openId, setOpenId]     = useState(null)   // expanded worker card
-  const [clientEmail,  setClientEmail]  = useState('')
-  const [clientProjId, setClientProjId] = useState('')
-  const [clientMsg,    setClientMsg]    = useState('')
+  const [email, setEmail]           = useState('')
+  const [loading, setLoading]       = useState(false)
+  const [msg, setMsg]               = useState('')
+  const [openId, setOpenId]         = useState(null)
+  const [clientEmail,   setClientEmail]   = useState('')
+  const [clientProjId,  setClientProjId]  = useState('')
+  const [clientMsg,     setClientMsg]     = useState('')
   const [clientLoading, setClientLoading] = useState(false)
+  const [managerEmail,   setManagerEmail]   = useState('')
+  const [managerMsg,     setManagerMsg]     = useState('')
+  const [managerLoading, setManagerLoading] = useState(false)
 
   useEffect(() => {
     fetchProjects().then(() => {
@@ -1542,9 +1544,14 @@ export function Team() {
     setClientEmail(''); fetchAllWorkers()
   }
 
-  const copyInviteLink = () => {
-    navigator.clipboard.writeText(`${window.location.origin}?join=${profile?.invite_code}`)
-    setCopied(true); setTimeout(() => setCopied(false), 2000)
+  const inviteManager = async () => {
+    if (!managerEmail.trim()) return
+    setManagerLoading(true); setManagerMsg('')
+    const { error, name } = await addManagerToTeam(managerEmail.trim())
+    setManagerLoading(false)
+    if (error) { setManagerMsg(error); return }
+    setManagerMsg(`${name} added as manager!`)
+    setManagerEmail('')
   }
 
   const cycleStatus = (workerId, currentStatus) => {
@@ -1577,26 +1584,8 @@ export function Team() {
       {profile?.role === 'foreman' && showInvite && (
         <div className="card card-body" style={{ marginBottom:12 }}>
 
-          {/* Method 1: invite code */}
-          <div style={{ marginBottom:14, paddingBottom:14, borderBottom:'1px solid #EAE3D8' }}>
-            <div style={{ fontSize:12, fontWeight:700, color:'#7A6E66', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
-              {t('team.codeMethod')}
-            </div>
-            <div style={{ fontSize:12, color:'#7A6E66', marginBottom:8 }}>{t('team.codeDesc')}</div>
-            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-              <div style={{ background:'#F2EDE4', borderRadius:8, padding:'8px 14px', flex:1 }}>
-                <code style={{ fontSize:18, fontWeight:800, color:'#C96B3A', letterSpacing:'0.15em' }}>
-                  {profile?.invite_code?.toUpperCase()}
-                </code>
-              </div>
-              <Button size="sm" onClick={() => { navigator.clipboard.writeText(profile?.invite_code || ''); setCopied(true); setTimeout(()=>setCopied(false),2000) }}>
-                {copied ? t('team.copied') : t('team.copyCode')}
-              </Button>
-            </div>
-          </div>
-
-          {/* Method 2: add by email */}
-          <div>
+          {/* Рабочий по email */}
+          <div style={{ paddingBottom:14, borderBottom:'1px solid #EAE3D8' }}>
             <div style={{ fontSize:12, fontWeight:700, color:'#7A6E66', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
               {t('team.emailMethod')}
             </div>
@@ -1614,40 +1603,43 @@ export function Team() {
             )}
           </div>
 
-          {/* Method 3: add client */}
-          <div style={{ borderTop:'1px solid #EAE3D8', paddingTop:14, marginTop:14 }}>
+          {/* Менеджер по email */}
+          <div style={{ borderBottom:'1px solid #EAE3D8', paddingTop:14, paddingBottom:14 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'#7A6E66', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
+              {t('team.managerMethod')}
+            </div>
+            <div style={{ fontSize:12, color:'#7A6E66', marginBottom:8 }}>{t('team.managerDesc')}</div>
+            <div style={{ display:'flex', gap:8 }}>
+              <input className="form-input" placeholder={t('team.managerPlaceholder')}
+                value={managerEmail} onChange={e => setManagerEmail(e.target.value)}
+                onKeyDown={e => e.key==='Enter' && inviteManager()} style={{ flex:1 }} />
+              <Button variant="primary" size="sm" onClick={inviteManager} disabled={managerLoading}>{managerLoading ? '...' : t('common.add')}</Button>
+            </div>
+            {managerMsg && (
+              <div style={{ marginTop:8, fontSize:12, padding:'6px 10px', borderRadius:6, background: managerMsg.includes('added') ? '#E8F2EB' : '#FCEBEB', color: managerMsg.includes('added') ? '#3D7A52' : '#A32D2D' }}>
+                {managerMsg}
+              </div>
+            )}
+          </div>
+
+          {/* Заказчик по email + проект */}
+          <div style={{ paddingTop:14 }}>
             <div style={{ fontSize:12, fontWeight:700, color:'#7A6E66', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
               {t('team.clientMethod')}
             </div>
             <div style={{ fontSize:12, color:'#7A6E66', marginBottom:8 }}>{t('team.clientDesc')}</div>
-            <div style={{ marginBottom:8 }}>
-              <select
-                className="form-input"
-                value={clientProjId}
-                onChange={e => setClientProjId(e.target.value)}
-                style={{ marginBottom:8 }}
-              >
-                <option value="">{t('team.clientProjectSelect')}</option>
-                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-              <div style={{ display:'flex', gap:8 }}>
-                <input
-                  className="form-input"
-                  placeholder={t('team.clientPlaceholder')}
-                  value={clientEmail}
-                  onChange={e => setClientEmail(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && inviteClient()}
-                  style={{ flex:1 }}
-                />
-                <Button variant="primary" size="sm" onClick={inviteClient} disabled={clientLoading}>
-                  {clientLoading ? '...' : t('common.add')}
-                </Button>
-              </div>
+            <select className="form-input" value={clientProjId} onChange={e => setClientProjId(e.target.value)} style={{ marginBottom:8 }}>
+              <option value="">{t('team.clientProjectSelect')}</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+            <div style={{ display:'flex', gap:8 }}>
+              <input className="form-input" placeholder={t('team.clientPlaceholder')}
+                value={clientEmail} onChange={e => setClientEmail(e.target.value)}
+                onKeyDown={e => e.key==='Enter' && inviteClient()} style={{ flex:1 }} />
+              <Button variant="primary" size="sm" onClick={inviteClient} disabled={clientLoading}>{clientLoading ? '...' : t('common.add')}</Button>
             </div>
             {clientMsg && (
-              <div style={{ fontSize:12, padding:'6px 10px', borderRadius:6,
-                background: clientMsg.includes('added') ? '#E8F2EB' : '#FCEBEB',
-                color: clientMsg.includes('added') ? '#3D7A52' : '#A32D2D' }}>
+              <div style={{ marginTop:8, fontSize:12, padding:'6px 10px', borderRadius:6, background: clientMsg.includes('added') ? '#E8F2EB' : '#FCEBEB', color: clientMsg.includes('added') ? '#3D7A52' : '#A32D2D' }}>
                 {clientMsg}
               </div>
             )}

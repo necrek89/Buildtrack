@@ -389,6 +389,19 @@ export const useStore = create((set, get) => ({
     set(s => ({ joinRequests: s.joinRequests.filter(r => r.id !== requestId) }))
   },
 
+  addManagerToTeam: async (email) => {
+    const { profile } = get()
+    const { data: mgr, error } = await supabase
+      .from('profiles').select('id, name, role').eq('email', email.trim().toLowerCase()).single()
+    if (error || !mgr) return { error: 'User not found. Ask them to register first.' }
+    if (mgr.role !== 'manager') return { error: 'This user is not registered as a Manager.' }
+    const { error: e2 } = await supabase
+      .from('profiles').update({ linked_foreman_id: profile.id }).eq('id', mgr.id)
+    if (e2) return { error: e2.message }
+    get().logActivity({ action_type: 'worker_joined', entity_name: mgr.name, entity_id: mgr.id })
+    return { error: null, name: mgr.name }
+  },
+
   addClientToProject: async (email, projectId) => {
     const { data: client, error } = await supabase
       .from('profiles').select('id, name, role').eq('email', email.trim().toLowerCase()).single()

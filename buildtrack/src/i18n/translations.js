@@ -179,6 +179,9 @@ const t = {
       clientDesc: 'Assign a client to a specific project — they will see only that project.',
       clientProjectSelect: '— Select project —',
       clientPlaceholder: 'client@email.com',
+      managerMethod: '👔 Add Manager',
+      managerDesc: 'Enter the email of the manager — they will see all projects without delete access.',
+      managerPlaceholder: 'manager@email.com',
     },
     notifications: {
       title: 'Notifications', newBadge: '{n} new',
@@ -415,6 +418,9 @@ const t = {
       clientDesc: 'Привяжите заказчика к конкретному проекту — он увидит только его.',
       clientProjectSelect: '— Выберите проект —',
       clientPlaceholder: 'zakazchik@email.com',
+      managerMethod: '👔 Добавить менеджера',
+      managerDesc: 'Введите email менеджера — он увидит все проекты без права удалять.',
+      managerPlaceholder: 'manager@email.com',
     },
     notifications: {
       title: 'Уведомления', newBadge: '{n} новых',
@@ -648,6 +654,9 @@ const t = {
       clientDesc: 'Dodijelite klijenta određenom projektu — vidjeće samo taj projekat.',
       clientProjectSelect: '— Odaberi projekat —',
       clientPlaceholder: 'klijent@email.com',
+      managerMethod: '👔 Dodaj menadžera',
+      managerDesc: 'Unesite email menadžera — vidjeće sve projekte bez mogućnosti brisanja.',
+      managerPlaceholder: 'menadzер@email.com',
     },
     notifications: {
       title: 'Obavještenja', newBadge: '{n} novo',
@@ -881,6 +890,9 @@ const t = {
       clientDesc: 'Asigna un cliente a un proyecto específico — solo verá ese proyecto.',
       clientProjectSelect: '— Seleccionar proyecto —',
       clientPlaceholder: 'cliente@email.com',
+      managerMethod: '👔 Agregar gerente',
+      managerDesc: 'Ingresa el email del gerente — verá todos los proyectos sin poder eliminar.',
+      managerPlaceholder: 'gerente@email.com',
     },
     notifications: {
       title: 'Notificaciones', newBadge: '{n} nuevas',
@@ -1114,6 +1126,9 @@ const t = {
       clientDesc: 'Vincule um cliente a um projeto específico — ele verá apenas aquele projeto.',
       clientProjectSelect: '— Selecionar projeto —',
       clientPlaceholder: 'cliente@email.com',
+      managerMethod: '👔 Adicionar gerente',
+      managerDesc: 'Insira o email do gerente — ele verá todos os projetos sem poder excluir.',
+      managerPlaceholder: 'gerente@email.com',
     },
     notifications: {
       title: 'Notificações', newBadge: '{n} novas',
@@ -1347,6 +1362,9 @@ const t = {
       clientDesc: 'Weise einen Auftraggeber einem Projekt zu — er sieht nur dieses Projekt.',
       clientProjectSelect: '— Projekt auswählen —',
       clientPlaceholder: 'auftraggeber@email.com',
+      managerMethod: '👔 Manager hinzufügen',
+      managerDesc: 'E-Mail des Managers eingeben — er sieht alle Projekte ohne Löschrecht.',
+      managerPlaceholder: 'manager@email.com',
     },
     notifications: {
       title: 'Benachrichtigungen', newBadge: '{n} neue',
@@ -1580,6 +1598,9 @@ const t = {
       clientDesc: 'Assignez un client à un projet spécifique — il ne verra que ce projet.',
       clientProjectSelect: '— Sélectionner un projet —',
       clientPlaceholder: 'client@email.com',
+      managerMethod: '👔 Ajouter un manager',
+      managerDesc: 'Entrez l\'email du manager — il verra tous les projets sans pouvoir supprimer.',
+      managerPlaceholder: 'manager@email.com',
     },
     notifications: {
       title: 'Notifications', newBadge: '{n} nouvelles',
