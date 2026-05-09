@@ -5,6 +5,7 @@ import LanguagePicker from './components/LanguagePicker'
 import LoginPage from './pages/LoginPage'
 import AccountPage from './pages/AccountPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
+import OnboardingScreen from './components/OnboardingScreen'
 import {
   Projects, MyTasks, Tools, Team, Notifications, Procurement,
   ClientDashboard, ClientProgress, ClientPhotos
@@ -103,7 +104,8 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [authed, setAuthed]           = useState(false)
   const [checking, setChecking]       = useState(true)
-  const [recovering, setRecovering]   = useState(false)   // password recovery mode
+  const [recovering, setRecovering]   = useState(false)
+  const [onboarding, setOnboarding]   = useState(() => !localStorage.getItem('tutuu_onboarded'))
 
   useEffect(() => {
     // Detect PASSWORD_RECOVERY event — fires when user opens reset link from email
@@ -146,6 +148,11 @@ export default function App() {
       </div>
     )
   }
+
+  // Онбординг — первый запуск
+  if (onboarding) return (
+    <OnboardingScreen onDone={() => setOnboarding(false)} />
+  )
 
   // Password recovery — shown when user opens reset link from email
   if (recovering) return (
