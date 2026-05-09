@@ -257,8 +257,6 @@ function StatusSection({ icon, label, color, bg, tasks, openId, setOpenId, onEdi
 // ─── OVERVIEW TAB ────────────────────────────────────────────────────────────
 function OverviewTab({ proj, tasks, tools, team, onEdit }) {
   const { t } = useT()
-  const { updateProject, role } = useStore()
-  const isForeman = role === 'foreman'
 
   const pTasks   = tasks.filter(tk => tk.project_id === proj.id)
   const pDone    = pTasks.filter(tk => tk.status === 'approved').length
@@ -270,55 +268,12 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
     ? proj.stages
     : [...new Set(pTasks.map(tk => tk.stage).filter(Boolean))]
 
-  const [openStages,   setOpenStages]   = useState([])
-  const [editingIdx,   setEditingIdx]   = useState(null)
-  const [editingName,  setEditingName]  = useState('')
-  const [newStageName, setNewStageName] = useState('')
+  const [openStages, setOpenStages] = useState([])
 
   const STATUS_DOT = { approved:'#5A9467', pending:'#D4A843', new:'#B8AFA6', rejected:'#A32D2D' }
 
   const toggleStage = (name) =>
     setOpenStages(prev => prev.includes(name) ? prev.filter(x => x !== name) : [...prev, name])
-
-  const saveStages = (newStages) => updateProject(proj.id, { stages: newStages })
-
-  const addStage = () => {
-    const trimmed = newStageName.trim()
-    if (!trimmed) return
-    saveStages([...projectStages, trimmed])
-    setNewStageName('')
-  }
-
-  const startEdit = (i) => { setEditingIdx(i); setEditingName(projectStages[i]) }
-
-  const confirmEdit = (i) => {
-    const trimmed = editingName.trim()
-    if (trimmed && trimmed !== projectStages[i]) {
-      saveStages(projectStages.map((s, idx) => idx === i ? trimmed : s))
-    }
-    setEditingIdx(null)
-  }
-
-  const deleteStage = (i) => saveStages(projectStages.filter((_, idx) => idx !== i))
-
-  const moveStage = (i, dir) => {
-    const j = i + dir
-    if (j < 0 || j >= projectStages.length) return
-    const next = [...projectStages]
-    ;[next[i], next[j]] = [next[j], next[i]]
-    saveStages(next)
-  }
-
-  // Small icon button styles
-  const iconBtn = (color = '#7A6E66') => ({
-    background:'none', border:'none', cursor:'pointer', padding:'4px 6px',
-    borderRadius:6, fontSize:14, color, lineHeight:1, flexShrink:0,
-  })
-  const arrowBtn = (disabled) => ({
-    background:'none', border:'none', cursor: disabled ? 'default' : 'pointer',
-    padding:'2px 5px', borderRadius:4, fontSize:11, color: disabled ? '#D9D0C7' : '#B8AFA6',
-    lineHeight:1, display:'block', transition:'color .15s',
-  })
 
   return (
     <div style={{ padding:'0 0 24px' }}>
@@ -390,171 +345,80 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
           const inWork = stageTasks.filter(tk => ['new','pending','rejected'].includes(tk.status)).length
           const total  = stageTasks.length
           const pct    = total === 0 ? 0 : Math.round((sDone / total) * 100)
-          const isOpen    = openStages.includes(stageName)
-          const isDone    = pct === 100 && total > 0
-          const isEditing = editingIdx === idx
-          const barColor  = isDone ? '#5A9467' : inWork > 0 ? '#C96B3A' : 'var(--border, #EAE3D8)'
+          const isOpen   = openStages.includes(stageName)
+          const isDone   = pct === 100 && total > 0
+          const barColor = isDone ? '#5A9467' : inWork > 0 ? '#C96B3A' : 'var(--border, #EAE3D8)'
 
           return (
-            <div key={idx} style={{ display:'flex', alignItems:'stretch', gap:4 }}>
+            <div key={idx} style={{
+              background:'var(--surface, #fff)',
+              border:`1.5px solid ${isOpen ? '#C96B3A' : 'var(--border, #EAE3D8)'}`,
+              borderRadius:10, overflow:'hidden', transition:'border-color .15s',
+            }}>
+              {/* Card header */}
+              <div
+                onClick={() => total > 0 && toggleStage(stageName)}
+                style={{
+                  display:'flex', alignItems:'center', gap:8, padding:'10px 12px',
+                  cursor: total > 0 ? 'pointer' : 'default',
+                  background: isOpen ? '#FAECE4' : 'var(--surface, #fff)',
+                }}
+              >
+                {/* Number / done dot */}
+                <div style={{
+                  width:22, height:22, borderRadius:'50%', flexShrink:0,
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  fontSize:11, fontWeight:700,
+                  background: isDone ? '#E8F2EB' : inWork > 0 ? '#FAECE4' : 'var(--bg-accent, #F2EDE4)',
+                  color: isDone ? '#3D7A52' : inWork > 0 ? '#C96B3A' : '#B8AFA6',
+                }}>
+                  {isDone ? '✓' : idx + 1}
+                </div>
 
-              {/* ── Reorder column (foreman only) ── */}
-              {isForeman && (
-                <div style={{ display:'flex', flexDirection:'column', justifyContent:'center', gap:2, flexShrink:0 }}>
-                  <button
-                    type="button"
-                    onClick={() => moveStage(idx, -1)}
-                    disabled={idx === 0}
-                    style={arrowBtn(idx === 0)}
-                    title="Move up"
-                  >▲</button>
-                  <button
-                    type="button"
-                    onClick={() => moveStage(idx, 1)}
-                    disabled={idx === projectStages.length - 1}
-                    style={arrowBtn(idx === projectStages.length - 1)}
-                    title="Move down"
-                  >▼</button>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : 'var(--text-1, #2E2420)', marginBottom:3 }}>
+                    {stageName}
+                  </div>
+                  <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+                    <div style={{ flex:1, height:3, background:'var(--border, #EAE3D8)', borderRadius:3, overflow:'hidden' }}>
+                      <div style={{ height:3, borderRadius:3, background:barColor, width:`${pct}%`, transition:'width .3s' }} />
+                    </div>
+                    <span style={{ fontSize:10, color:'#B8AFA6', flexShrink:0 }}>{sDone}/{total}</span>
+                  </div>
+                </div>
+
+                <div style={{ display:'flex', alignItems:'center', gap:4, flexShrink:0 }}>
+                  {inWork > 0 && (
+                    <span style={{ fontSize:10, background:'#FAECE4', color:'#C96B3A', borderRadius:6, padding:'2px 7px', fontWeight:700 }}>
+                      {inWork}
+                    </span>
+                  )}
+                  {total > 0 && (
+                    <span style={{ fontSize:12, color:'#B8AFA6' }}>{isOpen ? '▲' : '▼'}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Task list */}
+              {isOpen && stageTasks.length > 0 && (
+                <div style={{ borderTop:'1px solid var(--border, #EAE3D8)', background:'var(--surface-2, #FDFBF8)' }}>
+                  {stageTasks.map((tk, i) => (
+                    <div key={tk.id} style={{
+                      display:'flex', alignItems:'center', gap:8, padding:'8px 12px',
+                      borderBottom: i < stageTasks.length - 1 ? '1px solid var(--border, #F0EAE0)' : 'none',
+                    }}>
+                      <div style={{ width:7, height:7, borderRadius:'50%', background: STATUS_DOT[tk.status] || '#B8AFA6', flexShrink:0 }} />
+                      <div style={{ flex:1, fontSize:12, color:'var(--text-1, #2E2420)' }}>{tk.text}</div>
+                      <Badge variant={STATUS_BADGE[tk.status]?.replace('badge-','')}>{STATUS_LABEL[tk.status]}</Badge>
+                      {tk.deadline && <span style={{ fontSize:10, color:'#B8AFA6' }}>{tk.deadline}</span>}
+                    </div>
+                  ))}
                 </div>
               )}
-
-              {/* ── Stage card ── */}
-              <div style={{
-                flex:1, background:'var(--surface, #fff)',
-                border:`1.5px solid ${isOpen ? '#C96B3A' : isEditing ? '#C96B3A' : 'var(--border, #EAE3D8)'}`,
-                borderRadius:10, overflow:'hidden', transition:'border-color .15s',
-              }}>
-                {/* Card header */}
-                <div
-                  onClick={() => !isEditing && total > 0 && toggleStage(stageName)}
-                  style={{
-                    display:'flex', alignItems:'center', gap:8, padding:'10px 12px',
-                    cursor: (!isEditing && total > 0) ? 'pointer' : 'default',
-                    background: isOpen ? '#FAECE4' : 'var(--surface, #fff)',
-                  }}
-                >
-                  {/* Number / checkmark dot */}
-                  <div style={{
-                    width:22, height:22, borderRadius:'50%', flexShrink:0,
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                    fontSize:11, fontWeight:700,
-                    background: isDone ? '#E8F2EB' : inWork > 0 ? '#FAECE4' : 'var(--bg-accent, #F2EDE4)',
-                    color: isDone ? '#3D7A52' : inWork > 0 ? '#C96B3A' : '#B8AFA6',
-                  }}>
-                    {isDone ? '✓' : idx + 1}
-                  </div>
-
-                  {/* Name / edit input */}
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      autoFocus
-                      value={editingName}
-                      onChange={e => setEditingName(e.target.value)}
-                      onClick={e => e.stopPropagation()}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter')  { e.preventDefault(); confirmEdit(idx) }
-                        if (e.key === 'Escape') setEditingIdx(null)
-                      }}
-                      style={{
-                        flex:1, border:'none', outline:'none', background:'transparent',
-                        fontSize:13, fontWeight:600, color:'var(--text-1, #2E2420)',
-                        fontFamily:'inherit',
-                      }}
-                    />
-                  ) : (
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : 'var(--text-1, #2E2420)', marginBottom:3 }}>
-                        {stageName}
-                      </div>
-                      <div style={{ display:'flex', gap:6, alignItems:'center' }}>
-                        <div style={{ flex:1, height:3, background:'var(--border, #EAE3D8)', borderRadius:3, overflow:'hidden' }}>
-                          <div style={{ height:3, borderRadius:3, background:barColor, width:`${pct}%`, transition:'width .3s' }} />
-                        </div>
-                        <span style={{ fontSize:10, color:'#B8AFA6', flexShrink:0 }}>{sDone}/{total}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div style={{ display:'flex', alignItems:'center', gap:1, flexShrink:0 }} onClick={e => e.stopPropagation()}>
-                    {isEditing ? (
-                      <>
-                        <button type="button" onClick={() => confirmEdit(idx)}   style={iconBtn('#3D7A52')} title="Save">✓</button>
-                        <button type="button" onClick={() => setEditingIdx(null)} style={iconBtn('#A32D2D')} title="Cancel">✕</button>
-                      </>
-                    ) : (
-                      <>
-                        {inWork > 0 && (
-                          <span style={{ fontSize:10, background:'#FAECE4', color:'#C96B3A', borderRadius:6, padding:'2px 7px', fontWeight:700, marginRight:2 }}>
-                            {inWork}
-                          </span>
-                        )}
-                        {isForeman && (
-                          <button type="button" onClick={() => startEdit(idx)}    style={iconBtn()} title="Rename">✏️</button>
-                        )}
-                        {isForeman && (
-                          <button type="button" onClick={() => deleteStage(idx)}  style={iconBtn('#A32D2D')} title="Delete">🗑</button>
-                        )}
-                        {total > 0 && (
-                          <button type="button" onClick={() => toggleStage(stageName)} style={iconBtn()} title="Expand">
-                            {isOpen ? '▲' : '▼'}
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Task list */}
-                {isOpen && stageTasks.length > 0 && (
-                  <div style={{ borderTop:'1px solid var(--border, #EAE3D8)', background:'var(--surface-2, #FDFBF8)' }}>
-                    {stageTasks.map((tk, i) => (
-                      <div key={tk.id} style={{
-                        display:'flex', alignItems:'center', gap:8, padding:'8px 12px',
-                        borderBottom: i < stageTasks.length - 1 ? '1px solid var(--border, #F0EAE0)' : 'none',
-                      }}>
-                        <div style={{ width:7, height:7, borderRadius:'50%', background: STATUS_DOT[tk.status] || '#B8AFA6', flexShrink:0 }} />
-                        <div style={{ flex:1, fontSize:12, color:'var(--text-1, #2E2420)' }}>{tk.text}</div>
-                        <Badge variant={STATUS_BADGE[tk.status]?.replace('badge-','')}>{STATUS_LABEL[tk.status]}</Badge>
-                        {tk.deadline && <span style={{ fontSize:10, color:'#B8AFA6' }}>{tk.deadline}</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
           )
         })}
       </div>
-
-      {/* ── Add stage (foreman only) ── */}
-      {isForeman && (
-        <div style={{ display:'flex', gap:7, marginTop:10 }}>
-          <input
-            type="text"
-            className="form-input"
-            style={{ flex:1, fontSize:13 }}
-            value={newStageName}
-            onChange={e => setNewStageName(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addStage() } }}
-            placeholder={t('projects.stagePlaceholder')}
-          />
-          <button
-            type="button"
-            onClick={addStage}
-            disabled={!newStageName.trim()}
-            style={{
-              width:42, height:42, flexShrink:0,
-              background: newStageName.trim() ? '#C96B3A' : 'var(--border, #EAE3D8)',
-              color: newStageName.trim() ? '#fff' : '#B8AFA6',
-              border:'none', borderRadius:10, fontSize:22, cursor: newStageName.trim() ? 'pointer' : 'default',
-              display:'flex', alignItems:'center', justifyContent:'center',
-              transition:'background .15s, color .15s',
-            }}
-          >+</button>
-        </div>
-      )}
 
       {/* ── Tools on site ── */}
       {projTools.length > 0 && (
@@ -900,6 +764,105 @@ function ProjectList({ onSelect, onEdit, onDelete }) {
   )
 }
 
+// ─── EDIT STAGES WIDGET (used inside Edit Project modal) ─────────────────────
+function EditStages({ stages, onChange, placeholder }) {
+  const [newName,     setNewName]     = useState('')
+  const [editingIdx,  setEditingIdx]  = useState(null)
+  const [editingName, setEditingName] = useState('')
+
+  const safe = Array.isArray(stages) ? stages : []
+
+  const add = () => {
+    const t = newName.trim(); if (!t) return
+    onChange([...safe, t]); setNewName('')
+  }
+  const remove  = (i) => onChange(safe.filter((_, j) => j !== i))
+  const move    = (i, d) => {
+    const j = i + d; if (j < 0 || j >= safe.length) return
+    const next = [...safe]; [next[i], next[j]] = [next[j], next[i]]; onChange(next)
+  }
+  const startEdit   = (i) => { setEditingIdx(i); setEditingName(safe[i]) }
+  const confirmEdit = (i) => {
+    const t = editingName.trim()
+    if (t && t !== safe[i]) onChange(safe.map((s, j) => j === i ? t : s))
+    setEditingIdx(null)
+  }
+
+  const row = { display:'flex', alignItems:'center', gap:6, padding:'7px 10px', borderBottom:'1px solid var(--border,#EAE3D8)' }
+  const arrowStyle = (dis) => ({
+    background:'none', border:'none', cursor: dis ? 'default' : 'pointer',
+    fontSize:12, color: dis ? '#D9D0C7' : '#B8AFA6', padding:'2px 4px', lineHeight:1,
+  })
+  const iconStyle = (col='#7A6E66') => ({
+    background:'none', border:'none', cursor:'pointer',
+    fontSize:13, color:col, padding:'3px 5px', lineHeight:1, borderRadius:5,
+  })
+
+  return (
+    <div style={{ border:'1.5px solid var(--border,#EAE3D8)', borderRadius:10, overflow:'hidden' }}>
+      {safe.length === 0 && (
+        <div style={{ padding:'10px 12px', fontSize:12, color:'#B8AFA6' }}>—</div>
+      )}
+      {safe.map((s, i) => (
+        <div key={i} style={row}>
+          {/* Reorder */}
+          <div style={{ display:'flex', flexDirection:'column', gap:1, flexShrink:0 }}>
+            <button type="button" style={arrowStyle(i===0)} disabled={i===0} onClick={() => move(i,-1)}>▲</button>
+            <button type="button" style={arrowStyle(i===safe.length-1)} disabled={i===safe.length-1} onClick={() => move(i,1)}>▼</button>
+          </div>
+          {/* Number */}
+          <div style={{ width:20, height:20, borderRadius:'50%', background:'var(--bg-accent,#F2EDE4)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, color:'#7A6E66', flexShrink:0 }}>{i+1}</div>
+          {/* Name / input */}
+          {editingIdx === i ? (
+            <input
+              type="text" autoFocus
+              value={editingName} onChange={e => setEditingName(e.target.value)}
+              onKeyDown={e => { if (e.key==='Enter'){e.preventDefault();confirmEdit(i)} if(e.key==='Escape')setEditingIdx(null) }}
+              style={{ flex:1, border:'none', outline:'none', background:'transparent', fontSize:13, fontWeight:500, fontFamily:'inherit', color:'var(--text-1,#2E2420)' }}
+            />
+          ) : (
+            <span style={{ flex:1, fontSize:13, fontWeight:500, color:'var(--text-1,#2E2420)' }}>{s}</span>
+          )}
+          {/* Actions */}
+          <div style={{ display:'flex', gap:2, flexShrink:0 }}>
+            {editingIdx === i ? (
+              <>
+                <button type="button" style={iconStyle('#3D7A52')} onClick={() => confirmEdit(i)}>✓</button>
+                <button type="button" style={iconStyle('#A32D2D')} onClick={() => setEditingIdx(null)}>✕</button>
+              </>
+            ) : (
+              <>
+                <button type="button" style={iconStyle()} onClick={() => startEdit(i)}>✏️</button>
+                <button type="button" style={iconStyle('#A32D2D')} onClick={() => remove(i)}>🗑</button>
+              </>
+            )}
+          </div>
+        </div>
+      ))}
+      {/* Add new */}
+      <div style={{ display:'flex', gap:0 }}>
+        <input
+          type="text"
+          value={newName}
+          onChange={e => setNewName(e.target.value)}
+          onKeyDown={e => { if (e.key==='Enter'){e.preventDefault();add()} }}
+          placeholder={placeholder}
+          style={{ flex:1, border:'none', outline:'none', padding:'9px 12px', fontSize:13, background:'transparent', fontFamily:'inherit', color:'var(--text-1,#2E2420)' }}
+        />
+        <button
+          type="button" onClick={add} disabled={!newName.trim()}
+          style={{
+            width:42, flexShrink:0, background: newName.trim() ? '#C96B3A' : 'var(--bg-accent,#F2EDE4)',
+            color: newName.trim() ? '#fff' : '#B8AFA6',
+            border:'none', fontSize:22, cursor: newName.trim() ? 'pointer' : 'default',
+            transition:'background .15s, color .15s',
+          }}
+        >+</button>
+      </div>
+    </div>
+  )
+}
+
 // ─── PROJECTS (two-mode: list ↔ detail) ─────────────────────────────────────
 export function Projects() {
   const { t } = useT()
@@ -1030,7 +993,15 @@ export function Projects() {
               <FormGroup label={t('projects.deadlineLabel')}>
                 <DatePicker value={editForm.deadline} onChange={v => setEditForm(f => ({ ...f, deadline: v }))} />
               </FormGroup>
-              {/* Progress is auto-calculated from approved tasks — not editable here */}
+
+              {/* ── Stage manager ── */}
+              <FormGroup label={t('projects.stagesLabel')}>
+                <EditStages
+                  stages={editForm.stages || []}
+                  onChange={stages => setEditForm(f => ({ ...f, stages }))}
+                  placeholder={t('projects.stagePlaceholder')}
+                />
+              </FormGroup>
             </div>
             <div className="modal-actions">
               <Button size="sm" onClick={() => setEditProject(null)}>{t('common.cancel')}</Button>
