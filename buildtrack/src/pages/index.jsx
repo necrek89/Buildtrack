@@ -10,7 +10,6 @@ import DatePicker from '../components/DatePicker'
 import TaskComments from '../components/TaskComments'
 import { supabase } from '../lib/supabase'
 
-const STAGE_OPTIONS = ['Foundation','Electrical','Walls','Roofing','Finishing']
 
 function timeAgo(dateStr) {
   if (!dateStr) return ''
@@ -924,7 +923,7 @@ export function Projects() {
   const createProject = async () => {
     if (!addForm.name.trim()) return
     const { error } = await supabase.from('projects').insert({
-      name: addForm.name, stage: addForm.stage,
+      name: addForm.name,
       deadline: addForm.deadline || null,
       address: addForm.address || null,
       foreman_id: profile.id, progress: 0,
@@ -946,7 +945,7 @@ export function Projects() {
     if (!editForm.name.trim()) return
     setEditSaving(true)
     await updateProject(editProject.id, {
-      name: editForm.name.trim(), stage: editForm.stage,
+      name: editForm.name.trim(),
       deadline: editForm.deadline || null, address: editForm.address || null,
       stages: editForm.stages || [],
       // progress is auto-calculated from tasks, not saved here
@@ -1004,16 +1003,9 @@ export function Projects() {
                 <input className="form-input" placeholder={t('projects.addressPlaceholder')}
                   value={addForm.address} onChange={setA('address')} />
               </FormGroup>
-              <div className="form-grid-2">
-                <FormGroup label={t('projects.stageLabel')}>
-                  <select className="form-input" value={addForm.stage} onChange={setA('stage')}>
-                    {STAGE_OPTIONS.map(s => <option key={s}>{s}</option>)}
-                  </select>
-                </FormGroup>
-                <FormGroup label={t('projects.deadlineLabel')}>
-                  <DatePicker value={addForm.deadline} onChange={v => setAddForm(f => ({ ...f, deadline: v }))} />
-                </FormGroup>
-              </div>
+              <FormGroup label={t('projects.deadlineLabel')}>
+                <DatePicker value={addForm.deadline} onChange={v => setAddForm(f => ({ ...f, deadline: v }))} />
+              </FormGroup>
             </div>
             <div className="modal-actions">
               <Button size="sm" onClick={() => setShowAdd(false)}>{t('common.cancel')}</Button>
@@ -1035,16 +1027,9 @@ export function Projects() {
               <FormGroup label={t('projects.addressLabel')}>
                 <input className="form-input" placeholder={t('projects.addressPlaceholder')} value={editForm.address} onChange={setE('address')} />
               </FormGroup>
-              <div className="form-grid-2">
-                <FormGroup label={t('projects.stageLabel')}>
-                  <select className="form-input" value={editForm.stage} onChange={setE('stage')}>
-                    {STAGE_OPTIONS.map(s => <option key={s}>{s}</option>)}
-                  </select>
-                </FormGroup>
-                <FormGroup label={t('projects.deadlineLabel')}>
-                  <DatePicker value={editForm.deadline} onChange={v => setEditForm(f => ({ ...f, deadline: v }))} />
-                </FormGroup>
-              </div>
+              <FormGroup label={t('projects.deadlineLabel')}>
+                <DatePicker value={editForm.deadline} onChange={v => setEditForm(f => ({ ...f, deadline: v }))} />
+              </FormGroup>
               {/* Progress is auto-calculated from approved tasks — not editable here */}
             </div>
             <div className="modal-actions">
