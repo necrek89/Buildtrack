@@ -61,8 +61,20 @@ export default function LoginPage({ onLogin }) {
         width: '100%', maxWidth: 380, border: '1px solid #EAE3D8',
         boxShadow: '0 4px 24px rgba(46,36,32,0.07)',
       }}>
-        {/* Language picker */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+        {/* Top row: onboarding + language picker */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <button
+            onClick={() => { localStorage.removeItem('tutuu_onboarded'); window.location.reload() }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              background: '#FAF7F2', border: '1px solid #EAE3D8',
+              borderRadius: 20, padding: '5px 12px',
+              fontSize: 12, color: '#7A6E66', cursor: 'pointer',
+              fontWeight: 500,
+            }}
+          >
+            📖 Гайд
+          </button>
           <LanguagePicker />
         </div>
 
@@ -208,16 +220,6 @@ export default function LoginPage({ onLogin }) {
             </div>
           </>
         )}
-      </div>
-
-      {/* Onboarding link */}
-      <div style={{ textAlign: 'center', marginTop: 16 }}>
-        <span
-          style={{ fontSize: 12, color: '#B8AFA6', cursor: 'pointer' }}
-          onClick={() => { localStorage.removeItem('tutuu_onboarded'); window.location.reload() }}
-        >
-          📖 Посмотреть руководство
-        </span>
       </div>
     </div>
   )
