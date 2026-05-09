@@ -105,6 +105,12 @@ export const useStore = create((set, get) => ({
     } else if (role === 'manager') {
       if (!profile?.linked_foreman_id) { set({ projects: [] }); return }
       query = query.eq('foreman_id', profile.linked_foreman_id)
+    } else if (role === 'client') {
+      const { data: pw } = await supabase
+        .from('project_workers').select('project_id').eq('worker_id', profile.id)
+      const ids = (pw || []).map(r => r.project_id)
+      if (!ids.length) { set({ projects: [] }); return }
+      query = query.in('id', ids)
     }
     const { data } = await query
     set({ projects: data || [] })
@@ -381,6 +387,17 @@ export const useStore = create((set, get) => ({
   rejectJoinRequest: async (requestId) => {
     await supabase.from('join_requests').update({ status: 'rejected' }).eq('id', requestId)
     set(s => ({ joinRequests: s.joinRequests.filter(r => r.id !== requestId) }))
+  },
+
+  addClientToProject: async (email, projectId) => {
+    const { data: client, error } = await supabase
+      .from('profiles').select('id, name, role').eq('email', email.trim().toLowerCase()).single()
+    if (error || !client) return { error: 'User not found. Ask them to register first.' }
+    if (client.role !== 'client') return { error: 'This user is not registered as a Client.' }
+    const { error: e2 } = await supabase
+      .from('project_workers').insert({ project_id: projectId, worker_id: client.id })
+    if (e2) return { error: e2.code === '23505' ? 'Client already added to this project.' : e2.message }
+    return { error: null, name: client.name }
   },
 
   // ── MATERIALS ────────────────────────────────────────────

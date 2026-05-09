@@ -1494,13 +1494,17 @@ const STATUS_CYCLE = ['on_site', 'day_off', 'sick', 'vacation', 'other']
 // ─── TEAM ────────────────────────────────────────────────────────────────────
 export function Team() {
   const { t } = useT()
-  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest } = useStore()
+  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject } = useStore()
   const [showInvite, setShowInvite] = useState(false)
   const [email, setEmail]       = useState('')
   const [loading, setLoading]   = useState(false)
   const [msg, setMsg]           = useState('')
   const [copied, setCopied]     = useState(false)
   const [openId, setOpenId]     = useState(null)   // expanded worker card
+  const [clientEmail,  setClientEmail]  = useState('')
+  const [clientProjId, setClientProjId] = useState('')
+  const [clientMsg,    setClientMsg]    = useState('')
+  const [clientLoading, setClientLoading] = useState(false)
 
   useEffect(() => {
     fetchProjects().then(() => {
@@ -1526,6 +1530,16 @@ export function Team() {
       fetchAllWorkers(); setEmail('')
     }
     setLoading(false)
+  }
+
+  const inviteClient = async () => {
+    if (!clientEmail.trim() || !clientProjId) { setClientMsg('Select a project and enter email'); return }
+    setClientLoading(true); setClientMsg('')
+    const { error, name } = await addClientToProject(clientEmail.trim(), clientProjId)
+    setClientLoading(false)
+    if (error) { setClientMsg(error); return }
+    setClientMsg(`${name} added as client!`)
+    setClientEmail(''); fetchAllWorkers()
   }
 
   const copyInviteLink = () => {
@@ -1596,6 +1610,45 @@ export function Team() {
             {msg && (
               <div style={{ marginTop:8, fontSize:12, padding:'6px 10px', borderRadius:6, background: msg.includes('added') || msg.includes('!') ? '#E8F2EB' : '#FCEBEB', color: msg.includes('added') || msg.includes('!') ? '#3D7A52' : '#A32D2D' }}>
                 {msg}
+              </div>
+            )}
+          </div>
+
+          {/* Method 3: add client */}
+          <div style={{ borderTop:'1px solid #EAE3D8', paddingTop:14, marginTop:14 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'#7A6E66', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
+              {t('team.clientMethod')}
+            </div>
+            <div style={{ fontSize:12, color:'#7A6E66', marginBottom:8 }}>{t('team.clientDesc')}</div>
+            <div style={{ marginBottom:8 }}>
+              <select
+                className="form-input"
+                value={clientProjId}
+                onChange={e => setClientProjId(e.target.value)}
+                style={{ marginBottom:8 }}
+              >
+                <option value="">{t('team.clientProjectSelect')}</option>
+                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+              <div style={{ display:'flex', gap:8 }}>
+                <input
+                  className="form-input"
+                  placeholder={t('team.clientPlaceholder')}
+                  value={clientEmail}
+                  onChange={e => setClientEmail(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && inviteClient()}
+                  style={{ flex:1 }}
+                />
+                <Button variant="primary" size="sm" onClick={inviteClient} disabled={clientLoading}>
+                  {clientLoading ? '...' : t('common.add')}
+                </Button>
+              </div>
+            </div>
+            {clientMsg && (
+              <div style={{ fontSize:12, padding:'6px 10px', borderRadius:6,
+                background: clientMsg.includes('added') ? '#E8F2EB' : '#FCEBEB',
+                color: clientMsg.includes('added') ? '#3D7A52' : '#A32D2D' }}>
+                {clientMsg}
               </div>
             )}
           </div>
