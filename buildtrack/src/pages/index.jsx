@@ -437,7 +437,7 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
 }
 
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
-function ProjectTasksTab({ proj, canDelete = true }) {
+function ProjectTasksTab({ proj, canDelete = true, canEdit = true }) {
   const { t } = useT()
   const { tasks, fetchTasks, deleteTask, approveTask, rejectTask } = useStore()
   const [filter,   setFilter]   = useState('all')
@@ -471,18 +471,18 @@ function ProjectTasksTab({ proj, canDelete = true }) {
             </button>
           ))}
         </div>
-        <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('tasks.add')}</Button>
+        {canEdit && <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('tasks.add')}</Button>}
       </div>
 
       {filtered.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
 
       <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
         <StatusSection icon="⚡" label={t('tasks.filterActive')}    color="#C96B3A" bg="#FAECE4" tasks={active}  openId={openId} setOpenId={setOpenId}
-          onEdit={setEditTask} onDelete={canDelete ? setDeleteId : null} onMarkDone={approveTask} />
+          onEdit={canEdit ? setEditTask : null} onDelete={canDelete ? setDeleteId : null} onMarkDone={canEdit ? approveTask : null} />
         <StatusSection icon="🕐" label={t('tasks.filterReview')} color="#9A6E10" bg="#FBF3DC" tasks={pending} openId={openId} setOpenId={setOpenId}
-          onEdit={setEditTask} onDelete={canDelete ? setDeleteId : null} onApprove={approveTask} onReject={(id) => rejectTask(id, 'Needs revision')} onMarkDone={approveTask} />
+          onEdit={canEdit ? setEditTask : null} onDelete={canDelete ? setDeleteId : null} onApprove={canEdit ? approveTask : null} onReject={canEdit ? (id) => rejectTask(id, 'Needs revision') : null} onMarkDone={canEdit ? approveTask : null} />
         <StatusSection icon="✅" label={t('tasks.filterDone')}      color="#3D7A52" bg="#E8F2EB" tasks={done}    openId={openId} setOpenId={setOpenId}
-          onEdit={setEditTask} onDelete={canDelete ? setDeleteId : null} />
+          onEdit={canEdit ? setEditTask : null} onDelete={canDelete ? setDeleteId : null} />
       </div>
 
       {(showAdd || editTask) && (
@@ -498,7 +498,7 @@ function ProjectTasksTab({ proj, canDelete = true }) {
 }
 
 // ─── MATERIALS TAB ───────────────────────────────────────────────────────────
-function MaterialsTab({ proj }) {
+function MaterialsTab({ proj, canEdit = true }) {
   const { t } = useT()
   const { materials, role, profile, projects,
           markMaterialPurchased, markMaterialNeeded, deleteMaterial } = useStore()
@@ -532,9 +532,11 @@ function MaterialsTab({ proj }) {
   return (
     <div style={{ paddingBottom: 24 }}>
       {/* Header */}
-      <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>
-        <Button variant="primary" size="sm" onClick={() => setShowModal(true)}>{t('materials.reportShortage')}</Button>
-      </div>
+      {canEdit && (
+        <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>
+          <Button variant="primary" size="sm" onClick={() => setShowModal(true)}>{t('materials.reportShortage')}</Button>
+        </div>
+      )}
 
       {/* Stat mini-cards */}
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:12 }}>
@@ -641,7 +643,7 @@ function ProjectTeamTab({ proj }) {
 }
 
 // ─── PROJECT DETAIL ──────────────────────────────────────────────────────────
-function ProjectDetail({ proj, onBack, onEdit, canDelete = true }) {
+function ProjectDetail({ proj, onBack, onEdit, canDelete = true, canEdit = true }) {
   const { t } = useT()
   const { tasks, tools, team, fetchTasks, fetchTools, fetchTeam } = useStore()
   const [tab, setTab] = useState('overview')
@@ -676,7 +678,7 @@ function ProjectDetail({ proj, onBack, onEdit, canDelete = true }) {
             🏗 {proj.name}
           </div>
         </div>
-        <IconButton onClick={() => onEdit(proj)} title="Edit project">✏️</IconButton>
+        {onEdit && <IconButton onClick={() => onEdit(proj)} title="Edit project">✏️</IconButton>}
       </div>
 
       {/* ── Progress strip ── */}
@@ -694,9 +696,9 @@ function ProjectDetail({ proj, onBack, onEdit, canDelete = true }) {
       </div>
 
       {/* ── Tab content ── */}
-      {tab === 'overview'  && <OverviewTab proj={proj} tasks={tasks} tools={tools} team={team} onEdit={onEdit} />}
-      {tab === 'tasks'     && <ProjectTasksTab proj={proj} canDelete={canDelete} />}
-      {tab === 'materials' && <MaterialsTab proj={proj} />}
+      {tab === 'overview'  && <OverviewTab proj={proj} tasks={tasks} tools={tools} team={team} onEdit={canEdit ? onEdit : null} />}
+      {tab === 'tasks'     && <ProjectTasksTab proj={proj} canDelete={canDelete} canEdit={canEdit} />}
+      {tab === 'materials' && <MaterialsTab proj={proj} canEdit={canEdit} />}
       {tab === 'photos'    && <PhotosTab proj={proj} />}
       {tab === 'team'      && <ProjectTeamTab proj={proj} />}
     </div>
@@ -741,7 +743,7 @@ function ProjectList({ onSelect, onEdit, onDelete = null }) {
                 <div style={{ fontSize:14, fontWeight:700, color:'#2E2420' }}>🏗 {p.name}</div>
                 <div style={{ display:'flex', gap:6, alignItems:'center' }}>
                   <div style={{ fontSize:12, fontWeight:700, color:'#C96B3A', fontFamily:'monospace' }}>{pPct}%</div>
-                  <IconButton onClick={e => { e.stopPropagation(); onEdit(p) }} title="Edit">✏️</IconButton>
+                  {onEdit && <IconButton onClick={e => { e.stopPropagation(); onEdit(p) }} title="Edit">✏️</IconButton>}
                   {onDelete && <IconButton danger onClick={e => { e.stopPropagation(); onDelete(p.id) }} title="Delete">🗑</IconButton>}
                 </div>
               </div>
@@ -864,7 +866,7 @@ function EditStages({ stages, onChange, placeholder }) {
 }
 
 // ─── PROJECTS (two-mode: list ↔ detail) ─────────────────────────────────────
-export function Projects({ canDelete = true }) {
+export function Projects({ canDelete = true, canEdit = true }) {
   const { t } = useT()
   const { projects, tasks, tools, fetchProjects, fetchTasks, fetchTools, updateProject, profile, selectedProjectId, setSelectedProject } = useStore()
   const [showAdd,    setShowAdd]    = useState(false)
@@ -943,11 +945,11 @@ export function Projects({ canDelete = true }) {
         <>
           <div className="page-header">
             <h1 className="page-title">{t('projects.title')}</h1>
-            <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('projects.add')}</Button>
+            {canEdit && <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('projects.add')}</Button>}
           </div>
           <ProjectList
             onSelect={(id) => setSelectedProject(id)}
-            onEdit={openEdit}
+            onEdit={canEdit ? openEdit : null}
             onDelete={canDelete ? (id) => setConfirmId(id) : null}
           />
         </>
@@ -955,8 +957,9 @@ export function Projects({ canDelete = true }) {
         <ProjectDetail
           proj={selectedProj}
           onBack={() => setSelectedProject(null)}
-          onEdit={openEdit}
+          onEdit={canEdit ? openEdit : null}
           canDelete={canDelete}
+          canEdit={canEdit}
         />
       )}
 
@@ -1164,7 +1167,7 @@ export function MyTasks() {
 }
 
 // ─── PROCUREMENT (foreman-wide shortage checklist) ────────────────────────────
-export function Procurement({ canDelete = true }) {
+export function Procurement({ canDelete = true, canEdit = true }) {
   const { t } = useT()
   const { materials, projects, fetchProjects, role, profile,
           markMaterialPurchased, markMaterialNeeded, deleteMaterial } = useStore()
@@ -1210,9 +1213,11 @@ export function Procurement({ canDelete = true }) {
     <div>
       <div className="page-header">
         <h1 className="page-title">{t('materials.title')}</h1>
-        <Button variant="primary" size="sm" onClick={() => { setModalProj(null); setShowModal(true) }}>
-          {t('materials.add')}
-        </Button>
+        {canEdit && (
+          <Button variant="primary" size="sm" onClick={() => { setModalProj(null); setShowModal(true) }}>
+            {t('materials.add')}
+          </Button>
+        )}
       </div>
       <p style={{ fontSize:12, color:'#B8AFA6', marginTop:-8, marginBottom:12 }}>
         {t('materials.desc')}
@@ -1252,12 +1257,14 @@ export function Procurement({ canDelete = true }) {
             <span>{g.key === '__none__' ? '📋' : '🏗'}</span>
             <h3>{g.label}</h3>
             {g.open > 0 && <span className="procurement-count-badge">{t('materials.needed', { n: g.open })}</span>}
-            <button
-              onClick={() => { setModalProj(g.proj?.id || null); setShowModal(true) }}
-              style={{ marginLeft:'auto', fontSize:11, fontWeight:600, color:'#C96B3A', background:'#FAECE4', border:'none', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
-            >
-              + Add
-            </button>
+            {canEdit && (
+              <button
+                onClick={() => { setModalProj(g.proj?.id || null); setShowModal(true) }}
+                style={{ marginLeft:'auto', fontSize:11, fontWeight:600, color:'#C96B3A', background:'#FAECE4', border:'none', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
+              >
+                + Add
+              </button>
+            )}
           </div>
           <MaterialList
             materials={g.items}

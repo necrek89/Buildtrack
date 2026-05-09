@@ -74,10 +74,11 @@ const DEFAULT_PAGE = { foreman: 'projects', manager: 'projects', worker: 'my-tas
 function PageContent({ role, page, onNavigate }) {
   if (page === 'account') return <AccountPage />
   if (role === 'foreman' || role === 'manager') {
+    const canEdit   = role === 'foreman'
     const canDelete = role === 'foreman'
-    if (page === 'projects')      return <Projects canDelete={canDelete} />
-    if (page === 'materials')     return <Procurement canDelete={canDelete} />
-    if (page === 'tools')         return <Tools canAdd={true} canDelete={canDelete} />
+    if (page === 'projects')      return <Projects canDelete={canDelete} canEdit={canEdit} />
+    if (page === 'materials')     return <Procurement canDelete={canDelete} canEdit={canEdit} />
+    if (page === 'tools')         return <Tools canAdd={canEdit} canDelete={canDelete} />
     if (page === 'team')          return <Team canManage={canDelete} />
     if (page === 'notifications') return <Notifications onNavigate={onNavigate} />
   }
