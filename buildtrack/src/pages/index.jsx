@@ -885,14 +885,21 @@ export function Projects({ canDelete = true }) {
 
   const createProject = async () => {
     if (!addForm.name.trim()) return
-    const { error } = await supabase.from('projects').insert({
+    const { data: newProj, error } = await supabase.from('projects').insert({
       name: addForm.name,
       deadline: addForm.deadline || null,
       address: addForm.address || null,
       foreman_id: profile.id, progress: 0,
       stages: addForm.stages || [],
-    })
-    if (!error) {
+    }).select().single()
+    if (!error && newProj) {
+      // Добавляем всех существующих менеджеров в новый проект
+      const managers = team.filter(m => m.role === 'manager')
+      if (managers.length) {
+        await supabase.from('project_workers').insert(
+          managers.map(m => ({ project_id: newProj.id, worker_id: m.id }))
+        )
+      }
       fetchProjects()
       setShowAdd(false)
       setAddForm({ name:'', stage:'Foundation', deadline:'', address:'', stages:[] })

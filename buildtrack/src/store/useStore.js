@@ -103,8 +103,11 @@ export const useStore = create((set, get) => ({
     if (role === 'foreman') {
       query = query.eq('foreman_id', profile.id)
     } else if (role === 'manager') {
-      if (!profile?.linked_foreman_id) { set({ projects: [] }); return }
-      query = query.eq('foreman_id', profile.linked_foreman_id)
+      const { data: pw } = await supabase
+        .from('project_workers').select('project_id').eq('worker_id', profile.id)
+      const ids = (pw || []).map(r => r.project_id)
+      if (!ids.length) { set({ projects: [] }); return }
+      query = query.in('id', ids)
     } else if (role === 'client') {
       const { data: pw } = await supabase
         .from('project_workers').select('project_id').eq('worker_id', profile.id)
@@ -215,7 +218,9 @@ export const useStore = create((set, get) => ({
     } else if (role === 'foreman') {
       query = query.eq('foreman_id', profile.id)
     } else if (role === 'manager') {
-      query = query.eq('foreman_id', profile.linked_foreman_id || '__none__')
+      const ids = projects.map(p => p.id)
+      if (!ids.length) { set({ tools: [] }); return }
+      query = query.in('project_id', ids)
     } else if (role === 'worker') {
       // Worker sees only tools from projects they belong to
       const { data: pw } = await supabase.from('project_workers').select('project_id').eq('worker_id', profile.id)
@@ -369,14 +374,9 @@ export const useStore = create((set, get) => ({
     const workerName = req?.worker?.name || 'Unknown'
     const workerRole = req?.worker?.role
 
-    if (workerRole === 'manager') {
-      // Менеджер получает ссылку на прораба, а не добавляется в project_workers
-      await supabase.from('profiles').update({ linked_foreman_id: profile.id }).eq('id', workerId)
-    } else {
-      // Рабочий добавляется во все проекты прораба
-      const inserts = projects.map(p => ({ project_id: p.id, worker_id: workerId }))
-      await supabase.from('project_workers').insert(inserts)
-    }
+    // И менеджер, и рабочий добавляются во все проекты прораба
+    const inserts = projects.map(p => ({ project_id: p.id, worker_id: workerId }))
+    await supabase.from('project_workers').insert(inserts)
 
     await supabase.from('join_requests').update({ status: 'approved' }).eq('id', requestId)
     set(s => ({ joinRequests: s.joinRequests.filter(r => r.id !== requestId) }))
@@ -390,14 +390,16 @@ export const useStore = create((set, get) => ({
   },
 
   addManagerToTeam: async (email) => {
-    const { profile } = get()
+    const { projects } = get()
+    const allProjects = projects.length ? projects : useStore.getState().projects
     const { data: mgr, error } = await supabase
       .from('profiles').select('id, name, role').eq('email', email.trim().toLowerCase()).single()
     if (error || !mgr) return { error: 'User not found. Ask them to register first.' }
     if (mgr.role !== 'manager') return { error: 'This user is not registered as a Manager.' }
-    const { error: e2 } = await supabase
-      .from('profiles').update({ linked_foreman_id: profile.id }).eq('id', mgr.id)
-    if (e2) return { error: e2.message }
+    if (!allProjects.length) return { error: 'Create at least one project first.' }
+    const inserts = allProjects.map(p => ({ project_id: p.id, worker_id: mgr.id }))
+    const { error: e2 } = await supabase.from('project_workers').insert(inserts)
+    if (e2) return { error: e2.code === '23505' ? 'Manager already in team.' : e2.message }
     get().logActivity({ action_type: 'worker_joined', entity_name: mgr.name, entity_id: mgr.id })
     return { error: null, name: mgr.name }
   },
