@@ -64,7 +64,6 @@ const NAV = {
   client: [
     { id: 'dashboard',     icon: 'projects',      labelKey: 'myProject'     },
     { id: 'progress',      icon: 'tasks',         labelKey: 'progress'      },
-    { id: 'photos',        icon: 'materials',     labelKey: 'photos'        },
     { id: 'notifications', icon: 'notifications', labelKey: 'alerts'        },
     { id: 'account',       icon: 'account',       labelKey: 'account'       },
   ],
