@@ -439,21 +439,26 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
 function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], team = [] }) {
   const { t } = useT()
-  const { tasks, fetchTasks, deleteTask, approveTask, rejectTask } = useStore()
-  const [filter,     setFilter]     = useState('all')
-  const [showAdd,    setShowAdd]    = useState(false)
-  const [editTask,   setEditTask]   = useState(null)
-  const [deleteId,   setDeleteId]   = useState(null)
-  const [openId,     setOpenId]     = useState(null)
-  const [openStages, setOpenStages] = useState({})
+  const { tasks, fetchTasks, deleteTask, approveTask, rejectTask, updateProject } = useStore()
+  const [filter,       setFilter]       = useState('all')
+  const [showAdd,      setShowAdd]      = useState(false)
+  const [editTask,     setEditTask]     = useState(null)
+  const [deleteId,     setDeleteId]     = useState(null)
+  const [openId,       setOpenId]       = useState(null)
+  const [openStages,   setOpenStages]   = useState({})
+  const [newStageName, setNewStageName] = useState('')
+  const [addingStage,  setAddingStage]  = useState(false)
 
   useEffect(() => { fetchTasks(proj.id) }, [proj.id])
 
-  const pTasks   = tasks.filter(t => t.project_id === proj.id)
-  const pDone    = pTasks.filter(tk => tk.status === 'approved').length
-  const pPct     = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
-  const daysLeft = proj.deadline ? Math.max(0, Math.ceil((new Date(proj.deadline) - new Date()) / 86400000)) : null
+  const pTasks    = tasks.filter(t => t.project_id === proj.id)
+  const pDone     = pTasks.filter(tk => tk.status === 'approved').length
+  const pPct      = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
+  const daysLeft  = proj.deadline ? Math.max(0, Math.ceil((new Date(proj.deadline) - new Date()) / 86400000)) : null
   const projTools = tools.filter(tk => tk.project_id === proj.id)
+
+  // Project's ordered stages list
+  const projStages = Array.isArray(proj.stages) && proj.stages.length > 0 ? proj.stages : []
 
   const filtered = pTasks.filter(t =>
     filter === 'active'  ? ['new','rejected'].includes(t.status) :
@@ -479,20 +484,30 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
     '#E07B6A','#6BAA8E','#7B8EC8','#A67C52','#3A5FAB',
   ]
 
+  // Build ordered stage list: proj.stages order first, then any task stages not in list
   const stageGroups = (() => {
-    const map = {}
-    filtered.forEach(tk => {
-      const key = tk.stage || '—'
-      if (!map[key]) map[key] = []
-      map[key].push(tk)
-    })
-    return Object.entries(map).sort(([a], [b]) => {
-      if (a === '—') return 1
-      if (b === '—') return -1
-      const ai = STAGES.indexOf(a), bi = STAGES.indexOf(b)
-      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi)
-    }).map(([stage, items]) => ({ stage, items: sortTasks(items) }))
+    const taskStageKeys = [...new Set(filtered.map(tk => tk.stage || '—'))]
+    // All stages from proj.stages that have tasks in filtered, in order
+    const ordered = projStages.filter(s => taskStageKeys.includes(s))
+    // Stages in tasks but not in proj.stages
+    const extra = taskStageKeys.filter(s => s !== '—' && !projStages.includes(s))
+    // No-stage tasks last
+    const all = [...ordered, ...extra, ...(taskStageKeys.includes('—') ? ['—'] : [])]
+    return all.map(stage => ({
+      stage,
+      stageIndex: projStages.indexOf(stage), // -1 if not in proj.stages
+      items: sortTasks(filtered.filter(tk => (tk.stage || '—') === stage)),
+    }))
   })()
+
+  const addStage = async () => {
+    const name = newStageName.trim()
+    if (!name) return
+    const updated = [...projStages, name]
+    await updateProject(proj.id, { stages: updated })
+    setNewStageName('')
+    setAddingStage(false)
+  }
 
   useEffect(() => {
     const initial = {}
@@ -562,11 +577,11 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
         {canEdit && <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('tasks.add')}</Button>}
       </div>
 
-      {filtered.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
+      {filtered.length === 0 && stageGroups.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
 
       {/* ── Stage accordions ── */}
       <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-        {stageGroups.map(({ stage, items }, gi) => {
+        {stageGroups.map(({ stage, stageIndex, items }, gi) => {
           const color    = STAGE_COLORS[gi % STAGE_COLORS.length]
           const total    = items.length
           const done     = items.filter(tk => tk.status === 'approved').length
@@ -574,6 +589,8 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
           const isOpen   = !!openStages[stage]
           const hasAlert = items.some(tk => tk.status === 'rejected')
           const hasPend  = items.some(tk => tk.status === 'pending')
+          const num      = stageIndex >= 0 ? stageIndex + 1 : null
+          const isDone   = pct === 100 && total > 0
 
           return (
             <div key={stage} style={{ borderRadius:14, overflow:'hidden', border:'1.5px solid var(--border,#EAE3D8)', background:'var(--surface,#fff)' }}>
@@ -582,10 +599,21 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
                 background: isOpen ? 'var(--surface-2,#FDFBF8)' : 'var(--surface,#fff)',
                 borderBottom: isOpen ? '1px solid var(--border,#EAE3D8)' : 'none',
               }}>
-                <div style={{ width:10, height:10, borderRadius:'50%', background:color, flexShrink:0 }} />
+                {/* Number badge */}
+                <div style={{
+                  width:24, height:24, borderRadius:'50%', flexShrink:0,
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  fontSize:11, fontWeight:700,
+                  background: isDone ? '#E8F2EB' : 'var(--bg-accent,#F2EDE4)',
+                  color: isDone ? '#3D7A52' : color,
+                  border: `2px solid ${isDone ? '#A8D4B4' : color}`,
+                }}>
+                  {isDone ? '✓' : (num ?? '·')}
+                </div>
+
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
-                    <span style={{ fontSize:13, fontWeight:700, color:'var(--text-1,#2E2420)', textTransform:'uppercase', letterSpacing:'.04em' }}>
+                    <span style={{ fontSize:13, fontWeight:700, color:'var(--text-1,#2E2420)', letterSpacing:'.02em' }}>
                       {stage}
                     </span>
                     {hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600 }}>⚡</span>}
@@ -593,7 +621,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
                     <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', fontWeight:500, flexShrink:0 }}>{done}/{total}</span>
                   </div>
                   <div style={{ height:5, borderRadius:3, background:'var(--border,#EAE3D8)', overflow:'hidden' }}>
-                    <div style={{ height:'100%', borderRadius:3, width:`${pct}%`, background: pct===100 ? '#5A9467' : color, transition:'width .4s ease' }} />
+                    <div style={{ height:'100%', borderRadius:3, width:`${pct}%`, background: isDone ? '#5A9467' : color, transition:'width .4s ease' }} />
                   </div>
                 </div>
                 <span style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4 }}>{isOpen ? '▲' : '▼'}</span>
@@ -601,6 +629,11 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
 
               {isOpen && (
                 <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
+                  {items.length === 0 && (
+                    <div style={{ padding:'12px 14px', fontSize:12, color:'#B8AFA6', textAlign:'center' }}>
+                      Нет задач в этом этапе
+                    </div>
+                  )}
                   {items.map((tk, ti) => (
                     <div key={tk.id} style={{ borderTop: ti > 0 ? '1px solid var(--border,#F2EDE6)' : 'none' }}>
                       <TaskCard t={tk} openId={openId} setOpenId={setOpenId}
@@ -617,6 +650,35 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
             </div>
           )
         })}
+
+        {/* ── Add Stage button (foreman only) ── */}
+        {canEdit && (
+          addingStage ? (
+            <div style={{ display:'flex', gap:8, alignItems:'center', padding:'4px 0' }}>
+              <input
+                className="form-input"
+                style={{ flex:1, fontSize:13 }}
+                placeholder="Название этапа..."
+                value={newStageName}
+                onChange={e => setNewStageName(e.target.value)}
+                onKeyDown={e => { if (e.key==='Enter') addStage(); if (e.key==='Escape') setAddingStage(false) }}
+                autoFocus
+              />
+              <Button variant="primary" size="sm" onClick={addStage}>Добавить</Button>
+              <button onClick={() => { setAddingStage(false); setNewStageName('') }}
+                style={{ background:'none', border:'none', fontSize:18, color:'#B8AFA6', cursor:'pointer', lineHeight:1 }}>✕</button>
+            </div>
+          ) : (
+            <button onClick={() => setAddingStage(true)} style={{
+              display:'flex', alignItems:'center', gap:6, padding:'10px 14px',
+              background:'none', border:'1.5px dashed var(--border,#D9D0C7)',
+              borderRadius:14, cursor:'pointer', fontSize:13, color:'#B8AFA6',
+              fontWeight:500, width:'100%',
+            }}>
+              <span style={{ fontSize:16, lineHeight:1 }}>＋</span> Добавить этап
+            </button>
+          )
+        )}
       </div>
 
       {/* ── Tools on site ── */}
