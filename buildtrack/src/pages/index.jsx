@@ -437,7 +437,7 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
 }
 
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
-function ProjectTasksTab({ proj, canDelete = true, canEdit = true }) {
+function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], team = [] }) {
   const { t } = useT()
   const { tasks, fetchTasks, deleteTask, approveTask, rejectTask } = useStore()
   const [filter,     setFilter]     = useState('all')
@@ -449,7 +449,12 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true }) {
 
   useEffect(() => { fetchTasks(proj.id) }, [proj.id])
 
-  const pTasks = tasks.filter(t => t.project_id === proj.id)
+  const pTasks   = tasks.filter(t => t.project_id === proj.id)
+  const pDone    = pTasks.filter(tk => tk.status === 'approved').length
+  const pPct     = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
+  const daysLeft = proj.deadline ? Math.max(0, Math.ceil((new Date(proj.deadline) - new Date()) / 86400000)) : null
+  const projTools = tools.filter(tk => tk.project_id === proj.id)
+
   const filtered = pTasks.filter(t =>
     filter === 'active'  ? ['new','rejected'].includes(t.status) :
     filter === 'pending' ? t.status === 'pending' :
@@ -474,7 +479,6 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true }) {
     '#E07B6A','#6BAA8E','#7B8EC8','#A67C52','#3A5FAB',
   ]
 
-  // Build stage groups in STAGES order
   const stageGroups = (() => {
     const map = {}
     filtered.forEach(tk => {
@@ -490,7 +494,6 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true }) {
     }).map(([stage, items]) => ({ stage, items: sortTasks(items) }))
   })()
 
-  // Auto-open all stages on first load / filter change
   useEffect(() => {
     const initial = {}
     stageGroups.forEach(({ stage }) => { initial[stage] = true })
@@ -501,8 +504,52 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true }) {
 
   return (
     <div style={{ paddingBottom:24 }}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-        <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+
+      {/* ── Stats ── */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, marginBottom:10 }}>
+        {[
+          { v: pPct+'%',                    l: t('detail.progress'),  c: '#C96B3A' },
+          { v: team.length,                 l: t('detail.workers'),   c: '#2E2420' },
+          { v: daysLeft !== null ? daysLeft+'d' : '—', l: t('detail.daysLeft'), c: daysLeft !== null && daysLeft < 7 ? '#A32D2D' : '#2E2420' },
+          { v: `${pDone}/${pTasks.length}`, l: t('detail.tasksDone'), c: '#2E2420' },
+        ].map(s => (
+          <div key={s.l} style={{ background:'var(--bg-accent,#F2EDE4)', borderRadius:10, padding:'8px 6px', textAlign:'center' }}>
+            <div style={{ fontSize:15, fontWeight:700, color:s.c }}>{s.v}</div>
+            <div style={{ fontSize:9, color:'#B8AFA6', marginTop:2, lineHeight:1.2 }}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Progress bar ── */}
+      <div style={{ height:5, background:'var(--border,#EAE3D8)', borderRadius:5, overflow:'hidden', marginBottom:10 }}>
+        <div style={{ height:5, borderRadius:5, background:'#C96B3A', width:`${pPct}%`, transition:'width .4s' }} />
+      </div>
+
+      {/* ── Address / Deadline ── */}
+      {(proj.address || proj.deadline) && (
+        <div style={{ background:'var(--bg-accent,#F2EDE4)', borderRadius:10, padding:'8px 12px', marginBottom:10, display:'flex', flexWrap:'wrap', gap:8, alignItems:'center' }}>
+          {proj.address && (
+            <span onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(proj.address)}`, '_blank')}
+              style={{ fontSize:12, fontWeight:600, color:'#C96B3A', cursor:'pointer', textDecoration:'underline' }}>
+              📍 {proj.address}
+            </span>
+          )}
+          {proj.deadline && (
+            <span style={{ fontSize:11, color:'#B8AFA6' }}>
+              📅 {proj.deadline}
+              {daysLeft !== null && (
+                <span style={{ color: daysLeft < 7 ? '#A32D2D' : '#C96B3A', fontWeight:600, marginLeft:4 }}>
+                  · {t('detail.daysLeftText', { n: daysLeft })}
+                </span>
+              )}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* ── Filter + Add ── */}
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10, gap:6 }}>
+        <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
           {['all','active','pending','done'].map(f => (
             <button key={f} className={`filter-btn ${filter===f?'active':''}`} onClick={() => setFilter(f)}
               style={{ fontSize:11, padding:'4px 10px' }}>
@@ -517,6 +564,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true }) {
 
       {filtered.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
 
+      {/* ── Stage accordions ── */}
       <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
         {stageGroups.map(({ stage, items }, gi) => {
           const color    = STAGE_COLORS[gi % STAGE_COLORS.length]
@@ -529,10 +577,8 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true }) {
 
           return (
             <div key={stage} style={{ borderRadius:14, overflow:'hidden', border:'1.5px solid var(--border,#EAE3D8)', background:'var(--surface,#fff)' }}>
-              {/* Stage header */}
               <div onClick={() => toggleStage(stage)} style={{
-                display:'flex', alignItems:'center', gap:10,
-                padding:'12px 14px', cursor:'pointer',
+                display:'flex', alignItems:'center', gap:10, padding:'12px 14px', cursor:'pointer',
                 background: isOpen ? 'var(--surface-2,#FDFBF8)' : 'var(--surface,#fff)',
                 borderBottom: isOpen ? '1px solid var(--border,#EAE3D8)' : 'none',
               }}>
@@ -544,31 +590,21 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true }) {
                     </span>
                     {hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600 }}>⚡</span>}
                     {hasPend  && <span style={{ fontSize:11, color:'#9A6E10', fontWeight:600 }}>🕐</span>}
-                    <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', fontWeight:500, flexShrink:0 }}>
-                      {done}/{total}
-                    </span>
+                    <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', fontWeight:500, flexShrink:0 }}>{done}/{total}</span>
                   </div>
                   <div style={{ height:5, borderRadius:3, background:'var(--border,#EAE3D8)', overflow:'hidden' }}>
-                    <div style={{
-                      height:'100%', borderRadius:3,
-                      width:`${pct}%`,
-                      background: pct === 100 ? '#5A9467' : color,
-                      transition:'width .4s ease',
-                    }} />
+                    <div style={{ height:'100%', borderRadius:3, width:`${pct}%`, background: pct===100 ? '#5A9467' : color, transition:'width .4s ease' }} />
                   </div>
                 </div>
-                <span style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4 }}>
-                  {isOpen ? '▲' : '▼'}
-                </span>
+                <span style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4 }}>{isOpen ? '▲' : '▼'}</span>
               </div>
 
-              {/* Tasks inside */}
               {isOpen && (
                 <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
                   {items.map((tk, ti) => (
                     <div key={tk.id} style={{ borderTop: ti > 0 ? '1px solid var(--border,#F2EDE6)' : 'none' }}>
                       <TaskCard t={tk} openId={openId} setOpenId={setOpenId}
-                        onEdit={canEdit   ? setEditTask  : null}
+                        onEdit={canEdit    ? setEditTask  : null}
                         onDelete={canDelete ? setDeleteId : null}
                         onApprove={canEdit && tk.status === 'pending' ? approveTask : null}
                         onReject={canEdit  && tk.status === 'pending' ? (id) => rejectTask(id, 'Needs revision') : null}
@@ -582,6 +618,20 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true }) {
           )
         })}
       </div>
+
+      {/* ── Tools on site ── */}
+      {projTools.length > 0 && (
+        <div style={{ marginTop:16 }}>
+          <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:8 }}>
+            🔧 {t('detail.toolsOnSite')}
+          </div>
+          <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
+            {projTools.map(tk => (
+              <div key={tk.id} style={{ background:'var(--bg-accent,#F2EDE4)', borderRadius:6, padding:'3px 9px', fontSize:10, color:'#7A6E66' }}>{tk.name}</div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {(showAdd || editTask) && (
         <TaskModal task={editTask} defaultProjectId={proj.id} onClose={() => { setShowAdd(false); setEditTask(null); fetchTasks(proj.id) }} />
@@ -744,9 +794,8 @@ function ProjectTeamTab({ proj }) {
 function ProjectDetail({ proj, onBack, onEdit, canDelete = true, canEdit = true }) {
   const { t } = useT()
   const { tasks, tools, team, fetchTasks, fetchTools, fetchTeam } = useStore()
-  const [tab, setTab] = useState('overview')
+  const [tab, setTab] = useState('tasks')
   const TABS = [
-    { id:'overview',  label: t('detail.overview')  },
     { id:'tasks',     label: t('detail.tasks')     },
     { id:'materials', label: t('detail.materials') },
     { id:'photos',    label: t('detail.photos')    },
@@ -794,8 +843,7 @@ function ProjectDetail({ proj, onBack, onEdit, canDelete = true, canEdit = true 
       </div>
 
       {/* ── Tab content ── */}
-      {tab === 'overview'  && <OverviewTab proj={proj} tasks={tasks} tools={tools} team={team} onEdit={canEdit ? onEdit : null} />}
-      {tab === 'tasks'     && <ProjectTasksTab proj={proj} canDelete={canDelete} canEdit={canEdit} />}
+      {tab === 'tasks'     && <ProjectTasksTab proj={proj} canDelete={canDelete} canEdit={canEdit} tools={tools} team={team} />}
       {tab === 'materials' && <MaterialsTab proj={proj} canEdit={canEdit} />}
       {tab === 'photos'    && <PhotosTab proj={proj} />}
       {tab === 'team'      && <ProjectTeamTab proj={proj} />}
