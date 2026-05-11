@@ -440,11 +440,12 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
 function ProjectTasksTab({ proj, canDelete = true, canEdit = true }) {
   const { t } = useT()
   const { tasks, fetchTasks, deleteTask, approveTask, rejectTask } = useStore()
-  const [filter,   setFilter]   = useState('all')
-  const [showAdd,  setShowAdd]  = useState(false)
-  const [editTask, setEditTask] = useState(null)
-  const [deleteId, setDeleteId] = useState(null)
-  const [openId,   setOpenId]   = useState(null)
+  const [filter,     setFilter]     = useState('all')
+  const [showAdd,    setShowAdd]    = useState(false)
+  const [editTask,   setEditTask]   = useState(null)
+  const [deleteId,   setDeleteId]   = useState(null)
+  const [openId,     setOpenId]     = useState(null)
+  const [openStages, setOpenStages] = useState({})
 
   useEffect(() => { fetchTasks(proj.id) }, [proj.id])
 
@@ -454,9 +455,49 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true }) {
     filter === 'pending' ? t.status === 'pending' :
     filter === 'done'    ? t.status === 'approved' : true
   )
-  const active  = filtered.filter(t => ['new','rejected'].includes(t.status))
-  const pending = filtered.filter(t => t.status === 'pending')
-  const done    = filtered.filter(t => t.status === 'approved')
+
+  const STATUS_ORDER   = { rejected: 0, new: 1, pending: 2, approved: 3 }
+  const PRIORITY_ORDER = { high: 0, normal: 1, low: 2 }
+  const sortTasks = (arr) => [...arr].sort((a, b) => {
+    const sd = (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9)
+    if (sd !== 0) return sd
+    const pd = (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1)
+    if (pd !== 0) return pd
+    if (a.deadline && b.deadline) return a.deadline.localeCompare(b.deadline)
+    if (a.deadline) return -1
+    if (b.deadline) return 1
+    return 0
+  })
+
+  const STAGE_COLORS = [
+    '#C96B3A','#5A9467','#4A7FC1','#D4A843','#9B6B9B',
+    '#E07B6A','#6BAA8E','#7B8EC8','#A67C52','#3A5FAB',
+  ]
+
+  // Build stage groups in STAGES order
+  const stageGroups = (() => {
+    const map = {}
+    filtered.forEach(tk => {
+      const key = tk.stage || '—'
+      if (!map[key]) map[key] = []
+      map[key].push(tk)
+    })
+    return Object.entries(map).sort(([a], [b]) => {
+      if (a === '—') return 1
+      if (b === '—') return -1
+      const ai = STAGES.indexOf(a), bi = STAGES.indexOf(b)
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi)
+    }).map(([stage, items]) => ({ stage, items: sortTasks(items) }))
+  })()
+
+  // Auto-open all stages on first load / filter change
+  useEffect(() => {
+    const initial = {}
+    stageGroups.forEach(({ stage }) => { initial[stage] = true })
+    setOpenStages(initial)
+  }, [filter, proj.id, tasks.length])
+
+  const toggleStage = (stage) => setOpenStages(prev => ({ ...prev, [stage]: !prev[stage] }))
 
   return (
     <div style={{ paddingBottom:24 }}>
@@ -476,13 +517,70 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true }) {
 
       {filtered.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
 
-      <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
-        <StatusSection icon="⚡" label={t('tasks.filterActive')}    color="#C96B3A" bg="#FAECE4" tasks={active}  openId={openId} setOpenId={setOpenId}
-          onEdit={canEdit ? setEditTask : null} onDelete={canDelete ? setDeleteId : null} onMarkDone={canEdit ? approveTask : null} />
-        <StatusSection icon="🕐" label={t('tasks.filterReview')} color="#9A6E10" bg="#FBF3DC" tasks={pending} openId={openId} setOpenId={setOpenId}
-          onEdit={canEdit ? setEditTask : null} onDelete={canDelete ? setDeleteId : null} onApprove={canEdit ? approveTask : null} onReject={canEdit ? (id) => rejectTask(id, 'Needs revision') : null} onMarkDone={canEdit ? approveTask : null} />
-        <StatusSection icon="✅" label={t('tasks.filterDone')}      color="#3D7A52" bg="#E8F2EB" tasks={done}    openId={openId} setOpenId={setOpenId}
-          onEdit={canEdit ? setEditTask : null} onDelete={canDelete ? setDeleteId : null} />
+      <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+        {stageGroups.map(({ stage, items }, gi) => {
+          const color    = STAGE_COLORS[gi % STAGE_COLORS.length]
+          const total    = items.length
+          const done     = items.filter(tk => tk.status === 'approved').length
+          const pct      = total ? Math.round((done / total) * 100) : 0
+          const isOpen   = !!openStages[stage]
+          const hasAlert = items.some(tk => tk.status === 'rejected')
+          const hasPend  = items.some(tk => tk.status === 'pending')
+
+          return (
+            <div key={stage} style={{ borderRadius:14, overflow:'hidden', border:'1.5px solid var(--border,#EAE3D8)', background:'var(--surface,#fff)' }}>
+              {/* Stage header */}
+              <div onClick={() => toggleStage(stage)} style={{
+                display:'flex', alignItems:'center', gap:10,
+                padding:'12px 14px', cursor:'pointer',
+                background: isOpen ? 'var(--surface-2,#FDFBF8)' : 'var(--surface,#fff)',
+                borderBottom: isOpen ? '1px solid var(--border,#EAE3D8)' : 'none',
+              }}>
+                <div style={{ width:10, height:10, borderRadius:'50%', background:color, flexShrink:0 }} />
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
+                    <span style={{ fontSize:13, fontWeight:700, color:'var(--text-1,#2E2420)', textTransform:'uppercase', letterSpacing:'.04em' }}>
+                      {stage}
+                    </span>
+                    {hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600 }}>⚡</span>}
+                    {hasPend  && <span style={{ fontSize:11, color:'#9A6E10', fontWeight:600 }}>🕐</span>}
+                    <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', fontWeight:500, flexShrink:0 }}>
+                      {done}/{total}
+                    </span>
+                  </div>
+                  <div style={{ height:5, borderRadius:3, background:'var(--border,#EAE3D8)', overflow:'hidden' }}>
+                    <div style={{
+                      height:'100%', borderRadius:3,
+                      width:`${pct}%`,
+                      background: pct === 100 ? '#5A9467' : color,
+                      transition:'width .4s ease',
+                    }} />
+                  </div>
+                </div>
+                <span style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4 }}>
+                  {isOpen ? '▲' : '▼'}
+                </span>
+              </div>
+
+              {/* Tasks inside */}
+              {isOpen && (
+                <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
+                  {items.map((tk, ti) => (
+                    <div key={tk.id} style={{ borderTop: ti > 0 ? '1px solid var(--border,#F2EDE6)' : 'none' }}>
+                      <TaskCard t={tk} openId={openId} setOpenId={setOpenId}
+                        onEdit={canEdit   ? setEditTask  : null}
+                        onDelete={canDelete ? setDeleteId : null}
+                        onApprove={canEdit && tk.status === 'pending' ? approveTask : null}
+                        onReject={canEdit  && tk.status === 'pending' ? (id) => rejectTask(id, 'Needs revision') : null}
+                        onMarkDone={canEdit && tk.status !== 'approved' ? approveTask : null}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       {(showAdd || editTask) && (
