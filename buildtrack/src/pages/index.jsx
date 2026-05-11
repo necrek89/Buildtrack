@@ -1,4 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
+import {
+  DndContext, closestCenter, PointerSensor, TouchSensor,
+  useSensor, useSensors, DragOverlay,
+} from '@dnd-kit/core'
+import {
+  SortableContext, useSortable, verticalListSortingStrategy, arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { useStore, PRIORITY_BADGE, PRIORITY_LABEL, TOOL_STATUS_BADGE, TOOL_STATUS_LABEL, STATUS_LABEL, STATUS_BADGE, STAGES, PRIORITY_OPTIONS } from '../store/useStore'
 import { Badge, Button, StatCard, ProgressBar, SectionTitle, EmptyState, IconButton, FormGroup } from '../components/UI'
 import { useT } from '../i18n/useLanguage'
@@ -437,6 +445,155 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
 }
 
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
+// ─── SORTABLE STAGE ITEM ─────────────────────────────────────────────────────
+function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggleStage, openId, setOpenId,
+  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, color, isDragging }) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: stage })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  }
+  const total    = items.length
+  const done     = items.filter(tk => tk.status === 'approved').length
+  const pct      = total ? Math.round((done / total) * 100) : 0
+  const hasAlert = items.some(tk => tk.status === 'rejected')
+  const hasPend  = items.some(tk => tk.status === 'pending')
+  const num      = stageIndex >= 0 ? stageIndex + 1 : null
+  const isDone   = pct === 100 && total > 0
+
+  return (
+    <div ref={setNodeRef} style={{ ...style, borderRadius:14, overflow:'hidden', border:'1.5px solid var(--border,#EAE3D8)', background:'var(--surface,#fff)' }}>
+      <div style={{
+        display:'flex', alignItems:'center', gap:10, padding:'12px 14px',
+        background: isOpen ? 'var(--surface-2,#FDFBF8)' : 'var(--surface,#fff)',
+        borderBottom: isOpen ? '1px solid var(--border,#EAE3D8)' : 'none',
+      }}>
+        {/* Drag handle */}
+        {canEdit && stageIndex >= 0 && (
+          <div {...attributes} {...listeners} style={{
+            cursor:'grab', color:'#C8C0B8', fontSize:16, flexShrink:0,
+            padding:'2px 4px', touchAction:'none', lineHeight:1,
+          }}>⠿</div>
+        )}
+
+        {/* Number badge */}
+        <div onClick={() => toggleStage(stage)} style={{
+          width:24, height:24, borderRadius:'50%', flexShrink:0, cursor:'pointer',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          fontSize:11, fontWeight:700,
+          background: isDone ? '#E8F2EB' : 'var(--bg-accent,#F2EDE4)',
+          color: isDone ? '#3D7A52' : color,
+          border: `2px solid ${isDone ? '#A8D4B4' : color}`,
+        }}>
+          {isDone ? '✓' : (num ?? '·')}
+        </div>
+
+        <div onClick={() => toggleStage(stage)} style={{ flex:1, minWidth:0, cursor:'pointer' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
+            <span style={{ fontSize:13, fontWeight:700, color:'var(--text-1,#2E2420)', letterSpacing:'.02em' }}>{stage}</span>
+            {hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600 }}>⚡</span>}
+            {hasPend  && <span style={{ fontSize:11, color:'#9A6E10', fontWeight:600 }}>🕐</span>}
+            <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', fontWeight:500, flexShrink:0 }}>{done}/{total}</span>
+          </div>
+          <div style={{ height:5, borderRadius:3, background:'var(--border,#EAE3D8)', overflow:'hidden' }}>
+            <div style={{ height:'100%', borderRadius:3, width:`${pct}%`, background: isDone ? '#5A9467' : color, transition:'width .4s ease' }} />
+          </div>
+        </div>
+        <span onClick={() => toggleStage(stage)} style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4, cursor:'pointer' }}>{isOpen ? '▲' : '▼'}</span>
+      </div>
+
+      {isOpen && (
+        <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
+          {items.length === 0 && (
+            <div style={{ padding:'12px 14px', fontSize:12, color:'#B8AFA6', textAlign:'center' }}>Нет задач в этом этапе</div>
+          )}
+          {items.map((tk, ti) => (
+            <div key={tk.id} style={{ borderTop: ti > 0 ? '1px solid var(--border,#F2EDE6)' : 'none' }}>
+              <TaskCard t={tk} openId={openId} setOpenId={setOpenId}
+                onEdit={canEdit    ? setEditTask  : null}
+                onDelete={canDelete ? setDeleteId : null}
+                onApprove={canEdit && tk.status === 'pending' ? approveTask : null}
+                onReject={canEdit  && tk.status === 'pending' ? (id) => rejectTask(id, 'Needs revision') : null}
+                onMarkDone={canEdit && tk.status !== 'approved' ? approveTask : null}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SortableStageList({ stageGroups, projStages, openStages, toggleStage, openId, setOpenId,
+  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, STAGE_COLORS, onReorder }) {
+  const [activeId, setActiveId] = useState(null)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor,   { activationConstraint: { delay: 200, tolerance: 8 } }),
+  )
+
+  const sortableIds = stageGroups.filter(g => g.stageIndex >= 0).map(g => g.stage)
+
+  const handleDragEnd = ({ active, over }) => {
+    setActiveId(null)
+    if (!over || active.id === over.id) return
+    const oldIdx = projStages.indexOf(active.id)
+    const newIdx = projStages.indexOf(over.id)
+    if (oldIdx === -1 || newIdx === -1) return
+    onReorder(arrayMove(projStages, oldIdx, newIdx))
+  }
+
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCenter}
+      onDragStart={({ active }) => setActiveId(active.id)}
+      onDragEnd={handleDragEnd}>
+      <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
+        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+          {stageGroups.map(({ stage, stageIndex, items }, gi) => (
+            <SortableStageItem
+              key={stage}
+              stage={stage}
+              stageIndex={stageIndex}
+              projStages={projStages}
+              items={items}
+              isOpen={!!openStages[stage]}
+              toggleStage={toggleStage}
+              openId={openId}
+              setOpenId={setOpenId}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              setEditTask={setEditTask}
+              setDeleteId={setDeleteId}
+              approveTask={approveTask}
+              rejectTask={rejectTask}
+              color={STAGE_COLORS[gi % STAGE_COLORS.length]}
+              isDragging={activeId === stage}
+            />
+          ))}
+        </div>
+      </SortableContext>
+      <DragOverlay>
+        {activeId && (() => {
+          const g = stageGroups.find(x => x.stage === activeId)
+          if (!g) return null
+          return (
+            <div style={{
+              borderRadius:14, border:'2px solid #C96B3A',
+              background:'#FAECE4', padding:'12px 14px',
+              boxShadow:'0 8px 24px rgba(201,107,58,0.25)',
+              fontSize:13, fontWeight:700, color:'#C96B3A',
+            }}>
+              ⠿ {activeId}
+            </div>
+          )
+        })()}
+      </DragOverlay>
+    </DndContext>
+  )
+}
+
+// ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
 function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], team = [] }) {
   const { t } = useT()
   const { tasks, fetchTasks, deleteTask, approveTask, rejectTask, updateProject } = useStore()
@@ -589,99 +746,29 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
 
       {filtered.length === 0 && stageGroups.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
 
-      {/* ── Stage accordions ── */}
-      <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-        {stageGroups.map(({ stage, stageIndex, items }, gi) => {
-          const color    = STAGE_COLORS[gi % STAGE_COLORS.length]
-          const total    = items.length
-          const done     = items.filter(tk => tk.status === 'approved').length
-          const pct      = total ? Math.round((done / total) * 100) : 0
-          const isOpen   = !!openStages[stage]
-          const hasAlert = items.some(tk => tk.status === 'rejected')
-          const hasPend  = items.some(tk => tk.status === 'pending')
-          const num      = stageIndex >= 0 ? stageIndex + 1 : null
-          const isDone   = pct === 100 && total > 0
+      {/* ── Stage accordions with drag-and-drop ── */}
+      <SortableStageList
+        stageGroups={stageGroups}
+        projStages={projStages}
+        openStages={openStages}
+        toggleStage={toggleStage}
+        openId={openId}
+        setOpenId={setOpenId}
+        canEdit={canEdit}
+        canDelete={canDelete}
+        setEditTask={setEditTask}
+        setDeleteId={setDeleteId}
+        approveTask={approveTask}
+        rejectTask={rejectTask}
+        STAGE_COLORS={STAGE_COLORS}
+        onReorder={async (newOrder) => { await updateProject(proj.id, { stages: newOrder }) }}
+      />
 
-          return (
-            <div key={stage} style={{ borderRadius:14, overflow:'hidden', border:'1.5px solid var(--border,#EAE3D8)', background:'var(--surface,#fff)' }}>
-              <div style={{
-                display:'flex', alignItems:'center', gap:10, padding:'12px 14px',
-                background: isOpen ? 'var(--surface-2,#FDFBF8)' : 'var(--surface,#fff)',
-                borderBottom: isOpen ? '1px solid var(--border,#EAE3D8)' : 'none',
-              }}>
-                {/* Reorder arrows (foreman only, only for stages in proj.stages) */}
-                {canEdit && stageIndex >= 0 && (
-                  <div style={{ display:'flex', flexDirection:'column', gap:1, flexShrink:0 }}
-                    onClick={e => e.stopPropagation()}>
-                    <button
-                      onClick={() => moveStage(stage, -1)}
-                      disabled={stageIndex === 0}
-                      style={{ background:'none', border:'none', cursor: stageIndex===0 ? 'default' : 'pointer',
-                        fontSize:10, color: stageIndex===0 ? '#D9D0C7' : '#B8AFA6', padding:'1px 3px', lineHeight:1 }}>▲</button>
-                    <button
-                      onClick={() => moveStage(stage, 1)}
-                      disabled={stageIndex === projStages.length - 1}
-                      style={{ background:'none', border:'none', cursor: stageIndex===projStages.length-1 ? 'default' : 'pointer',
-                        fontSize:10, color: stageIndex===projStages.length-1 ? '#D9D0C7' : '#B8AFA6', padding:'1px 3px', lineHeight:1 }}>▼</button>
-                  </div>
-                )}
-
-                {/* Number badge — clickable to toggle */}
-                <div onClick={() => toggleStage(stage)} style={{
-                  width:24, height:24, borderRadius:'50%', flexShrink:0, cursor:'pointer',
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  fontSize:11, fontWeight:700,
-                  background: isDone ? '#E8F2EB' : 'var(--bg-accent,#F2EDE4)',
-                  color: isDone ? '#3D7A52' : color,
-                  border: `2px solid ${isDone ? '#A8D4B4' : color}`,
-                }}>
-                  {isDone ? '✓' : (num ?? '·')}
-                </div>
-
-                <div onClick={() => toggleStage(stage)} style={{ flex:1, minWidth:0, cursor:'pointer' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
-                    <span style={{ fontSize:13, fontWeight:700, color:'var(--text-1,#2E2420)', letterSpacing:'.02em' }}>
-                      {stage}
-                    </span>
-                    {hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600 }}>⚡</span>}
-                    {hasPend  && <span style={{ fontSize:11, color:'#9A6E10', fontWeight:600 }}>🕐</span>}
-                    <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', fontWeight:500, flexShrink:0 }}>{done}/{total}</span>
-                  </div>
-                  <div style={{ height:5, borderRadius:3, background:'var(--border,#EAE3D8)', overflow:'hidden' }}>
-                    <div style={{ height:'100%', borderRadius:3, width:`${pct}%`, background: isDone ? '#5A9467' : color, transition:'width .4s ease' }} />
-                  </div>
-                </div>
-                <span onClick={() => toggleStage(stage)} style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4, cursor:'pointer' }}>{isOpen ? '▲' : '▼'}</span>
-              </div>
-
-              {isOpen && (
-                <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
-                  {items.length === 0 && (
-                    <div style={{ padding:'12px 14px', fontSize:12, color:'#B8AFA6', textAlign:'center' }}>
-                      Нет задач в этом этапе
-                    </div>
-                  )}
-                  {items.map((tk, ti) => (
-                    <div key={tk.id} style={{ borderTop: ti > 0 ? '1px solid var(--border,#F2EDE6)' : 'none' }}>
-                      <TaskCard t={tk} openId={openId} setOpenId={setOpenId}
-                        onEdit={canEdit    ? setEditTask  : null}
-                        onDelete={canDelete ? setDeleteId : null}
-                        onApprove={canEdit && tk.status === 'pending' ? approveTask : null}
-                        onReject={canEdit  && tk.status === 'pending' ? (id) => rejectTask(id, 'Needs revision') : null}
-                        onMarkDone={canEdit && tk.status !== 'approved' ? approveTask : null}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )
-        })}
-
-        {/* ── Add Stage button (foreman only) ── */}
-        {canEdit && (
-          addingStage ? (
-            <div style={{ display:'flex', gap:8, alignItems:'center', padding:'4px 0' }}>
+      {/* ── Add Stage button (foreman only) ── */}
+      {canEdit && (
+        <div style={{ marginTop: 10 }}>
+          {addingStage ? (
+            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
               <input
                 className="form-input"
                 style={{ flex:1, fontSize:13 }}
@@ -704,9 +791,9 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
             }}>
               <span style={{ fontSize:16, lineHeight:1 }}>＋</span> Добавить этап
             </button>
-          )
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* ── Tools on site ── */}
       {projTools.length > 0 && (
