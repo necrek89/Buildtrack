@@ -509,6 +509,16 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
     setAddingStage(false)
   }
 
+  const moveStage = async (stageName, dir) => {
+    const idx = projStages.indexOf(stageName)
+    if (idx === -1) return
+    const newIdx = idx + dir
+    if (newIdx < 0 || newIdx >= projStages.length) return
+    const updated = [...projStages]
+    ;[updated[idx], updated[newIdx]] = [updated[newIdx], updated[idx]]
+    await updateProject(proj.id, { stages: updated })
+  }
+
   useEffect(() => {
     const initial = {}
     stageGroups.forEach(({ stage }) => { initial[stage] = true })
@@ -594,14 +604,31 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
 
           return (
             <div key={stage} style={{ borderRadius:14, overflow:'hidden', border:'1.5px solid var(--border,#EAE3D8)', background:'var(--surface,#fff)' }}>
-              <div onClick={() => toggleStage(stage)} style={{
-                display:'flex', alignItems:'center', gap:10, padding:'12px 14px', cursor:'pointer',
+              <div style={{
+                display:'flex', alignItems:'center', gap:10, padding:'12px 14px',
                 background: isOpen ? 'var(--surface-2,#FDFBF8)' : 'var(--surface,#fff)',
                 borderBottom: isOpen ? '1px solid var(--border,#EAE3D8)' : 'none',
               }}>
-                {/* Number badge */}
-                <div style={{
-                  width:24, height:24, borderRadius:'50%', flexShrink:0,
+                {/* Reorder arrows (foreman only, only for stages in proj.stages) */}
+                {canEdit && stageIndex >= 0 && (
+                  <div style={{ display:'flex', flexDirection:'column', gap:1, flexShrink:0 }}
+                    onClick={e => e.stopPropagation()}>
+                    <button
+                      onClick={() => moveStage(stage, -1)}
+                      disabled={stageIndex === 0}
+                      style={{ background:'none', border:'none', cursor: stageIndex===0 ? 'default' : 'pointer',
+                        fontSize:10, color: stageIndex===0 ? '#D9D0C7' : '#B8AFA6', padding:'1px 3px', lineHeight:1 }}>▲</button>
+                    <button
+                      onClick={() => moveStage(stage, 1)}
+                      disabled={stageIndex === projStages.length - 1}
+                      style={{ background:'none', border:'none', cursor: stageIndex===projStages.length-1 ? 'default' : 'pointer',
+                        fontSize:10, color: stageIndex===projStages.length-1 ? '#D9D0C7' : '#B8AFA6', padding:'1px 3px', lineHeight:1 }}>▼</button>
+                  </div>
+                )}
+
+                {/* Number badge — clickable to toggle */}
+                <div onClick={() => toggleStage(stage)} style={{
+                  width:24, height:24, borderRadius:'50%', flexShrink:0, cursor:'pointer',
                   display:'flex', alignItems:'center', justifyContent:'center',
                   fontSize:11, fontWeight:700,
                   background: isDone ? '#E8F2EB' : 'var(--bg-accent,#F2EDE4)',
@@ -611,7 +638,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
                   {isDone ? '✓' : (num ?? '·')}
                 </div>
 
-                <div style={{ flex:1, minWidth:0 }}>
+                <div onClick={() => toggleStage(stage)} style={{ flex:1, minWidth:0, cursor:'pointer' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
                     <span style={{ fontSize:13, fontWeight:700, color:'var(--text-1,#2E2420)', letterSpacing:'.02em' }}>
                       {stage}
@@ -624,7 +651,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
                     <div style={{ height:'100%', borderRadius:3, width:`${pct}%`, background: isDone ? '#5A9467' : color, transition:'width .4s ease' }} />
                   </div>
                 </div>
-                <span style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4 }}>{isOpen ? '▲' : '▼'}</span>
+                <span onClick={() => toggleStage(stage)} style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4, cursor:'pointer' }}>{isOpen ? '▲' : '▼'}</span>
               </div>
 
               {isOpen && (
