@@ -1052,6 +1052,22 @@ export function MyTasks() {
     filter === 'done'    ? t.status === 'approved' : true
   )
 
+  const PRIORITY_ORDER = { high: 0, normal: 1, low: 2 }
+  const STATUS_ORDER   = { rejected: 0, new: 1, pending: 2, approved: 3 }
+  const sorted = [...filtered].sort((a, b) => {
+    // 1. Status group (rejected first in active, etc.)
+    const sd = (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9)
+    if (sd !== 0) return sd
+    // 2. Priority (high first)
+    const pd = (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1)
+    if (pd !== 0) return pd
+    // 3. Deadline (soonest first; no deadline goes last)
+    if (a.deadline && b.deadline) return a.deadline.localeCompare(b.deadline)
+    if (a.deadline) return -1
+    if (b.deadline) return 1
+    return 0
+  })
+
   const uploadPhoto = async (taskId, file) => {
     if (!file) return
     setUploadingId(taskId)
@@ -1082,8 +1098,8 @@ export function MyTasks() {
         <button className={`filter-btn ${filter==='all'     ?'active':''}`} onClick={() => setFilter('all')}>{t('tasks.filterAll')}</button>
       </div>
       <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-        {filtered.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
-        {filtered.map(tk => {
+        {sorted.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
+        {sorted.map(tk => {
           const isOpen = openId === tk.id
           return (
             <div key={tk.id} style={{
