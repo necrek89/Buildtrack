@@ -452,7 +452,7 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
 // ─── SORTABLE STAGE ITEM ─────────────────────────────────────────────────────
 function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggleStage, openId, setOpenId,
-  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, color, isDragging }) {
+  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, color, isDragging, onRename }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: stage })
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -466,6 +466,25 @@ function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggl
   const hasPend  = items.some(tk => tk.status === 'pending')
   const num      = stageIndex >= 0 ? stageIndex + 1 : null
   const isDone   = pct === 100 && total > 0
+
+  const [editing,  setEditing]  = useState(false)
+  const [nameVal,  setNameVal]  = useState(stage)
+  const nameRef = useRef()
+
+  const startEdit = (e) => {
+    if (!canEdit) return
+    e.stopPropagation()
+    setNameVal(stage)
+    setEditing(true)
+    setTimeout(() => { nameRef.current?.focus(); nameRef.current?.select() }, 0)
+  }
+  const commitEdit = () => {
+    setEditing(false)
+    const v = nameVal.trim()
+    if (v && v !== stage) onRename?.(stage, v)
+    else setNameVal(stage)
+  }
+  const cancelEdit = () => { setEditing(false); setNameVal(stage) }
 
   return (
     <div ref={setNodeRef} style={{ ...style, borderRadius:14, overflow:'hidden', border:'1.5px solid var(--border,#EAE3D8)', background:'var(--surface,#fff)' }}>
@@ -494,14 +513,35 @@ function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggl
           {isDone ? '✓' : (num ?? '·')}
         </div>
 
-        <div onClick={() => toggleStage(stage)} style={{ flex:1, minWidth:0, cursor:'pointer' }}>
+        <div style={{ flex:1, minWidth:0 }}>
           <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
-            <span style={{ fontSize:13, fontWeight:700, color:'var(--text-1,#2E2420)', letterSpacing:'.02em' }}>{stage}</span>
-            {hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600 }}>⚡</span>}
-            {hasPend  && <span style={{ fontSize:11, color:'#9A6E10', fontWeight:600 }}>🕐</span>}
+            {editing ? (
+              <input
+                ref={nameRef}
+                value={nameVal}
+                onChange={e => setNameVal(e.target.value)}
+                onBlur={commitEdit}
+                onKeyDown={e => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') cancelEdit() }}
+                onClick={e => e.stopPropagation()}
+                style={{
+                  flex:1, fontSize:13, fontWeight:700, color:'var(--text-1,#2E2420)',
+                  border:'none', borderBottom:'2px solid #C96B3A', outline:'none',
+                  background:'transparent', padding:'0 2px', minWidth:0,
+                }}
+              />
+            ) : (
+              <span
+                onDoubleClick={startEdit}
+                onClick={() => toggleStage(stage)}
+                title={canEdit ? 'Двойной клик — переименовать' : undefined}
+                style={{ fontSize:13, fontWeight:700, color:'var(--text-1,#2E2420)', letterSpacing:'.02em', cursor:'pointer', flex:1, minWidth:0 }}
+              >{stage}</span>
+            )}
+            {!editing && hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600 }}>⚡</span>}
+            {!editing && hasPend  && <span style={{ fontSize:11, color:'#9A6E10', fontWeight:600 }}>🕐</span>}
             <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', fontWeight:500, flexShrink:0 }}>{done}/{total}</span>
           </div>
-          <div style={{ height:5, borderRadius:3, background:'var(--border,#EAE3D8)', overflow:'hidden' }}>
+          <div onClick={() => toggleStage(stage)} style={{ height:5, borderRadius:3, background:'var(--border,#EAE3D8)', overflow:'hidden', cursor:'pointer' }}>
             <div style={{ height:'100%', borderRadius:3, width:`${pct}%`, background: isDone ? '#5A9467' : color, transition:'width .4s ease' }} />
           </div>
         </div>
@@ -531,7 +571,7 @@ function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggl
 }
 
 function SortableStageList({ stageGroups, projStages, openStages, toggleStage, openId, setOpenId,
-  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, STAGE_COLORS, onReorder }) {
+  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, STAGE_COLORS, onReorder, onRename }) {
   const [activeId, setActiveId] = useState(null)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -576,6 +616,7 @@ function SortableStageList({ stageGroups, projStages, openStages, toggleStage, o
               rejectTask={rejectTask}
               color={STAGE_COLORS[gi % STAGE_COLORS.length]}
               isDragging={activeId === stage}
+              onRename={onRename}
             />
           ))}
         </div>
@@ -603,7 +644,7 @@ function SortableStageList({ stageGroups, projStages, openStages, toggleStage, o
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
 function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], team = [] }) {
   const { t } = useT()
-  const { tasks, fetchTasks, deleteTask, approveTask, rejectTask, updateProject } = useStore()
+  const { tasks, fetchTasks, deleteTask, approveTask, rejectTask, updateProject, updateTask } = useStore()
   const [filter,       setFilter]       = useState('all')
   const [showAdd,      setShowAdd]      = useState(false)
   const [editTask,     setEditTask]     = useState(null)
@@ -671,6 +712,15 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
     await updateProject(proj.id, { stages: updated })
     setNewStageName('')
     setAddingStage(false)
+  }
+
+  const renameStage = async (oldName, newName) => {
+    // Update proj.stages array
+    const updatedStages = projStages.map(s => s === oldName ? newName : s)
+    await updateProject(proj.id, { stages: updatedStages })
+    // Update all tasks in this project that have this stage
+    const affected = pTasks.filter(tk => tk.stage === oldName)
+    await Promise.all(affected.map(tk => updateTask(tk.id, { stage: newName })))
   }
 
   const moveStage = async (stageName, dir) => {
@@ -855,6 +905,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
         rejectTask={rejectTask}
         STAGE_COLORS={STAGE_COLORS}
         onReorder={async (newOrder) => { await updateProject(proj.id, { stages: newOrder }) }}
+        onRename={canEdit ? renameStage : undefined}
       />
 
       {/* ── Add Stage button (foreman only) ── */}
