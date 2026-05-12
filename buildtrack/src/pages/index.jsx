@@ -678,6 +678,79 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
     await updateProject(proj.id, { stages: updated })
   }
 
+  const printTasks = () => {
+    const STATUS_RU = { new: 'Новая', pending: 'На проверке', approved: 'Выполнена', rejected: 'Отклонена' }
+    const allGroups = (() => {
+      const map = {}
+      pTasks.forEach(tk => {
+        const key = tk.stage || '—'
+        if (!map[key]) map[key] = []
+        map[key].push(tk)
+      })
+      const taskStageKeys = Object.keys(map)
+      const ordered = projStages.filter(s => taskStageKeys.includes(s))
+      const extra = taskStageKeys.filter(s => s !== '—' && !projStages.includes(s))
+      const all = [...ordered, ...extra, ...(taskStageKeys.includes('—') ? ['—'] : [])]
+      return all.map((stage, i) => ({ stage, num: i + 1, items: sortTasks(map[stage] || []) }))
+    })()
+
+    const rows = allGroups.map(({ stage, num, items }) => `
+      <div class="stage">
+        <div class="stage-header">
+          <span class="stage-num">${num}</span>
+          <span class="stage-name">${stage}</span>
+          <span class="stage-count">${items.filter(t=>t.status==='approved').length}/${items.length}</span>
+        </div>
+        <table>
+          <thead><tr><th>#</th><th>Задача</th><th>Статус</th><th>Исполнитель</th><th>Дедлайн</th></tr></thead>
+          <tbody>
+            ${items.map((tk, i) => `
+              <tr class="${tk.status === 'approved' ? 'done' : tk.status === 'rejected' ? 'rejected' : ''}">
+                <td>${i + 1}</td>
+                <td>${tk.text}${tk.description ? `<div class="desc">${tk.description}</div>` : ''}</td>
+                <td>${STATUS_RU[tk.status] || tk.status}</td>
+                <td>${tk.worker?.name || '—'}</td>
+                <td>${tk.deadline || '—'}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`).join('')
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+      <title>${proj.name} — Задачи</title>
+      <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, Arial, sans-serif; font-size: 12px; color: #2E2420; padding: 20px; }
+        h1 { font-size: 20px; margin-bottom: 4px; }
+        .meta { font-size: 11px; color: #888; margin-bottom: 20px; }
+        .stage { margin-bottom: 20px; break-inside: avoid; }
+        .stage-header { display: flex; align-items: center; gap: 8px; background: #F2EDE4; padding: 8px 12px; border-radius: 6px 6px 0 0; border: 1px solid #D9D0C7; }
+        .stage-num { width: 22px; height: 22px; border-radius: 50%; background: #C96B3A; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+        .stage-name { font-weight: 700; font-size: 13px; flex: 1; text-transform: uppercase; letter-spacing: .04em; }
+        .stage-count { font-size: 11px; color: #888; }
+        table { width: 100%; border-collapse: collapse; border: 1px solid #D9D0C7; border-top: none; }
+        th { background: #FAF7F2; padding: 6px 8px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: #888; border-bottom: 1px solid #D9D0C7; }
+        td { padding: 7px 8px; border-bottom: 1px solid #EAE3D8; vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        tr.done td { color: #5A9467; }
+        tr.rejected td { color: #A32D2D; }
+        .desc { font-size: 10px; color: #888; margin-top: 2px; }
+        @media print { body { padding: 10px; } }
+      </style>
+    </head><body>
+      <h1>🏗 ${proj.name}</h1>
+      <div class="meta">${proj.address ? '📍 ' + proj.address + '  ' : ''}${proj.deadline ? '📅 ' + proj.deadline : ''}  · Всего задач: ${pTasks.length} · Выполнено: ${pTasks.filter(t=>t.status==='approved').length}</div>
+      ${rows}
+      <div style="margin-top:24px; font-size:10px; color:#ccc; text-align:right">Tutuu · ${new Date().toLocaleDateString('ru-RU')}</div>
+    </body></html>`
+
+    const w = window.open('', '_blank')
+    w.document.write(html)
+    w.document.close()
+    w.focus()
+    setTimeout(() => w.print(), 400)
+  }
+
   useEffect(() => {
     const initial = {}
     stageGroups.forEach(({ stage }) => { initial[stage] = false })
@@ -743,7 +816,13 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
             </button>
           ))}
         </div>
-        {canEdit && <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('tasks.add')}</Button>}
+        <div style={{ display:'flex', gap:6 }}>
+          <button onClick={printTasks} title="Распечатать" style={{
+            background:'var(--bg-accent,#F2EDE4)', border:'1.5px solid var(--border,#EAE3D8)',
+            borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:14, lineHeight:1,
+          }}>🖨️</button>
+          {canEdit && <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('tasks.add')}</Button>}
+        </div>
       </div>
 
       {filtered.length === 0 && stageGroups.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
