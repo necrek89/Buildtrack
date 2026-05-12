@@ -680,7 +680,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
 
   useEffect(() => {
     const initial = {}
-    stageGroups.forEach(({ stage }) => { initial[stage] = true })
+    stageGroups.forEach(({ stage }) => { initial[stage] = false })
     setOpenStages(initial)
   }, [filter, proj.id, tasks.length])
 
