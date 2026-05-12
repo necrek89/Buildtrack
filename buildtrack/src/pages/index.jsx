@@ -470,7 +470,7 @@ function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggl
         borderBottom: isOpen ? '1px solid var(--border,#EAE3D8)' : 'none',
       }}>
         {/* Drag handle */}
-        {canEdit && stageIndex >= 0 && (
+        {canEdit && (
           <div {...attributes} {...listeners} style={{
             cursor:'grab', color:'#C8C0B8', fontSize:16, flexShrink:0,
             padding:'2px 4px', touchAction:'none', lineHeight:1,
@@ -533,15 +533,17 @@ function SortableStageList({ stageGroups, projStages, openStages, toggleStage, o
     useSensor(TouchSensor,   { activationConstraint: { delay: 200, tolerance: 8 } }),
   )
 
-  const sortableIds = stageGroups.filter(g => g.stageIndex >= 0).map(g => g.stage)
+  const sortableIds = stageGroups.map(g => g.stage)
 
   const handleDragEnd = ({ active, over }) => {
     setActiveId(null)
     if (!over || active.id === over.id) return
-    const oldIdx = projStages.indexOf(active.id)
-    const newIdx = projStages.indexOf(over.id)
+    // Work with the current displayed order
+    const currentOrder = stageGroups.map(g => g.stage)
+    const oldIdx = currentOrder.indexOf(active.id)
+    const newIdx = currentOrder.indexOf(over.id)
     if (oldIdx === -1 || newIdx === -1) return
-    onReorder(arrayMove(projStages, oldIdx, newIdx))
+    onReorder(arrayMove(currentOrder, oldIdx, newIdx))
   }
 
   return (
