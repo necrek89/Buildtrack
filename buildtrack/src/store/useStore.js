@@ -131,6 +131,7 @@ export const useStore = create((set, get) => ({
     let query = supabase.from('tasks').select(`
       id, text, description, status, priority, stage, deadline,
       photo_url, reject_comment, worker_id, project_id,
+      quantity, unit,
       worker:profiles(id, name)
     `)
     if (projectId) {

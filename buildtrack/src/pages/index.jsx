@@ -191,6 +191,11 @@ function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApprove, onReject,
           <div style={{ display:'flex', flexWrap:'wrap', gap:4, alignItems:'center' }}>
             <Badge variant={PRIORITY_BADGE[t.priority]?.replace('badge-','')}>{PRIORITY_LABEL[t.priority]}</Badge>
             {t.stage    && <Badge variant="gray">{t.stage}</Badge>}
+            {t.quantity != null && t.unit && (
+              <span style={{ fontSize:10, background:'#EEF3FD', color:'#4A7FC1', borderRadius:5, padding:'1px 6px', fontWeight:600 }}>
+                {t.quantity} {t.unit}
+              </span>
+            )}
             {t.deadline && <span style={{ fontSize:10, color:'#B8AFA6' }}>📅 {t.deadline}</span>}
             {t.worker   && <span style={{ fontSize:10, color:'#B8AFA6' }}>👷 {t.worker.name}</span>}
             {projName   && <span style={{ fontSize:10, color:'#B8AFA6' }}>🏗 {projName}</span>}

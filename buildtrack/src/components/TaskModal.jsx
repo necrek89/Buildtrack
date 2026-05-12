@@ -12,6 +12,20 @@ const PRIORITY_OPTIONS = [
   { value: 'low',    labelKey: 'Low'    },
 ]
 
+const UNIT_OPTIONS = [
+  { value: '',      label: '— без единицы' },
+  { value: 'шт',    label: 'шт — штука' },
+  { value: 'пог.м', label: 'пог.м — погонный метр' },
+  { value: 'кв.м',  label: 'кв.м — квадратный метр' },
+  { value: 'куб.м', label: 'куб.м — кубический метр' },
+  { value: 'м',     label: 'м — метр' },
+  { value: 'кг',    label: 'кг — килограмм' },
+  { value: 'т',     label: 'т — тонна' },
+  { value: 'л',     label: 'л — литр' },
+  { value: 'ч',     label: 'ч — час' },
+  { value: 'компл', label: 'компл — комплект' },
+]
+
 // ── Image compression (canvas) ───────────────────────────────────────────────
 async function compressImage(file, maxPx = 1400, quality = 0.82) {
   // Only compress images, pass videos through unchanged
@@ -60,6 +74,8 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
     stage:       task?.stage       || '',
     priority:    task?.priority    || 'normal',
     deadline:    task?.deadline    || '',
+    quantity:    task?.quantity    || '',
+    unit:        task?.unit        || '',
   })
 
   useEffect(() => {
@@ -123,6 +139,8 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
       ...form,
       worker_id: form.worker_id || null,
       photo_url: mediaUrls.join(',') || null,
+      quantity:  form.quantity ? parseFloat(form.quantity) : null,
+      unit:      form.unit || null,
     }
     if (isEdit) {
       await updateTask(task.id, payload)
@@ -168,6 +186,26 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
               style={{ resize:'vertical', minHeight:80 }}
             />
           </FormGroup>
+
+          {/* ── Quantity + Unit ── */}
+          <div className="form-grid-2">
+            <FormGroup label="Объём / кол-во">
+              <input
+                className="form-input"
+                type="number"
+                min="0"
+                step="any"
+                placeholder="Например: 25"
+                value={form.quantity}
+                onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
+              />
+            </FormGroup>
+            <FormGroup label="Единица измерения">
+              <select className="form-input" value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}>
+                {UNIT_OPTIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+              </select>
+            </FormGroup>
+          </div>
 
           <div className="form-grid-2">
             <FormGroup label={t('tasks.assigneeLabel')}>
