@@ -684,7 +684,6 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
   }
 
   const printTasks = () => {
-    const STATUS_RU = { new: 'Новая', pending: 'На проверке', approved: 'Выполнена', rejected: 'Отклонена' }
     const allGroups = (() => {
       const map = {}
       pTasks.forEach(tk => {
@@ -699,54 +698,62 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
       return all.map((stage, i) => ({ stage, num: i + 1, items: sortTasks(map[stage] || []) }))
     })()
 
-    const rows = allGroups.map(({ stage, num, items }) => `
-      <div class="stage">
-        <div class="stage-header">
-          <span class="stage-num">${num}</span>
-          <span class="stage-name">${stage}</span>
-          <span class="stage-count">${items.filter(t=>t.status==='approved').length}/${items.length}</span>
-        </div>
-        <table>
-          <thead><tr><th>#</th><th>Задача</th><th>Статус</th><th>Исполнитель</th><th>Дедлайн</th></tr></thead>
-          <tbody>
-            ${items.map((tk, i) => `
-              <tr class="${tk.status === 'approved' ? 'done' : tk.status === 'rejected' ? 'rejected' : ''}">
-                <td>${i + 1}</td>
-                <td>${tk.text}${tk.description ? `<div class="desc">${tk.description}</div>` : ''}</td>
-                <td>${STATUS_RU[tk.status] || tk.status}</td>
-                <td>${tk.worker?.name || '—'}</td>
-                <td>${tk.deadline || '—'}</td>
-              </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>`).join('')
+    // Global row counter across all stages
+    let globalRow = 1
+    const rows = allGroups.map(({ stage, num, items }) => {
+      const taskRows = items.map(tk => {
+        const n = globalRow++
+        return `<tr>
+          <td class="col-num">${n}</td>
+          <td class="col-name">${tk.text}${tk.description ? `<div class="desc">${tk.description}</div>` : ''}</td>
+          <td class="col-unit">${tk.unit || ''}</td>
+          <td class="col-qty">${tk.quantity != null ? tk.quantity : ''}</td>
+        </tr>`
+      }).join('')
+      return `
+        <tr class="stage-row">
+          <td colspan="4"><span class="stage-num">${num}</span> ${stage}</td>
+        </tr>
+        ${taskRows}`
+    }).join('')
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
-      <title>${proj.name} — Задачи</title>
+      <title>${proj.name}</title>
       <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, Arial, sans-serif; font-size: 12px; color: #2E2420; padding: 20px; }
-        h1 { font-size: 20px; margin-bottom: 4px; }
-        .meta { font-size: 11px; color: #888; margin-bottom: 20px; }
-        .stage { margin-bottom: 20px; break-inside: avoid; }
-        .stage-header { display: flex; align-items: center; gap: 8px; background: #F2EDE4; padding: 8px 12px; border-radius: 6px 6px 0 0; border: 1px solid #D9D0C7; }
-        .stage-num { width: 22px; height: 22px; border-radius: 50%; background: #C96B3A; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
-        .stage-name { font-weight: 700; font-size: 13px; flex: 1; text-transform: uppercase; letter-spacing: .04em; }
-        .stage-count { font-size: 11px; color: #888; }
-        table { width: 100%; border-collapse: collapse; border: 1px solid #D9D0C7; border-top: none; }
-        th { background: #FAF7F2; padding: 6px 8px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: #888; border-bottom: 1px solid #D9D0C7; }
-        td { padding: 7px 8px; border-bottom: 1px solid #EAE3D8; vertical-align: top; }
-        tr:last-child td { border-bottom: none; }
-        tr.done td { color: #5A9467; }
-        tr.rejected td { color: #A32D2D; }
-        .desc { font-size: 10px; color: #888; margin-top: 2px; }
-        @media print { body { padding: 10px; } }
+        body { font-family: Arial, sans-serif; font-size: 12px; color: #000; padding: 24px; }
+        h1 { font-size: 16px; font-weight: bold; margin-bottom: 2px; }
+        .meta { font-size: 11px; color: #555; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; }
+        th, td { border: 1px solid #000; padding: 6px 8px; vertical-align: top; }
+        thead th { background: #f0f0f0; font-weight: bold; font-size: 11px; text-align: center; }
+        .col-num  { width: 42px; text-align: center; }
+        .col-name { }
+        .col-unit { width: 70px; text-align: center; }
+        .col-qty  { width: 90px; text-align: center; }
+        .stage-row td { background: #e8e8e8; font-weight: bold; font-size: 12px; padding: 6px 10px; }
+        .stage-num { display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #333; color: #fff; text-align: center; line-height: 20px; font-size: 10px; font-weight: bold; margin-right: 6px; }
+        .desc { font-size: 10px; color: #555; margin-top: 2px; }
+        .footer { margin-top: 16px; font-size: 10px; color: #aaa; text-align: right; }
+        @media print { body { padding: 10px; } @page { margin: 15mm; } }
       </style>
     </head><body>
-      <h1>🏗 ${proj.name}</h1>
-      <div class="meta">${proj.address ? '📍 ' + proj.address + '  ' : ''}${proj.deadline ? '📅 ' + proj.deadline : ''}  · Всего задач: ${pTasks.length} · Выполнено: ${pTasks.filter(t=>t.status==='approved').length}</div>
-      ${rows}
-      <div style="margin-top:24px; font-size:10px; color:#ccc; text-align:right">Tutuu · ${new Date().toLocaleDateString('ru-RU')}</div>
+      <h1>${proj.name}</h1>
+      <div class="meta">${proj.address ? proj.address + ' · ' : ''}${proj.deadline ? 'Срок: ' + proj.deadline + ' · ' : ''}Задач: ${pTasks.length}</div>
+      <table>
+        <thead>
+          <tr>
+            <th class="col-num">№ п/п</th>
+            <th class="col-name">Наименование работы</th>
+            <th class="col-unit">Ед. изм.</th>
+            <th class="col-qty">Кол-во</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+      <div class="footer">Tutuu · ${new Date().toLocaleDateString('ru-RU')}</div>
     </body></html>`
 
     const w = window.open('', '_blank')
