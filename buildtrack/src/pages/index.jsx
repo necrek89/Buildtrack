@@ -692,8 +692,8 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
   // Build ordered stage list: proj.stages order first, then any task stages not in list
   const stageGroups = (() => {
     const taskStageKeys = [...new Set(filtered.map(tk => tk.stage || '—'))]
-    // All stages from proj.stages that have tasks in filtered, in order
-    const ordered = projStages.filter(s => taskStageKeys.includes(s))
+    // All stages from proj.stages in order (including empty ones)
+    const ordered = projStages
     // Stages in tasks but not in proj.stages
     const extra = taskStageKeys.filter(s => s !== '—' && !projStages.includes(s))
     // No-stage tasks last
