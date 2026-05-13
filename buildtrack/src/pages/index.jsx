@@ -754,7 +754,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
       return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s
     }
 
-    const headers = ['№ п/п', 'Этап', 'Наименование работы', 'Описание', 'Ед. изм.', 'Кол-во', 'Статус', 'Исполнитель', 'Дедлайн']
+    const headers = ['№ п/п', 'Этап', 'Наименование работы', 'Описание', 'Ед. изм.', 'Кол-во', 'Статус']
     let globalRow = 1
     const dataRows = allGroups.flatMap(({ stage, items }) =>
       items.map(tk => [
@@ -765,8 +765,6 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
         tk.unit || '',
         tk.quantity ?? '',
         STATUS_RU[tk.status] || tk.status,
-        tk.worker?.name || '',
-        tk.deadline || '',
       ].map(escape).join(','))
     )
 
