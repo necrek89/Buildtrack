@@ -1267,7 +1267,6 @@ function ProjectList({ onSelect, onEdit, onDelete = null }) {
                 <div style={{ height:4, borderRadius:4, background:'#C96B3A', width:`${pPct}%`, transition:'width .4s' }} />
               </div>
               <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
-                <Badge variant="blue">{p.stage}</Badge>
                 {p.deadline && <span style={{ fontSize:11, color:'#B8AFA6' }}>📅 {p.deadline}</span>}
                 <span style={{ fontSize:11, color:'#B8AFA6' }}>✅ {pDone}/{pTasks.length}</span>
                 {pActive  > 0 && <span style={{ fontSize:11, color:'#C96B3A', fontWeight:600 }}>⚡ {pActive}</span>}
@@ -1403,22 +1402,15 @@ export function Projects({ canDelete = true, canEdit = true }) {
 
   const createProject = async () => {
     if (!addForm.name.trim()) return
-    const { data: newProj, error } = await supabase.from('projects').insert({
+    const { error } = await supabase.from('projects').insert({
       name: addForm.name,
       deadline: addForm.deadline || null,
       address: addForm.address || null,
       foreman_id: profile.id, progress: 0,
       stages: addForm.stages || [],
-    }).select().single()
-    if (!error && newProj) {
-      // Добавляем всех существующих менеджеров в новый проект
-      const managers = team.filter(m => m.role === 'manager')
-      if (managers.length) {
-        await supabase.from('project_workers').insert(
-          managers.map(m => ({ project_id: newProj.id, worker_id: m.id }))
-        )
-      }
-      fetchProjects()
+    })
+    if (!error) {
+      await fetchProjects()
       setShowAdd(false)
       setAddForm({ name:'', stage:'Foundation', deadline:'', address:'', stages:[] })
     }
