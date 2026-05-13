@@ -733,6 +733,54 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
     await updateProject(proj.id, { stages: updated })
   }
 
+  const exportCSV = () => {
+    const STATUS_RU = { new: 'Новая', pending: 'На проверке', approved: 'Выполнена', rejected: 'Отклонена' }
+    const allGroups = (() => {
+      const map = {}
+      pTasks.forEach(tk => {
+        const key = tk.stage || '—'
+        if (!map[key]) map[key] = []
+        map[key].push(tk)
+      })
+      const taskStageKeys = Object.keys(map)
+      const ordered = projStages.filter(s => taskStageKeys.includes(s))
+      const extra = taskStageKeys.filter(s => s !== '—' && !projStages.includes(s))
+      const all = [...ordered, ...extra, ...(taskStageKeys.includes('—') ? ['—'] : [])]
+      return all.map((stage, i) => ({ stage, num: i + 1, items: sortTasks(map[stage] || []) }))
+    })()
+
+    const escape = (val) => {
+      const s = String(val ?? '')
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s
+    }
+
+    const headers = ['№ п/п', 'Этап', 'Наименование работы', 'Описание', 'Ед. изм.', 'Кол-во', 'Статус', 'Исполнитель', 'Дедлайн']
+    let globalRow = 1
+    const dataRows = allGroups.flatMap(({ stage, items }) =>
+      items.map(tk => [
+        globalRow++,
+        stage,
+        tk.text,
+        tk.description || '',
+        tk.unit || '',
+        tk.quantity ?? '',
+        STATUS_RU[tk.status] || tk.status,
+        tk.worker?.name || '',
+        tk.deadline || '',
+      ].map(escape).join(','))
+    )
+
+    const bom = '﻿' // UTF-8 BOM — чтобы Excel/Sheets открывал кириллицу правильно
+    const csv = bom + [headers.join(','), ...dataRows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `${proj.name}_задачи_${new Date().toLocaleDateString('ru-RU').replace(/\./g, '-')}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const printTasks = () => {
     const allGroups = (() => {
       const map = {}
@@ -879,6 +927,10 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
           ))}
         </div>
         <div style={{ display:'flex', gap:6 }}>
+          <button onClick={exportCSV} title="Скачать CSV (Google Таблицы)" style={{
+            background:'var(--bg-accent,#F2EDE4)', border:'1.5px solid var(--border,#EAE3D8)',
+            borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:14, lineHeight:1,
+          }}>📊</button>
           <button onClick={printTasks} title="Распечатать" style={{
             background:'var(--bg-accent,#F2EDE4)', border:'1.5px solid var(--border,#EAE3D8)',
             borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:14, lineHeight:1,
