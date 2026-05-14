@@ -452,7 +452,7 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
 // ─── SORTABLE STAGE ITEM ─────────────────────────────────────────────────────
 function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggleStage, openId, setOpenId,
-  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, color, isDragging, onRename }) {
+  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, color, isDragging, onRename, onDeleteStage }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: stage })
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -546,6 +546,19 @@ function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggl
           </div>
         </div>
         <span onClick={() => toggleStage(stage)} style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4, cursor:'pointer' }}>{isOpen ? '▲' : '▼'}</span>
+        {canEdit && onDeleteStage && (
+          <button
+            onClick={e => { e.stopPropagation(); onDeleteStage(stage) }}
+            title="Удалить этап"
+            style={{
+              background:'none', border:'none', cursor:'pointer', padding:'2px 4px',
+              fontSize:13, color:'#C8C0B8', lineHeight:1, flexShrink:0,
+              borderRadius:4,
+            }}
+            onMouseEnter={e => e.currentTarget.style.color='#A32D2D'}
+            onMouseLeave={e => e.currentTarget.style.color='#C8C0B8'}
+          >✕</button>
+        )}
       </div>
 
       {isOpen && (
@@ -571,7 +584,7 @@ function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggl
 }
 
 function SortableStageList({ stageGroups, projStages, openStages, toggleStage, openId, setOpenId,
-  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, STAGE_COLORS, onReorder, onRename }) {
+  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, STAGE_COLORS, onReorder, onRename, onDeleteStage }) {
   const [activeId, setActiveId] = useState(null)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -617,6 +630,7 @@ function SortableStageList({ stageGroups, projStages, openStages, toggleStage, o
               color={STAGE_COLORS[gi % STAGE_COLORS.length]}
               isDragging={activeId === stage}
               onRename={onRename}
+              onDeleteStage={onDeleteStage}
             />
           ))}
         </div>
@@ -715,12 +729,18 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
   }
 
   const renameStage = async (oldName, newName) => {
-    // Update proj.stages array
     const updatedStages = projStages.map(s => s === oldName ? newName : s)
     await updateProject(proj.id, { stages: updatedStages })
-    // Update all tasks in this project that have this stage
     const affected = pTasks.filter(tk => tk.stage === oldName)
     await Promise.all(affected.map(tk => updateTask(tk.id, { stage: newName })))
+  }
+
+  const deleteStage = async (stageName) => {
+    const updatedStages = projStages.filter(s => s !== stageName)
+    await updateProject(proj.id, { stages: updatedStages })
+    // Clear stage from tasks that had this stage
+    const affected = pTasks.filter(tk => tk.stage === stageName)
+    await Promise.all(affected.map(tk => updateTask(tk.id, { stage: null })))
   }
 
   const moveStage = async (stageName, dir) => {
@@ -956,6 +976,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
         STAGE_COLORS={STAGE_COLORS}
         onReorder={async (newOrder) => { await updateProject(proj.id, { stages: newOrder }) }}
         onRename={canEdit ? renameStage : undefined}
+        onDeleteStage={canEdit ? deleteStage : undefined}
       />
 
       {/* ── Add Stage button (foreman only) ── */}
