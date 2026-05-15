@@ -1552,20 +1552,38 @@ function ProjectList({ onSelect, onEdit, onDelete = null, onComplete = null, onR
             </div>
           </div>
 
-          {/* Big progress */}
-          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
-            <div style={{
-              fontSize: 28, fontWeight: 800, color: accent,
-              fontFamily: 'monospace', lineHeight: 1, flexShrink: 0,
-            }}>{pPct}%</div>
-            <div style={{ flex:1 }}>
-              <div style={{ height: 6, background:'var(--border,#EAE3D8)', borderRadius:4, overflow:'hidden' }}>
-                <div style={{ height:'100%', borderRadius:4, background: accent, width:`${pPct}%`, transition:'width .4s' }} />
-              </div>
-              <div style={{ fontSize:10, color:'#B8AFA6', marginTop:3 }}>
+          {/* Dot progress */}
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ display:'flex', alignItems:'baseline', gap:6, marginBottom:6 }}>
+              <span style={{ fontSize:26, fontWeight:800, color:accent, fontFamily:'monospace', lineHeight:1 }}>{pPct}%</span>
+              <span style={{ fontSize:10, color:'#B8AFA6' }}>
                 {t('projects.tasksOf', { done: pDone, total: pTasks.length })}
-              </div>
+              </span>
             </div>
+            {pTasks.length === 0 ? (
+              <span style={{ fontSize:11, color:'#B8AFA6' }}>—</span>
+            ) : (
+              <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
+                {(pTasks.length <= 30 ? pTasks : null)?.map((tk, i) => (
+                  <div key={i} title={tk.text} style={{
+                    width: 9, height: 9, borderRadius: '50%', flexShrink: 0,
+                    background: tk.status === 'approved' ? accent : 'var(--border,#EAE3D8)',
+                    border: `1.5px solid ${tk.status === 'approved' ? accent : '#D9D0C7'}`,
+                    transition: 'background .2s',
+                  }} />
+                ))}
+                {pTasks.length > 30 && Array.from({ length: 15 }, (_, i) => {
+                  const threshold = Math.round(((i + 1) / 15) * 100)
+                  return (
+                    <div key={i} style={{
+                      width: 9, height: 9, borderRadius: '50%', flexShrink: 0,
+                      background: pPct >= threshold ? accent : 'var(--border,#EAE3D8)',
+                      border: `1.5px solid ${pPct >= threshold ? accent : '#D9D0C7'}`,
+                    }} />
+                  )
+                })}
+              </div>
+            )}
           </div>
 
           {/* Meta row */}
