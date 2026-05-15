@@ -1243,61 +1243,169 @@ function ProjectDetail({ proj, onBack, onEdit, canDelete = true, canEdit = true 
 }
 
 // ─── PROJECT LIST ────────────────────────────────────────────────────────────
-function ProjectList({ onSelect, onEdit, onDelete = null }) {
+function ProjectList({ onSelect, onEdit, onDelete = null, onComplete = null, onReopen = null }) {
   const { t } = useT()
-  const { projects, tasks, tools } = useStore()
+  const { projects, tasks } = useStore()
+  const [showCompleted, setShowCompleted] = useState(false)
 
-  const overdueTasks = tasks.filter(t => t.deadline && new Date(t.deadline) < new Date() && t.status !== 'approved').length
+  const active    = projects.filter(p => p.status !== 'completed')
+  const completed = projects.filter(p => p.status === 'completed')
+
+  const overdueTasks  = tasks.filter(t => t.deadline && new Date(t.deadline) < new Date() && t.status !== 'approved').length
   const pendingReview = tasks.filter(t => t.status === 'pending').length
+
+  const renderCard = (p, isCompleted = false) => {
+    const pTasks   = tasks.filter(t => t.project_id === p.id)
+    const pDone    = pTasks.filter(t => t.status === 'approved').length
+    const pPct     = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
+    const pPending = pTasks.filter(t => t.status === 'pending').length
+    const pOverdue = pTasks.filter(t => t.deadline && new Date(t.deadline) < new Date() && t.status !== 'approved').length
+
+    const accent = isCompleted ? '#5A9467' : pPct === 100 ? '#5A9467' : '#C96B3A'
+    const stages = Array.isArray(p.stages) ? p.stages : []
+
+    return (
+      <div
+        key={p.id}
+        onClick={() => onSelect(p.id)}
+        style={{
+          background: isCompleted ? 'var(--surface,#fff)' : 'var(--surface,#fff)',
+          border: `1.5px solid ${isCompleted ? '#C5DEC9' : 'var(--border,#EAE3D8)'}`,
+          borderRadius: 16,
+          overflow: 'hidden',
+          cursor: 'pointer',
+          transition: 'box-shadow .15s, transform .15s',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          opacity: isCompleted ? 0.85 : 1,
+          position: 'relative',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.boxShadow='0 6px 20px rgba(0,0,0,0.10)'; e.currentTarget.style.transform='translateY(-2px)' }}
+        onMouseLeave={e => { e.currentTarget.style.boxShadow='0 2px 8px rgba(0,0,0,0.04)'; e.currentTarget.style.transform='translateY(0)' }}
+      >
+        {/* Color top bar */}
+        <div style={{ height: 4, background: accent, width: `${pPct}%`, transition: 'width .4s' }} />
+        <div style={{ height: 0, background: 'var(--border,#EAE3D8)', marginTop: -4 }}>
+          <div style={{ height: 4, background: 'var(--border,#EAE3D8)', width: '100%' }} />
+        </div>
+
+        <div style={{ padding: '14px 14px 12px' }}>
+          {/* Top row: name + actions */}
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
+            <div style={{ fontSize:14, fontWeight:700, color: isCompleted ? '#5A9467' : 'var(--text-1,#2E2420)', lineHeight:1.3, flex:1, minWidth:0 }}>
+              {isCompleted ? '✅ ' : '🏗 '}{p.name}
+            </div>
+            <div style={{ display:'flex', gap:4, alignItems:'center', flexShrink:0 }}>
+              {onEdit && !isCompleted && (
+                <IconButton onClick={e => { e.stopPropagation(); onEdit(p) }} title="Редактировать">✏️</IconButton>
+              )}
+              {onDelete && (
+                <IconButton danger onClick={e => { e.stopPropagation(); onDelete(p.id) }} title="Удалить">🗑</IconButton>
+              )}
+            </div>
+          </div>
+
+          {/* Big progress */}
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+            <div style={{
+              fontSize: 28, fontWeight: 800, color: accent,
+              fontFamily: 'monospace', lineHeight: 1, flexShrink: 0,
+            }}>{pPct}%</div>
+            <div style={{ flex:1 }}>
+              <div style={{ height: 6, background:'var(--border,#EAE3D8)', borderRadius:4, overflow:'hidden' }}>
+                <div style={{ height:'100%', borderRadius:4, background: accent, width:`${pPct}%`, transition:'width .4s' }} />
+              </div>
+              <div style={{ fontSize:10, color:'#B8AFA6', marginTop:3 }}>
+                {pDone} из {pTasks.length} задач выполнено
+              </div>
+            </div>
+          </div>
+
+          {/* Meta row */}
+          <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'center', fontSize:11, color:'#B8AFA6', marginBottom: (pPending > 0 || pOverdue > 0 || (!isCompleted && onComplete)) ? 10 : 0 }}>
+            {p.address && <span>📍 {p.address}</span>}
+            {p.deadline && <span>📅 {p.deadline}</span>}
+            {stages.length > 0 && <span>📋 {stages.length} эт.</span>}
+          </div>
+
+          {/* Alert chips */}
+          {(pPending > 0 || pOverdue > 0) && (
+            <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom: !isCompleted && onComplete ? 10 : 0 }}>
+              {pPending > 0 && <span style={{ fontSize:10, background:'#FEF3C7', color:'#92400E', borderRadius:6, padding:'2px 7px', fontWeight:600 }}>🕐 {pPending} на проверке</span>}
+              {pOverdue > 0 && <span style={{ fontSize:10, background:'#FEE2E2', color:'#991B1B', borderRadius:6, padding:'2px 7px', fontWeight:600 }}>⚠️ {pOverdue} просрочено</span>}
+            </div>
+          )}
+
+          {/* Complete / Reopen button */}
+          {!isCompleted && onComplete && (
+            <button
+              onClick={e => { e.stopPropagation(); onComplete(p.id) }}
+              style={{
+                width:'100%', padding:'7px', borderRadius:8, border:'1.5px solid #C5DEC9',
+                background:'#F0FAF2', color:'#3D7A52', fontSize:12, fontWeight:600,
+                cursor:'pointer', marginTop: 2,
+              }}
+            >
+              ✓ Завершить объект
+            </button>
+          )}
+          {isCompleted && onReopen && (
+            <button
+              onClick={e => { e.stopPropagation(); onReopen(p.id) }}
+              style={{
+                width:'100%', padding:'7px', borderRadius:8, border:'1.5px solid var(--border,#EAE3D8)',
+                background:'var(--surface-2,#FDFBF8)', color:'#7A6E66', fontSize:12, fontWeight:600,
+                cursor:'pointer', marginTop: 2,
+              }}
+            >
+              ↩ Вернуть в работу
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div>
       {/* Summary chips */}
       {(overdueTasks > 0 || pendingReview > 0) && (
         <div className="summary-bar">
-          {overdueTasks > 0 && (
-            <div className="summary-chip danger">⚠️ {t('projects.overdue', { n: overdueTasks })}</div>
-          )}
-          {pendingReview > 0 && (
-            <div className="summary-chip warning">🕐 {t('projects.forReview', { n: pendingReview })}</div>
-          )}
+          {overdueTasks > 0 && <div className="summary-chip danger">⚠️ {t('projects.overdue', { n: overdueTasks })}</div>}
+          {pendingReview > 0 && <div className="summary-chip warning">🕐 {t('projects.forReview', { n: pendingReview })}</div>}
         </div>
       )}
 
-      {projects.length === 0 && <EmptyState>{t('projects.noProjects')}</EmptyState>}
+      {active.length === 0 && completed.length === 0 && <EmptyState>{t('projects.noProjects')}</EmptyState>}
 
-      <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-        {projects.map(p => {
-          const pTasks  = tasks.filter(t => t.project_id === p.id)
-          const pDone   = pTasks.filter(t => t.status === 'approved').length
-          const pActive = pTasks.filter(t => t.status !== 'approved').length
-          const pPct    = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
-          const pOverdue = pTasks.filter(t => t.deadline && new Date(t.deadline) < new Date() && t.status !== 'approved').length
-          const pPending = pTasks.filter(t => t.status === 'pending').length
-          return (
-            <div key={p.id} onClick={() => onSelect(p.id)} className="proj-card">
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:7 }}>
-                <div style={{ fontSize:14, fontWeight:700, color:'#2E2420' }}>🏗 {p.name}</div>
-                <div style={{ display:'flex', gap:6, alignItems:'center' }}>
-                  <div style={{ fontSize:12, fontWeight:700, color:'#C96B3A', fontFamily:'monospace' }}>{pPct}%</div>
-                  {onEdit && <IconButton onClick={e => { e.stopPropagation(); onEdit(p) }} title="Edit">✏️</IconButton>}
-                  {onDelete && <IconButton danger onClick={e => { e.stopPropagation(); onDelete(p.id) }} title="Delete">🗑</IconButton>}
-                </div>
-              </div>
-              <div style={{ height:4, background:'#EAE3D8', borderRadius:4, overflow:'hidden', marginBottom:8 }}>
-                <div style={{ height:4, borderRadius:4, background:'#C96B3A', width:`${pPct}%`, transition:'width .4s' }} />
-              </div>
-              <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
-                {p.deadline && <span style={{ fontSize:11, color:'#B8AFA6' }}>📅 {p.deadline}</span>}
-                <span style={{ fontSize:11, color:'#B8AFA6' }}>✅ {pDone}/{pTasks.length}</span>
-                {pActive  > 0 && <span style={{ fontSize:11, color:'#C96B3A', fontWeight:600 }}>⚡ {pActive}</span>}
-                {pPending > 0 && <span style={{ fontSize:11, color:'#D4A843', fontWeight:600 }}>🕐 {pPending}</span>}
-                {pOverdue > 0 && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600 }}>⚠️ {pOverdue}</span>}
-              </div>
+      {/* Active projects grid */}
+      {active.length > 0 && (
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:14, marginBottom:24 }}>
+          {active.map(p => renderCard(p, false))}
+        </div>
+      )}
+
+      {/* Completed section */}
+      {completed.length > 0 && (
+        <div>
+          <button
+            onClick={() => setShowCompleted(v => !v)}
+            style={{
+              display:'flex', alignItems:'center', gap:8, width:'100%',
+              background:'none', border:'none', cursor:'pointer', padding:'10px 0',
+              borderTop:'1.5px solid var(--border,#EAE3D8)',
+            }}
+          >
+            <span style={{ fontSize:13, fontWeight:700, color:'#5A9467' }}>✅ Завершённые объекты</span>
+            <span style={{ fontSize:12, color:'#B8AFA6', background:'#E8F2EB', borderRadius:12, padding:'1px 8px', fontWeight:600 }}>{completed.length}</span>
+            <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6' }}>{showCompleted ? '▲' : '▼'}</span>
+          </button>
+          {showCompleted && (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:14, marginTop:10 }}>
+              {completed.map(p => renderCard(p, true))}
             </div>
-          )
-        })}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -1465,6 +1573,9 @@ export function Projects({ canDelete = true, canEdit = true }) {
     if (selectedProjectId === id) setSelectedProject(null)
   }
 
+  const completeProject = (id) => updateProject(id, { status: 'completed' })
+  const reopenProject   = (id) => updateProject(id, { status: 'active' })
+
   const selectedProj = projects.find(p => p.id === selectedProjectId)
 
   return (
@@ -1480,6 +1591,8 @@ export function Projects({ canDelete = true, canEdit = true }) {
             onSelect={(id) => setSelectedProject(id)}
             onEdit={canEdit ? openEdit : null}
             onDelete={canDelete ? (id) => setConfirmId(id) : null}
+            onComplete={canEdit ? completeProject : null}
+            onReopen={canEdit ? reopenProject : null}
           />
         </>
       ) : (
