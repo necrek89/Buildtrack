@@ -29,6 +29,7 @@ export const useStore = create((set, get) => ({
   activityLog: [],
   joinRequests: [],
   materials: loadMaterials(),
+  documents: [],
   loading: false,
   selectedProjectId: null,
   setSelectedProject: (id) => set({ selectedProjectId: id }),
@@ -552,6 +553,27 @@ export const useStore = create((set, get) => ({
       get().logActivity({ action_type: 'comment_added', entity_name: task?.text || null, entity_id: String(taskId), project_id: task?.project_id || null })
     }
     return { data, error }
+  },
+  // ── DOCUMENTS ────────────────────────────────────────────────────────────────
+  fetchDocuments: async (projectId) => {
+    const { data } = await supabase
+      .from('documents')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+    set({ documents: data || [] })
+  },
+
+  addDocument: async (doc) => {
+    const { data, error } = await supabase.from('documents').insert(doc).select().single()
+    if (!error && data) set(s => ({ documents: [data, ...s.documents] }))
+    return { data, error }
+  },
+
+  deleteDocument: async (id) => {
+    const { error } = await supabase.from('documents').delete().eq('id', id)
+    if (!error) set(s => ({ documents: s.documents.filter(d => d.id !== id) }))
+    return { error }
   },
 }))
 

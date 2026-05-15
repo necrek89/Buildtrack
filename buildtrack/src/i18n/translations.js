@@ -77,7 +77,7 @@ const t = {
     },
     detail: {
       overview: 'Overview', tasks: 'Tasks', materials: 'Materials',
-      stages: 'Stages', photos: 'Photos', team: 'Team',
+      stages: 'Stages', photos: 'Photos', team: 'Team', docs: 'Documents',
       progress: 'Progress', active: 'Active', daysLeft: 'Days left',
       deadlineLabel: 'Deadline:', daysLeftText: '{n} days left',
       editProject: 'Edit Project',
@@ -87,6 +87,9 @@ const t = {
       workers: 'Workers',
       tasksDone: 'Tasks done',
       noStages: 'Add stages to organize tasks',
+      docsEmpty: 'No documents yet', docsUpload: 'Upload file',
+      docsUploading: 'Uploading…', docsOpen: 'Open', docsDownload: 'Download',
+      docsDeleteConfirm: 'Delete this document?',
     },
     tasks: {
       title: 'My Tasks', add: '+ Task',
@@ -321,7 +324,7 @@ const t = {
     },
     detail: {
       overview: 'Обзор', tasks: 'Задачи', materials: 'Материалы',
-      stages: 'Этапы', photos: 'Фото', team: 'Бригада',
+      stages: 'Этапы', photos: 'Фото', team: 'Бригада', docs: 'Документы',
       progress: 'Прогресс', active: 'Активные', daysLeft: 'Дней осталось',
       deadlineLabel: 'Срок:', daysLeftText: 'осталось {n} дн.',
       editProject: 'Редактировать',
@@ -331,6 +334,9 @@ const t = {
       workers: 'Рабочих',
       tasksDone: 'Задач выполнено',
       noStages: 'Добавьте этапы для организации задач',
+      docsEmpty: 'Документов пока нет', docsUpload: 'Загрузить файл',
+      docsUploading: 'Загрузка…', docsOpen: 'Открыть', docsDownload: 'Скачать',
+      docsDeleteConfirm: 'Удалить документ?',
     },
     tasks: {
       title: 'Мои задачи', add: '+ Задача',
@@ -569,6 +575,9 @@ const t = {
       toolsOnSite: 'Alati na gradilištu', noTools: 'Nema dodijeljenih alata',
       noTeam: 'Nema članova tima na ovom projektu',
       workers: 'Radnika', tasksDone: 'Završenih zadataka', noStages: 'Dodajte faze za organizaciju zadataka',
+      docs: 'Dokumenti', docsEmpty: 'Još nema dokumenata', docsUpload: 'Otpremi fajl',
+      docsUploading: 'Otpremanje…', docsOpen: 'Otvori', docsDownload: 'Preuzmi',
+      docsDeleteConfirm: 'Obrisati dokument?',
     },
     tasks: {
       title: 'Moji zadaci', add: '+ Zadatak',
@@ -807,6 +816,9 @@ const t = {
       toolsOnSite: 'Herramientas en obra', noTools: 'Sin herramientas asignadas',
       noTeam: 'No hay miembros en este proyecto',
       workers: 'Trabajadores', tasksDone: 'Tareas completadas', noStages: 'Agrega etapas para organizar tareas',
+      docs: 'Documentos', docsEmpty: 'Sin documentos aún', docsUpload: 'Subir archivo',
+      docsUploading: 'Subiendo…', docsOpen: 'Abrir', docsDownload: 'Descargar',
+      docsDeleteConfirm: '¿Eliminar documento?',
     },
     tasks: {
       title: 'Mis tareas', add: '+ Tarea',
@@ -1045,6 +1057,9 @@ const t = {
       toolsOnSite: 'Ferramentas no canteiro', noTools: 'Sem ferramentas atribuídas',
       noTeam: 'Sem membros neste projeto',
       workers: 'Trabalhadores', tasksDone: 'Tarefas concluídas', noStages: 'Adicione etapas para organizar tarefas',
+      docs: 'Documentos', docsEmpty: 'Sem documentos ainda', docsUpload: 'Enviar arquivo',
+      docsUploading: 'Enviando…', docsOpen: 'Abrir', docsDownload: 'Baixar',
+      docsDeleteConfirm: 'Excluir documento?',
     },
     tasks: {
       title: 'Minhas tarefas', add: '+ Tarefa',
@@ -1283,6 +1298,9 @@ const t = {
       toolsOnSite: 'Werkzeuge vor Ort', noTools: 'Keine Werkzeuge zugewiesen',
       noTeam: 'Keine Teammitglieder in diesem Projekt',
       workers: 'Mitarbeiter', tasksDone: 'Aufgaben erledigt', noStages: 'Fügen Sie Phasen hinzu',
+      docs: 'Dokumente', docsEmpty: 'Noch keine Dokumente', docsUpload: 'Datei hochladen',
+      docsUploading: 'Hochladen…', docsOpen: 'Öffnen', docsDownload: 'Herunterladen',
+      docsDeleteConfirm: 'Dokument löschen?',
     },
     tasks: {
       title: 'Meine Aufgaben', add: '+ Aufgabe',
@@ -1521,6 +1539,9 @@ const t = {
       toolsOnSite: 'Outils sur chantier', noTools: 'Aucun outil assigné',
       noTeam: 'Aucun membre dans ce projet',
       workers: 'Ouvriers', tasksDone: 'Tâches accomplies', noStages: 'Ajoutez des phases pour organiser',
+      docs: 'Documents', docsEmpty: 'Aucun document pour l\'instant', docsUpload: 'Téléverser un fichier',
+      docsUploading: 'Téléversement…', docsOpen: 'Ouvrir', docsDownload: 'Télécharger',
+      docsDeleteConfirm: 'Supprimer ce document ?',
     },
     tasks: {
       title: 'Mes tâches', add: '+ Tâche',
