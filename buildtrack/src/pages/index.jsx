@@ -846,15 +846,14 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
       const lines = text.split(/\r?\n/).filter(l => l.trim())
       if (lines.length < 2) return
 
-      // Auto-detect separator: semicolon (Excel RU) or comma
+      // Auto-detect separator
       const header = lines[0]
       const sep = (header.split(';').length > header.split(',').length) ? ';' : ','
 
       const parseLine = (line) => {
         const cols = []
         let cur = '', inQ = false
-        for (let i = 0; i < line.length; i++) {
-          const ch = line[i]
+        for (const ch of line) {
           if (ch === '"') { inQ = !inQ }
           else if (ch === sep && !inQ) { cols.push(cur.trim()); cur = '' }
           else cur += ch
@@ -863,16 +862,35 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
         return cols
       }
 
+      // Map headers → column indexes by keyword (case-insensitive)
+      const headers = parseLine(header).map(h => h.toLowerCase().replace(/[^а-яёa-z0-9]/gi, ''))
+      const find = (...keys) => headers.findIndex(h => keys.some(k => h.includes(k)))
+
+      const iStage    = find('этап', 'stage', 'фаза', 'раздел', 'группа')
+      const iText     = find('назв', 'наим', 'задач', 'title', 'name', 'работ')
+      const iDesc     = find('описан', 'desc', 'примеч', 'коммент')
+      const iUnit     = find('ед', 'unit', 'един')
+      const iQty      = find('кол', 'qty', 'количе', 'объём', 'объем')
+      const iCost     = find('сумм', 'цен', 'стоим', 'cost', 'price')
+      const iCurrency = find('валют', 'curr')
+
+      if (iText === -1) {
+        alert('Не найдена колонка с названием задачи. Убедитесь что в заголовке есть слово "Название" или "Наименование".')
+        return
+      }
+
+      const toNum = (s) => { if (!s) return null; const n = parseFloat(s.replace(',', '.')); return isNaN(n) ? null : n }
+
       const rows = lines.slice(1).map(line => {
-        const cols = parseLine(line)
+        const c = parseLine(line)
         return {
-          stage:       cols[0] || '',
-          text:        cols[1] || '',
-          description: cols[2] || '',
-          unit:        cols[3] || '',
-          quantity:    cols[4] ? parseFloat(cols[4].replace(',', '.')) : null,
-          cost:        cols[5] ? parseFloat(cols[5].replace(',', '.')) : null,
-          currency:    cols[6] || '$',
+          stage:       iStage    >= 0 ? (c[iStage]    || '') : '',
+          text:                          c[iText]     || '',
+          description: iDesc     >= 0 ? (c[iDesc]     || '') : '',
+          unit:        iUnit     >= 0 ? (c[iUnit]     || '') : '',
+          quantity:    iQty      >= 0 ? toNum(c[iQty])       : null,
+          cost:        iCost     >= 0 ? toNum(c[iCost])      : null,
+          currency:    iCurrency >= 0 ? (c[iCurrency] || '$') : '$',
         }
       }).filter(r => r.text.trim())
 
