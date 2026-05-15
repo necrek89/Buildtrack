@@ -197,7 +197,7 @@ function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApprove, onReject,
             )}
             {t.cost != null && (
               <span style={{ fontSize:10, background:'#EDFAF2', color:'#2E7D52', borderRadius:5, padding:'1px 6px', fontWeight:600 }}>
-                ₽ {Number(t.cost).toLocaleString('ru-RU')}
+                {t.currency || '₽'} {Number(t.cost).toLocaleString('ru-RU')}
               </span>
             )}
             {t.deadline && <span style={{ fontSize:10, color:'#B8AFA6' }}>📅 {t.deadline}</span>}
@@ -788,7 +788,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
         tk.description || '',
         tk.unit || '',
         tk.quantity ?? '',
-        tk.cost ?? '',
+        tk.cost != null ? `${tk.cost} ${tk.currency || '₽'}` : '',
         STATUS_RU[tk.status] || tk.status,
       ].map(escape).join(','))
     )
@@ -829,7 +829,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
           <td class="col-name">${tk.text}${tk.description ? `<div class="desc">${tk.description}</div>` : ''}</td>
           <td class="col-unit">${tk.unit || ''}</td>
           <td class="col-qty">${tk.quantity != null ? tk.quantity : ''}</td>
-          <td class="col-cost">${tk.cost != null ? Number(tk.cost).toLocaleString('ru-RU') : ''}</td>
+          <td class="col-cost">${tk.cost != null ? `${Number(tk.cost).toLocaleString('ru-RU')} ${tk.currency || '₽'}` : ''}</td>
         </tr>`
       }).join('')
       return `
