@@ -1278,6 +1278,7 @@ function ProjectList({ onSelect, onEdit, onDelete = null, onComplete = null, onR
           boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           opacity: isCompleted ? 0.85 : 1,
           position: 'relative',
+          display: 'flex', flexDirection: 'column',
         }}
         onMouseEnter={e => { e.currentTarget.style.boxShadow='0 6px 20px rgba(0,0,0,0.10)'; e.currentTarget.style.transform='translateY(-2px)' }}
         onMouseLeave={e => { e.currentTarget.style.boxShadow='0 2px 8px rgba(0,0,0,0.04)'; e.currentTarget.style.transform='translateY(0)' }}
@@ -1288,7 +1289,7 @@ function ProjectList({ onSelect, onEdit, onDelete = null, onComplete = null, onR
           <div style={{ height: 4, background: 'var(--border,#EAE3D8)', width: '100%' }} />
         </div>
 
-        <div style={{ padding: '14px 14px 12px' }}>
+        <div style={{ padding: '14px 14px 12px', display:'flex', flexDirection:'column', flex:1 }}>
           {/* Top row: name + actions */}
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
             <div style={{ fontSize:14, fontWeight:700, color: isCompleted ? '#5A9467' : 'var(--text-1,#2E2420)', lineHeight:1.3, flex:1, minWidth:0 }}>
@@ -1335,31 +1336,33 @@ function ProjectList({ onSelect, onEdit, onDelete = null, onComplete = null, onR
             </div>
           )}
 
-          {/* Complete / Reopen button */}
-          {!isCompleted && onComplete && (
-            <button
-              onClick={e => { e.stopPropagation(); onComplete(p.id) }}
-              style={{
-                width:'100%', padding:'7px', borderRadius:8, border:'1.5px solid #C5DEC9',
-                background:'#F0FAF2', color:'#3D7A52', fontSize:12, fontWeight:600,
-                cursor:'pointer', marginTop: 2,
-              }}
-            >
-              ✓ Завершить объект
-            </button>
-          )}
-          {isCompleted && onReopen && (
-            <button
-              onClick={e => { e.stopPropagation(); onReopen(p.id) }}
-              style={{
-                width:'100%', padding:'7px', borderRadius:8, border:'1.5px solid var(--border,#EAE3D8)',
-                background:'var(--surface-2,#FDFBF8)', color:'#7A6E66', fontSize:12, fontWeight:600,
-                cursor:'pointer', marginTop: 2,
-              }}
-            >
-              ↩ Вернуть в работу
-            </button>
-          )}
+          {/* Complete / Reopen button — always at bottom */}
+          <div style={{ marginTop:'auto', paddingTop: 10 }}>
+            {!isCompleted && onComplete && (
+              <button
+                onClick={e => { e.stopPropagation(); onComplete(p.id) }}
+                style={{
+                  width:'100%', padding:'7px', borderRadius:8, border:'1.5px solid #C5DEC9',
+                  background:'#F0FAF2', color:'#3D7A52', fontSize:12, fontWeight:600,
+                  cursor:'pointer',
+                }}
+              >
+                ✓ Завершить объект
+              </button>
+            )}
+            {isCompleted && onReopen && (
+              <button
+                onClick={e => { e.stopPropagation(); onReopen(p.id) }}
+                style={{
+                  width:'100%', padding:'7px', borderRadius:8, border:'1.5px solid var(--border,#EAE3D8)',
+                  background:'var(--surface-2,#FDFBF8)', color:'#7A6E66', fontSize:12, fontWeight:600,
+                  cursor:'pointer',
+                }}
+              >
+                ↩ Вернуть в работу
+              </button>
+            )}
+          </div>
         </div>
       </div>
     )

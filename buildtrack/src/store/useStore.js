@@ -142,7 +142,13 @@ export const useStore = create((set, get) => ({
       query = query.in('project_id', ids)
     }
     const { data } = await query.order('created_at', { ascending: false })
-    set({ tasks: data || [] })
+    if (projectId) {
+      // Merge: replace only tasks for this project, keep others intact
+      const others = get().tasks.filter(t => t.project_id !== projectId)
+      set({ tasks: [...others, ...(data || [])] })
+    } else {
+      set({ tasks: data || [] })
+    }
   },
 
   // Recalculate project progress = approved / total * 100 (auto, no manual slider)
