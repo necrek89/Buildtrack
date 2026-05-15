@@ -1,7 +1,7 @@
 -- Documents table for project file storage
 create table if not exists documents (
   id           uuid primary key default gen_random_uuid(),
-  project_id   uuid references projects(id) on delete cascade not null,
+  project_id   bigint references projects(id) on delete cascade not null,
   name         text not null,
   url          text not null,
   size         bigint,
