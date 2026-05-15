@@ -57,7 +57,7 @@ async function compressImage(file, maxPx = 1400, quality = 0.82) {
 
 export default function TaskModal({ task, onClose, defaultProjectId }) {
   const { t } = useT()
-  const { addTask, updateTask, projects, fetchProjects, fetchWorkers, profile } = useStore()
+  const { addTask, updateTask, fetchTasks, projects, fetchProjects, fetchWorkers, profile } = useStore()
   const isEdit = !!task
   const [workers,   setWorkers]   = useState([])
   const [uploading, setUploading] = useState(false)
@@ -133,8 +133,13 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
 
   const removeMedia = (url) => setMediaUrls(prev => prev.filter(u => u !== url))
 
+  const [saveError, setSaveError] = useState(null)
+  const [saving,    setSaving]    = useState(false)
+
   const save = async () => {
     if (!form.text.trim()) return
+    setSaving(true)
+    setSaveError(null)
     const payload = {
       ...form,
       worker_id: form.worker_id || null,
@@ -143,11 +148,19 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
       quantity:  form.quantity ? parseFloat(form.quantity) : null,
       unit:      form.unit || null,
     }
+    let error
     if (isEdit) {
-      await updateTask(task.id, payload)
+      ;({ error } = await updateTask(task.id, payload))
     } else {
-      await addTask({ ...payload, status: 'new' })
+      ;({ error } = await addTask({ ...payload, status: 'new' }))
     }
+    setSaving(false)
+    if (error) {
+      setSaveError(error.message || 'Ошибка сохранения')
+      return
+    }
+    // Refresh tasks to get full data with joins (worker name etc.)
+    if (form.project_id) await fetchTasks(form.project_id)
     onClose()
   }
 
@@ -315,10 +328,15 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
 
         </div>
 
+        {saveError && (
+          <div style={{ margin:'8px 0 0', padding:'8px 12px', background:'#FEE2E2', color:'#991B1B', borderRadius:8, fontSize:12 }}>
+            ⚠️ {saveError}
+          </div>
+        )}
         <div className="modal-actions" style={{ paddingTop:12, borderTop:'1px solid #EAE3D8', marginTop:4 }}>
           <Button size="sm" onClick={onClose}>{t('common.cancel')}</Button>
-          <Button variant="primary" size="sm" onClick={save}>
-            {isEdit ? t('common.save') : t('tasks.addBtn')}
+          <Button variant="primary" size="sm" onClick={save} disabled={saving}>
+            {saving ? '...' : isEdit ? t('common.save') : t('tasks.addBtn')}
           </Button>
         </div>
       </div>
