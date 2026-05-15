@@ -842,28 +842,45 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
     if (!file) return
     const reader = new FileReader()
     reader.onload = (ev) => {
-      const text = ev.target.result.replace(/^﻿/, '') // strip BOM
-      const lines = text.split(/\r?\n/).filter(l => l.trim())
-      if (lines.length < 2) return
+      const raw = ev.target.result.replace(/^﻿/, '') // strip BOM
 
-      // Auto-detect separator
-      const header = lines[0]
-      const sep = (header.split(';').length > header.split(',').length) ? ';' : ','
+      // Auto-detect separator from first line
+      const firstNewline = raw.indexOf('\n')
+      const firstLine = raw.slice(0, firstNewline < 0 ? undefined : firstNewline)
+      const sep = (firstLine.split(';').length > firstLine.split(',').length) ? ';' : ','
 
-      const parseLine = (line) => {
-        const cols = []
-        let cur = '', inQ = false
-        for (const ch of line) {
-          if (ch === '"') { inQ = !inQ }
-          else if (ch === sep && !inQ) { cols.push(cur.trim()); cur = '' }
-          else cur += ch
+      // Full RFC-4180 CSV parser — handles multiline quoted fields
+      const parseCSV = (text) => {
+        const rows = []
+        let row = [], cur = '', inQ = false, i = 0
+        while (i < text.length) {
+          const ch = text[i]
+          if (ch === '"') {
+            if (inQ && text[i + 1] === '"') { cur += '"'; i += 2; continue } // escaped ""
+            inQ = !inQ; i++; continue
+          }
+          if (ch === sep && !inQ) {
+            row.push(cur.trim()); cur = ''; i++; continue
+          }
+          if ((ch === '\r' || ch === '\n') && !inQ) {
+            if (ch === '\r' && text[i + 1] === '\n') i++ // skip \r in \r\n
+            row.push(cur.trim())
+            if (row.some(c => c !== '')) rows.push(row)
+            row = []; cur = ''; i++; continue
+          }
+          cur += ch; i++
         }
-        cols.push(cur.trim())
-        return cols
+        // last row
+        row.push(cur.trim())
+        if (row.some(c => c !== '')) rows.push(row)
+        return rows
       }
 
-      // Map headers → column indexes by keyword (case-insensitive)
-      const headers = parseLine(header).map(h => h.toLowerCase().replace(/[^а-яёa-z0-9]/gi, ''))
+      const allRows = parseCSV(raw)
+      if (allRows.length < 2) return
+
+      // Map headers → column indexes by keyword
+      const headers = allRows[0].map(h => h.toLowerCase().replace(/[^а-яёa-z0-9]/gi, ''))
       const find = (...keys) => headers.findIndex(h => keys.some(k => h.includes(k)))
 
       const iStage    = find('этап', 'stage', 'фаза', 'раздел', 'группа')
@@ -881,18 +898,15 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
 
       const toNum = (s) => { if (!s) return null; const n = parseFloat(s.replace(',', '.')); return isNaN(n) ? null : n }
 
-      const rows = lines.slice(1).map(line => {
-        const c = parseLine(line)
-        return {
-          stage:       iStage    >= 0 ? (c[iStage]    || '') : '',
-          text:                          c[iText]     || '',
-          description: iDesc     >= 0 ? (c[iDesc]     || '') : '',
-          unit:        iUnit     >= 0 ? (c[iUnit]     || '') : '',
-          quantity:    iQty      >= 0 ? toNum(c[iQty])       : null,
-          cost:        iCost     >= 0 ? toNum(c[iCost])      : null,
-          currency:    iCurrency >= 0 ? (c[iCurrency] || '$') : '$',
-        }
-      }).filter(r => r.text.trim())
+      const rows = allRows.slice(1).map(c => ({
+        stage:       iStage    >= 0 ? (c[iStage]    || '') : '',
+        text:                          c[iText]     || '',
+        description: iDesc     >= 0 ? (c[iDesc]     || '') : '',
+        unit:        iUnit     >= 0 ? (c[iUnit]     || '') : '',
+        quantity:    iQty      >= 0 ? toNum(c[iQty])       : null,
+        cost:        iCost     >= 0 ? toNum(c[iCost])      : null,
+        currency:    iCurrency >= 0 ? (c[iCurrency] || '$') : '$',
+      })).filter(r => r.text.trim())
 
       setImportPreview(rows)
     }
