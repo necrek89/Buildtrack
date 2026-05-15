@@ -453,10 +453,61 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
   )
 }
 
+// ─── QUICK ADD ROW ───────────────────────────────────────────────────────────
+function QuickAddRow({ stage, onAdd }) {
+  const [val, setVal] = useState('')
+  const [busy, setBusy] = useState(false)
+  const ref = useRef()
+
+  const submit = async () => {
+    const text = val.trim()
+    if (!text) return
+    setBusy(true)
+    await onAdd(text, stage)
+    setVal('')
+    setBusy(false)
+    ref.current?.focus()
+  }
+
+  return (
+    <div style={{
+      display:'flex', alignItems:'center', gap:6,
+      borderTop:'1px solid var(--border,#F2EDE6)',
+      padding:'7px 12px', background:'var(--surface-2,#FDFBF8)',
+    }}>
+      <span style={{ fontSize:14, color:'#C8C0B8', flexShrink:0 }}>+</span>
+      <input
+        ref={ref}
+        value={val}
+        onChange={e => setVal(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setVal('') }}
+        placeholder="Быстрое добавление задачи..."
+        disabled={busy}
+        style={{
+          flex:1, border:'none', outline:'none', background:'transparent',
+          fontSize:13, color:'var(--text-1,#2E2420)', fontFamily:'inherit',
+          opacity: busy ? 0.5 : 1,
+        }}
+      />
+      {val.trim() && (
+        <button
+          onClick={submit}
+          disabled={busy}
+          style={{
+            background:'#C96B3A', color:'#fff', border:'none',
+            borderRadius:6, padding:'3px 10px', fontSize:12,
+            fontWeight:600, cursor:'pointer', flexShrink:0,
+          }}
+        >{busy ? '...' : 'Enter ↵'}</button>
+      )}
+    </div>
+  )
+}
+
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
 // ─── SORTABLE STAGE ITEM ─────────────────────────────────────────────────────
 function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggleStage, openId, setOpenId,
-  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, color, isDragging, onRename, onDeleteStage }) {
+  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, color, isDragging, onRename, onDeleteStage, onQuickAdd }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: stage })
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -581,6 +632,9 @@ function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggl
               />
             </div>
           ))}
+          {canEdit && onQuickAdd && (
+            <QuickAddRow stage={stage} onAdd={onQuickAdd} />
+          )}
         </div>
       )}
     </div>
@@ -588,7 +642,7 @@ function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggl
 }
 
 function SortableStageList({ stageGroups, projStages, openStages, toggleStage, openId, setOpenId,
-  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, STAGE_COLORS, onReorder, onRename, onDeleteStage }) {
+  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, STAGE_COLORS, onReorder, onRename, onDeleteStage, onQuickAdd }) {
   const [activeId, setActiveId] = useState(null)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -635,6 +689,7 @@ function SortableStageList({ stageGroups, projStages, openStages, toggleStage, o
               isDragging={activeId === stage}
               onRename={onRename}
               onDeleteStage={onDeleteStage}
+              onQuickAdd={onQuickAdd}
             />
           ))}
         </div>
@@ -662,7 +717,7 @@ function SortableStageList({ stageGroups, projStages, openStages, toggleStage, o
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
 function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], team = [] }) {
   const { t } = useT()
-  const { tasks, fetchTasks, deleteTask, approveTask, rejectTask, updateProject, updateTask } = useStore()
+  const { tasks, fetchTasks, addTask, deleteTask, approveTask, rejectTask, updateProject, updateTask } = useStore()
   const [filter,       setFilter]       = useState('all')
   const [showAdd,      setShowAdd]      = useState(false)
   const [editTask,     setEditTask]     = useState(null)
@@ -671,6 +726,8 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
   const [openStages,   setOpenStages]   = useState({})
   const [newStageName, setNewStageName] = useState('')
   const [addingStage,  setAddingStage]  = useState(false)
+  const [importPreview, setImportPreview] = useState(null) // [{text,stage,unit,quantity,cost,currency}]
+  const importRef = useRef()
 
   useEffect(() => { fetchTasks(proj.id) }, [proj.id])
 
@@ -755,6 +812,83 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
     const updated = [...projStages]
     ;[updated[idx], updated[newIdx]] = [updated[newIdx], updated[idx]]
     await updateProject(proj.id, { stages: updated })
+  }
+
+  // ── Quick inline add ──────────────────────────────────────────────────────
+  const quickAdd = async (text, stage) => {
+    await addTask({ text, stage: stage === '—' ? null : stage, project_id: proj.id, status: 'new', priority: 'normal' })
+    await fetchTasks(proj.id)
+  }
+
+  // ── CSV Import ────────────────────────────────────────────────────────────
+  const downloadTemplate = () => {
+    const bom = '﻿'
+    const csv = bom + [
+      'Этап,Название задачи,Описание,Ед.изм.,Кол-во,Сумма,Валюта',
+      'Фундамент,Заливка бетона,Марка М300,куб.м,50,5000,$',
+      'Фундамент,Армирование,,кг,800,,',
+      'Стены,Кладка кирпича,,кв.м,120,12000,€',
+    ].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = 'шаблон_задачи.csv'
+    a.click()
+  }
+
+  const handleImportFile = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const text = ev.target.result.replace(/^﻿/, '') // strip BOM
+      const lines = text.split(/\r?\n/).filter(l => l.trim())
+      if (lines.length < 2) return
+      // Skip header row
+      const rows = lines.slice(1).map(line => {
+        // Simple CSV parse (handles quoted fields)
+        const cols = []
+        let cur = '', inQ = false
+        for (let i = 0; i < line.length; i++) {
+          if (line[i] === '"') { inQ = !inQ }
+          else if (line[i] === ',' && !inQ) { cols.push(cur.trim()); cur = '' }
+          else cur += line[i]
+        }
+        cols.push(cur.trim())
+        return {
+          stage:    cols[0] || '',
+          text:     cols[1] || '',
+          description: cols[2] || '',
+          unit:     cols[3] || '',
+          quantity: cols[4] ? parseFloat(cols[4]) : null,
+          cost:     cols[5] ? parseFloat(cols[5]) : null,
+          currency: cols[6] || '$',
+        }
+      }).filter(r => r.text)
+      setImportPreview(rows)
+    }
+    reader.readAsText(file, 'utf-8')
+    e.target.value = ''
+  }
+
+  const confirmImport = async () => {
+    if (!importPreview?.length) return
+    for (const row of importPreview) {
+      await addTask({
+        text: row.text,
+        description: row.description || null,
+        stage: row.stage || null,
+        unit: row.unit || null,
+        quantity: row.quantity,
+        cost: row.cost,
+        currency: row.currency || '$',
+        project_id: proj.id,
+        status: 'new',
+        priority: 'normal',
+      })
+    }
+    await fetchTasks(proj.id)
+    setImportPreview(null)
   }
 
   const exportCSV = () => {
@@ -953,6 +1087,17 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
           ))}
         </div>
         <div style={{ display:'flex', gap:6 }}>
+          {canEdit && <>
+            <input ref={importRef} type="file" accept=".csv" style={{ display:'none' }} onChange={handleImportFile} />
+            <button onClick={downloadTemplate} title="Скачать шаблон CSV" style={{
+              background:'var(--bg-accent,#F2EDE4)', border:'1.5px solid var(--border,#EAE3D8)',
+              borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:14, lineHeight:1,
+            }}>📋</button>
+            <button onClick={() => importRef.current?.click()} title="Импорт задач из CSV" style={{
+              background:'var(--bg-accent,#F2EDE4)', border:'1.5px solid var(--border,#EAE3D8)',
+              borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:14, lineHeight:1,
+            }}>📥</button>
+          </>}
           <button onClick={exportCSV} title="Скачать CSV (Google Таблицы)" style={{
             background:'var(--bg-accent,#F2EDE4)', border:'1.5px solid var(--border,#EAE3D8)',
             borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:14, lineHeight:1,
@@ -985,6 +1130,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
         onReorder={async (newOrder) => { await updateProject(proj.id, { stages: newOrder }) }}
         onRename={canEdit ? renameStage : undefined}
         onDeleteStage={canEdit ? deleteStage : undefined}
+        onQuickAdd={canEdit ? quickAdd : undefined}
       />
 
       {/* ── Add Stage button (foreman only) ── */}
@@ -1039,6 +1185,47 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
         <ConfirmModal icon="🗑️" title={t('tasks.deleteTitle')} sub={tasks.find(t => t.id === deleteId)?.text}
           onConfirm={() => { deleteTask(deleteId); setDeleteId(null) }}
           onCancel={() => setDeleteId(null)} />
+      )}
+
+      {/* ── Import preview modal ── */}
+      {importPreview && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setImportPreview(null)}>
+          <div className="modal" style={{ maxWidth:700, maxHeight:'85dvh', display:'flex', flexDirection:'column' }}>
+            <div className="modal-title">📥 Импорт задач — проверьте перед добавлением</div>
+            <div style={{ overflowY:'auto', flex:1 }}>
+              <div style={{ fontSize:12, color:'#888', marginBottom:10 }}>
+                Найдено {importPreview.length} задач. Нажмите «Импортировать» чтобы добавить все.
+              </div>
+              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
+                <thead>
+                  <tr style={{ background:'var(--bg-accent,#F2EDE4)' }}>
+                    {['Этап','Название','Описание','Ед.изм.','Кол-во','Сумма'].map(h => (
+                      <th key={h} style={{ padding:'6px 8px', textAlign:'left', border:'1px solid var(--border,#EAE3D8)', fontWeight:700, fontSize:11, color:'#7A6E66' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {importPreview.map((r, i) => (
+                    <tr key={i} style={{ background: i%2===0 ? 'var(--surface,#fff)' : 'var(--surface-2,#FDFBF8)' }}>
+                      <td style={{ padding:'5px 8px', border:'1px solid var(--border,#EAE3D8)', color:'#888' }}>{r.stage || '—'}</td>
+                      <td style={{ padding:'5px 8px', border:'1px solid var(--border,#EAE3D8)', fontWeight:600 }}>{r.text}</td>
+                      <td style={{ padding:'5px 8px', border:'1px solid var(--border,#EAE3D8)', color:'#888' }}>{r.description || '—'}</td>
+                      <td style={{ padding:'5px 8px', border:'1px solid var(--border,#EAE3D8)' }}>{r.unit || '—'}</td>
+                      <td style={{ padding:'5px 8px', border:'1px solid var(--border,#EAE3D8)' }}>{r.quantity ?? '—'}</td>
+                      <td style={{ padding:'5px 8px', border:'1px solid var(--border,#EAE3D8)' }}>{r.cost != null ? `${r.cost} ${r.currency}` : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="modal-actions" style={{ paddingTop:12, borderTop:'1px solid #EAE3D8', marginTop:4 }}>
+              <Button size="sm" onClick={() => setImportPreview(null)}>Отмена</Button>
+              <Button variant="primary" size="sm" onClick={confirmImport}>
+                📥 Импортировать {importPreview.length} задач
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
