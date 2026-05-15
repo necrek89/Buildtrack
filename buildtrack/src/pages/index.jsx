@@ -823,11 +823,12 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
   // ── CSV Import ────────────────────────────────────────────────────────────
   const downloadTemplate = () => {
     const bom = '﻿'
+    // Use semicolons — Excel (Russian locale) opens these correctly
     const csv = bom + [
-      'Этап,Название задачи,Описание,Ед.изм.,Кол-во,Сумма,Валюта',
-      'Фундамент,Заливка бетона,Марка М300,куб.м,50,5000,$',
-      'Фундамент,Армирование,,кг,800,,',
-      'Стены,Кладка кирпича,,кв.м,120,12000,€',
+      'Этап;Название задачи;Описание;Ед.изм.;Кол-во;Сумма;Валюта',
+      'Фундамент;Заливка бетона;Марка М300;куб.м;50;5000;$',
+      'Фундамент;Армирование;;кг;800;;',
+      'Стены;Кладка кирпича;;кв.м;120;12000;€',
     ].join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const a = document.createElement('a')
@@ -844,27 +845,37 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
       const text = ev.target.result.replace(/^﻿/, '') // strip BOM
       const lines = text.split(/\r?\n/).filter(l => l.trim())
       if (lines.length < 2) return
-      // Skip header row
-      const rows = lines.slice(1).map(line => {
-        // Simple CSV parse (handles quoted fields)
+
+      // Auto-detect separator: semicolon (Excel RU) or comma
+      const header = lines[0]
+      const sep = (header.split(';').length > header.split(',').length) ? ';' : ','
+
+      const parseLine = (line) => {
         const cols = []
         let cur = '', inQ = false
         for (let i = 0; i < line.length; i++) {
-          if (line[i] === '"') { inQ = !inQ }
-          else if (line[i] === ',' && !inQ) { cols.push(cur.trim()); cur = '' }
-          else cur += line[i]
+          const ch = line[i]
+          if (ch === '"') { inQ = !inQ }
+          else if (ch === sep && !inQ) { cols.push(cur.trim()); cur = '' }
+          else cur += ch
         }
         cols.push(cur.trim())
+        return cols
+      }
+
+      const rows = lines.slice(1).map(line => {
+        const cols = parseLine(line)
         return {
-          stage:    cols[0] || '',
-          text:     cols[1] || '',
+          stage:       cols[0] || '',
+          text:        cols[1] || '',
           description: cols[2] || '',
-          unit:     cols[3] || '',
-          quantity: cols[4] ? parseFloat(cols[4]) : null,
-          cost:     cols[5] ? parseFloat(cols[5]) : null,
-          currency: cols[6] || '$',
+          unit:        cols[3] || '',
+          quantity:    cols[4] ? parseFloat(cols[4].replace(',', '.')) : null,
+          cost:        cols[5] ? parseFloat(cols[5].replace(',', '.')) : null,
+          currency:    cols[6] || '$',
         }
-      }).filter(r => r.text)
+      }).filter(r => r.text.trim())
+
       setImportPreview(rows)
     }
     reader.readAsText(file, 'utf-8')
@@ -873,6 +884,15 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
 
   const confirmImport = async () => {
     if (!importPreview?.length) return
+    // Add new stages from CSV to proj.stages if not already there
+    const newStages = [...projStages]
+    importPreview.forEach(row => {
+      if (row.stage && !newStages.includes(row.stage)) newStages.push(row.stage)
+    })
+    if (newStages.length !== projStages.length) {
+      await updateProject(proj.id, { stages: newStages })
+    }
+    // Insert tasks
     for (const row of importPreview) {
       await addTask({
         text: row.text,
