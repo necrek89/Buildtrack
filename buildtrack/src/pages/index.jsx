@@ -1502,45 +1502,51 @@ function ProjectList({ onSelect, onEdit, onDelete = null, onComplete = null, onR
   const pendingReview = tasks.filter(t => t.status === 'pending').length
 
   const renderCard = (p, isCompleted = false) => {
-    const pTasks   = tasks.filter(t => t.project_id === p.id)
-    const pDone    = pTasks.filter(t => t.status === 'approved').length
+    const pTasks   = tasks.filter(tk => tk.project_id === p.id)
+    const pDone    = pTasks.filter(tk => tk.status === 'approved').length
     const pPct     = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
-    const pPending = pTasks.filter(t => t.status === 'pending').length
-    const pOverdue = pTasks.filter(t => t.deadline && new Date(t.deadline) < new Date() && t.status !== 'approved').length
+    const pPending = pTasks.filter(tk => tk.status === 'pending').length
+    const pOverdue = pTasks.filter(tk => tk.deadline && new Date(tk.deadline) < new Date() && tk.status !== 'approved').length
+    const stages   = Array.isArray(p.stages) ? p.stages : []
 
-    const accent = isCompleted ? '#5A9467' : pPct === 100 ? '#5A9467' : '#C96B3A'
-    const stages = Array.isArray(p.stages) ? p.stages : []
+    // Color-code percentage by value
+    const accent = isCompleted ? '#5A9467'
+      : pPct === 0   ? '#9CA3AF'
+      : pPct < 25    ? '#D4A843'
+      : pPct < 70    ? '#C96B3A'
+      : pPct < 100   ? '#4A7FC1'
+      : '#5A9467'
+
+    const MAX_PILLS = 3
+    const shownStages = stages.slice(0, MAX_PILLS)
+    const extraCount  = stages.length - MAX_PILLS
 
     return (
       <div
         key={p.id}
         onClick={() => onSelect(p.id)}
         style={{
-          background: isCompleted ? 'var(--surface,#fff)' : 'var(--surface,#fff)',
+          background: 'var(--surface,#fff)',
           border: `1.5px solid ${isCompleted ? '#C5DEC9' : 'var(--border,#EAE3D8)'}`,
-          borderRadius: 16,
-          overflow: 'hidden',
-          cursor: 'pointer',
+          borderRadius: 16, overflow: 'hidden', cursor: 'pointer',
           transition: 'box-shadow .15s, transform .15s',
           boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           opacity: isCompleted ? 0.85 : 1,
-          position: 'relative',
           display: 'flex', flexDirection: 'column',
         }}
         onMouseEnter={e => { e.currentTarget.style.boxShadow='0 6px 20px rgba(0,0,0,0.10)'; e.currentTarget.style.transform='translateY(-2px)' }}
         onMouseLeave={e => { e.currentTarget.style.boxShadow='0 2px 8px rgba(0,0,0,0.04)'; e.currentTarget.style.transform='translateY(0)' }}
       >
-        {/* Color top bar */}
-        <div style={{ height: 4, background: accent, width: `${pPct}%`, transition: 'width .4s' }} />
-        <div style={{ height: 0, background: 'var(--border,#EAE3D8)', marginTop: -4 }}>
-          <div style={{ height: 4, background: 'var(--border,#EAE3D8)', width: '100%' }} />
+        {/* Top progress line */}
+        <div style={{ height: 4, background: 'var(--border,#EAE3D8)', position: 'relative' }}>
+          <div style={{ position:'absolute', inset:0, width:`${pPct}%`, background: accent, transition:'width .4s', borderRadius:'0 2px 2px 0' }} />
         </div>
 
         <div style={{ padding: '14px 14px 12px', display:'flex', flexDirection:'column', flex:1 }}>
-          {/* Top row: name + actions */}
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
+          {/* Name + actions */}
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:8 }}>
             <div style={{ fontSize:14, fontWeight:700, color: isCompleted ? '#5A9467' : 'var(--text-1,#2E2420)', lineHeight:1.3, flex:1, minWidth:0 }}>
-              {isCompleted ? '✅ ' : '🏗 '}{p.name}
+              {isCompleted ? '✅ ' : ''}{p.name}
             </div>
             <div style={{ display:'flex', gap:4, alignItems:'center', flexShrink:0 }}>
               {onEdit && !isCompleted && (
@@ -1552,78 +1558,78 @@ function ProjectList({ onSelect, onEdit, onDelete = null, onComplete = null, onR
             </div>
           </div>
 
-          {/* Dot progress */}
+          {/* Percentage + subtitle */}
           <div style={{ marginBottom: 10 }}>
-            <div style={{ display:'flex', alignItems:'baseline', gap:6, marginBottom:6 }}>
-              <span style={{ fontSize:26, fontWeight:800, color:accent, fontFamily:'monospace', lineHeight:1 }}>{pPct}%</span>
-              <span style={{ fontSize:10, color:'#B8AFA6' }}>
-                {t('projects.tasksOf', { done: pDone, total: pTasks.length })}
-              </span>
+            <span style={{ fontSize:28, fontWeight:800, color:accent, fontFamily:'monospace', lineHeight:1 }}>{pPct}%</span>
+            <div style={{ fontSize:10, color:'#B8AFA6', marginTop:3 }}>
+              {t('projects.tasksOf', { done: pDone, total: pTasks.length })}
             </div>
-            {pTasks.length === 0 ? (
-              <span style={{ fontSize:11, color:'#B8AFA6' }}>—</span>
-            ) : (
-              <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
-                {(pTasks.length <= 30 ? pTasks : null)?.map((tk, i) => (
-                  <div key={i} title={tk.text} style={{
-                    width: 9, height: 9, borderRadius: '50%', flexShrink: 0,
-                    background: tk.status === 'approved' ? accent : 'var(--border,#EAE3D8)',
-                    border: `1.5px solid ${tk.status === 'approved' ? accent : '#D9D0C7'}`,
-                    transition: 'background .2s',
-                  }} />
-                ))}
-                {pTasks.length > 30 && Array.from({ length: 15 }, (_, i) => {
-                  const threshold = Math.round(((i + 1) / 15) * 100)
-                  return (
-                    <div key={i} style={{
-                      width: 9, height: 9, borderRadius: '50%', flexShrink: 0,
-                      background: pPct >= threshold ? accent : 'var(--border,#EAE3D8)',
-                      border: `1.5px solid ${pPct >= threshold ? accent : '#D9D0C7'}`,
-                    }} />
-                  )
-                })}
-              </div>
-            )}
           </div>
 
-          {/* Meta row */}
-          <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'center', fontSize:11, color:'#B8AFA6', marginBottom: (pPending > 0 || pOverdue > 0 || (!isCompleted && onComplete)) ? 10 : 0 }}>
-            {p.address && <span>📍 {p.address}</span>}
+          {/* Stage pills */}
+          {stages.length > 0 && (
+            <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:10, alignItems:'center' }}>
+              {shownStages.map(s => {
+                const sTasks  = pTasks.filter(tk => tk.stage === s)
+                const sDone   = sTasks.filter(tk => tk.status === 'approved').length
+                const sAlert  = sTasks.filter(tk => tk.status === 'rejected').length
+                const full    = sTasks.length > 0 && sDone === sTasks.length
+                return (
+                  <span key={s} style={{
+                    display:'inline-flex', alignItems:'center', gap:4,
+                    fontSize:11, fontWeight:600, borderRadius:20, padding:'3px 9px',
+                    background: full ? `${accent}22` : '#F2EDE6',
+                    color:      full ? accent         : '#7A6E66',
+                    border:     `1px solid ${full ? accent + '55' : '#EAE3D8'}`,
+                  }}>
+                    {s}
+                    {sAlert > 0 && (
+                      <span style={{ background:'#FEE2E2', color:'#991B1B', borderRadius:10, padding:'0 5px', fontSize:10, fontWeight:700 }}>
+                        ⚠️{sAlert}
+                      </span>
+                    )}
+                  </span>
+                )
+              })}
+              {extraCount > 0 && (
+                <span style={{ fontSize:11, color:'#B8AFA6', fontWeight:600 }}>+{extraCount}</span>
+              )}
+            </div>
+          )}
+
+          {/* Meta: deadline + stages count */}
+          <div style={{ display:'flex', flexWrap:'wrap', gap:8, fontSize:11, color:'#B8AFA6', marginBottom: (pPending > 0 || pOverdue > 0 || (!isCompleted && onComplete)) ? 8 : 0 }}>
+            {p.address  && <span>📍 {p.address}</span>}
             {p.deadline && <span>📅 {p.deadline}</span>}
-            {stages.length > 0 && <span>📋 {t('projects.stagesCount', { n: stages.length })}</span>}
+            {stages.length > 0 && <span>≡ {t('projects.stagesCount', { n: stages.length })}</span>}
           </div>
 
           {/* Alert chips */}
           {(pPending > 0 || pOverdue > 0) && (
-            <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom: !isCompleted && onComplete ? 10 : 0 }}>
+            <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom: !isCompleted && onComplete ? 8 : 0 }}>
               {pPending > 0 && <span style={{ fontSize:10, background:'#FEF3C7', color:'#92400E', borderRadius:6, padding:'2px 7px', fontWeight:600 }}>🕐 {pPending}</span>}
               {pOverdue > 0 && <span style={{ fontSize:10, background:'#FEE2E2', color:'#991B1B', borderRadius:6, padding:'2px 7px', fontWeight:600 }}>⚠️ {pOverdue}</span>}
             </div>
           )}
 
-          {/* Complete / Reopen button — always at bottom */}
-          <div style={{ marginTop:'auto', paddingTop: 10 }}>
+          {/* Complete / Reopen button */}
+          <div style={{ marginTop:'auto', paddingTop:10 }}>
             {!isCompleted && onComplete && (
-              <button
-                onClick={e => { e.stopPropagation(); onComplete(p.id) }}
-                style={{
-                  width:'100%', padding:'7px', borderRadius:8, border:'1.5px solid #C5DEC9',
-                  background:'#F0FAF2', color:'#3D7A52', fontSize:12, fontWeight:600,
-                  cursor:'pointer',
-                }}
-              >
+              <button onClick={e => { e.stopPropagation(); onComplete(p.id) }} style={{
+                width:'100%', padding:'7px', borderRadius:8,
+                border:'1.5px solid #C5DEC9', background:'#F0FAF2',
+                color:'#3D7A52', fontSize:12, fontWeight:600, cursor:'pointer',
+              }}>
                 {t('projects.completeBtn')}
               </button>
             )}
             {isCompleted && onReopen && (
-              <button
-                onClick={e => { e.stopPropagation(); onReopen(p.id) }}
-                style={{
-                  width:'100%', padding:'7px', borderRadius:8, border:'1.5px solid var(--border,#EAE3D8)',
-                  background:'var(--surface-2,#FDFBF8)', color:'#7A6E66', fontSize:12, fontWeight:600,
-                  cursor:'pointer',
-                }}
-              >
+              <button onClick={e => { e.stopPropagation(); onReopen(p.id) }} style={{
+                width:'100%', padding:'7px', borderRadius:8,
+                border:'1.5px solid var(--border,#EAE3D8)',
+                background:'var(--surface-2,#FDFBF8)',
+                color:'#7A6E66', fontSize:12, fontWeight:600, cursor:'pointer',
+              }}>
                 {t('projects.reopenBtn')}
               </button>
             )}
