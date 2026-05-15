@@ -71,7 +71,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
     quantity:    task?.quantity    || '',
     unit:        task?.unit        || '',
     cost:        task?.cost        || '',
-    currency:    task?.currency    || '₽',
+    currency:    task?.currency    || '$',
   })
 
   useEffect(() => {
@@ -144,7 +144,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
       quantity:  form.quantity ? parseFloat(form.quantity) : null,
       unit:      form.unit || null,
       cost:      form.cost ? parseFloat(form.cost) : null,
-      currency:  form.currency || '₽',
+      currency:  form.currency || '$',
     }
     let error
     if (isEdit) {
@@ -245,42 +245,41 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
             </FormGroup>
           </div>
 
-          <div className="form-grid-2">
-            <FormGroup label="Сумма работы">
-              <div style={{ display:'flex', gap:6 }}>
-                <input
-                  className="form-input"
-                  type="number"
-                  min="0"
-                  step="any"
-                  placeholder="Например: 15000"
-                  value={form.cost}
-                  onChange={e => setForm(f => ({ ...f, cost: e.target.value }))}
-                  style={{ flex:1, minWidth:0 }}
-                />
-                <div style={{ display:'flex', gap:3, flexShrink:0 }}>
-                  {['₽','$','€'].map(cur => (
-                    <button
-                      key={cur}
-                      type="button"
-                      onClick={() => setForm(f => ({ ...f, currency: cur }))}
-                      style={{
-                        width:34, height:38, borderRadius:8, border:'1.5px solid',
-                        borderColor: form.currency === cur ? '#C96B3A' : '#EAE3D8',
-                        background:  form.currency === cur ? '#FAECE4' : 'var(--surface,#fff)',
-                        color:       form.currency === cur ? '#C96B3A' : '#7A6E66',
-                        fontWeight:700, fontSize:14, cursor:'pointer',
-                        transition:'all .15s',
-                      }}
-                    >{cur}</button>
-                  ))}
-                </div>
+          <FormGroup label="Сумма работы">
+            <div style={{ display:'flex', gap:6 }}>
+              <input
+                className="form-input"
+                type="number"
+                min="0"
+                step="any"
+                placeholder="Например: 15000"
+                value={form.cost}
+                onChange={e => setForm(f => ({ ...f, cost: e.target.value }))}
+                style={{ flex:1, minWidth:0 }}
+              />
+              <div style={{ display:'flex', gap:4, flexShrink:0 }}>
+                {['$','€'].map(cur => (
+                  <button
+                    key={cur}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, currency: cur }))}
+                    style={{
+                      width:42, height:38, borderRadius:8, border:'1.5px solid',
+                      borderColor: form.currency === cur ? '#C96B3A' : '#EAE3D8',
+                      background:  form.currency === cur ? '#FAECE4' : 'var(--surface,#fff)',
+                      color:       form.currency === cur ? '#C96B3A' : '#7A6E66',
+                      fontWeight:700, fontSize:16, cursor:'pointer',
+                      transition:'all .15s',
+                    }}
+                  >{cur}</button>
+                ))}
               </div>
-            </FormGroup>
-            <FormGroup label={t('tasks.deadlineLabel')}>
-              <DatePicker value={form.deadline} onChange={v => setForm(f => ({ ...f, deadline: v }))} />
-            </FormGroup>
-          </div>
+            </div>
+          </FormGroup>
+
+          <FormGroup label={t('tasks.deadlineLabel')}>
+            <DatePicker value={form.deadline} onChange={v => setForm(f => ({ ...f, deadline: v }))} />
+          </FormGroup>
 
           {/* ── Media attachments ── */}
           <FormGroup label={t('tasks.mediaLabel')}>
