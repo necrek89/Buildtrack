@@ -6,11 +6,6 @@ import { supabase } from '../lib/supabase'
 import DatePicker from './DatePicker'
 
 // No default stages — each project defines its own
-const PRIORITY_OPTIONS = [
-  { value: 'high',   labelKey: 'High'   },
-  { value: 'normal', labelKey: 'Normal' },
-  { value: 'low',    labelKey: 'Low'    },
-]
 
 const UNIT_OPTIONS = [
   { value: '',      label: '— без единицы' },
@@ -72,10 +67,10 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
     project_id:  task?.project_id  || defaultProjectId || projects[0]?.id || '',
     worker_id:   task?.worker_id   || '',
     stage:       task?.stage       || '',
-    priority:    task?.priority    || 'normal',
     deadline:    task?.deadline    || '',
     quantity:    task?.quantity    || '',
     unit:        task?.unit        || '',
+    cost:        task?.cost        || '',
   })
 
   useEffect(() => {
@@ -147,6 +142,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
       photo_url: mediaUrls.join(',') || null,
       quantity:  form.quantity ? parseFloat(form.quantity) : null,
       unit:      form.unit || null,
+      cost:      form.cost ? parseFloat(form.cost) : null,
     }
     let error
     if (isEdit) {
@@ -248,10 +244,16 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
           </div>
 
           <div className="form-grid-2">
-            <FormGroup label={t('tasks.priorityLabel')}>
-              <select className="form-input" value={form.priority} onChange={set('priority')}>
-                {PRIORITY_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.labelKey}</option>)}
-              </select>
+            <FormGroup label="Сумма работы (₽)">
+              <input
+                className="form-input"
+                type="number"
+                min="0"
+                step="any"
+                placeholder="Например: 15000"
+                value={form.cost}
+                onChange={e => setForm(f => ({ ...f, cost: e.target.value }))}
+              />
             </FormGroup>
             <FormGroup label={t('tasks.deadlineLabel')}>
               <DatePicker value={form.deadline} onChange={v => setForm(f => ({ ...f, deadline: v }))} />

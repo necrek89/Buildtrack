@@ -189,11 +189,15 @@ function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApprove, onReject,
             {t.text}
           </div>
           <div style={{ display:'flex', flexWrap:'wrap', gap:4, alignItems:'center' }}>
-            <Badge variant={PRIORITY_BADGE[t.priority]?.replace('badge-','')}>{PRIORITY_LABEL[t.priority]}</Badge>
             {t.stage    && <Badge variant="gray">{t.stage}</Badge>}
             {t.quantity != null && t.unit && (
               <span style={{ fontSize:10, background:'#EEF3FD', color:'#4A7FC1', borderRadius:5, padding:'1px 6px', fontWeight:600 }}>
                 {t.quantity} {t.unit}
+              </span>
+            )}
+            {t.cost != null && (
+              <span style={{ fontSize:10, background:'#EDFAF2', color:'#2E7D52', borderRadius:5, padding:'1px 6px', fontWeight:600 }}>
+                ₽ {Number(t.cost).toLocaleString('ru-RU')}
               </span>
             )}
             {t.deadline && <span style={{ fontSize:10, color:'#B8AFA6' }}>📅 {t.deadline}</span>}
@@ -774,7 +778,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
       return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s
     }
 
-    const headers = ['№ п/п', 'Этап', 'Наименование работы', 'Описание', 'Ед. изм.', 'Кол-во', 'Статус']
+    const headers = ['№ п/п', 'Этап', 'Наименование работы', 'Описание', 'Ед. изм.', 'Кол-во', 'Сумма (₽)', 'Статус']
     let globalRow = 1
     const dataRows = allGroups.flatMap(({ stage, items }) =>
       items.map(tk => [
@@ -784,6 +788,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
         tk.description || '',
         tk.unit || '',
         tk.quantity ?? '',
+        tk.cost ?? '',
         STATUS_RU[tk.status] || tk.status,
       ].map(escape).join(','))
     )
@@ -824,6 +829,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
           <td class="col-name">${tk.text}${tk.description ? `<div class="desc">${tk.description}</div>` : ''}</td>
           <td class="col-unit">${tk.unit || ''}</td>
           <td class="col-qty">${tk.quantity != null ? tk.quantity : ''}</td>
+          <td class="col-cost">${tk.cost != null ? Number(tk.cost).toLocaleString('ru-RU') : ''}</td>
         </tr>`
       }).join('')
       return `
@@ -846,7 +852,8 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
         .col-num  { width: 42px; text-align: center; }
         .col-name { }
         .col-unit { width: 70px; text-align: center; }
-        .col-qty  { width: 90px; text-align: center; }
+        .col-qty  { width: 80px; text-align: center; }
+        .col-cost { width: 100px; text-align: right; }
         .stage-row td { background: #e8e8e8; font-weight: bold; font-size: 12px; padding: 6px 10px; }
         .stage-num { display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #333; color: #fff; text-align: center; line-height: 20px; font-size: 10px; font-weight: bold; margin-right: 6px; }
         .desc { font-size: 10px; color: #555; margin-top: 2px; }
@@ -863,6 +870,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
             <th class="col-name">Наименование работы</th>
             <th class="col-unit">Ед. изм.</th>
             <th class="col-qty">Кол-во</th>
+            <th class="col-cost">Сумма (₽)</th>
           </tr>
         </thead>
         <tbody>
