@@ -138,6 +138,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
     const payload = {
       ...form,
       worker_id: form.worker_id || null,
+      deadline:  form.deadline  || null,
       photo_url: mediaUrls.join(',') || null,
       quantity:  form.quantity ? parseFloat(form.quantity) : null,
       unit:      form.unit || null,
