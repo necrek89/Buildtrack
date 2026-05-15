@@ -1316,7 +1316,7 @@ function ProjectList({ onSelect, onEdit, onDelete = null, onComplete = null, onR
                 <div style={{ height:'100%', borderRadius:4, background: accent, width:`${pPct}%`, transition:'width .4s' }} />
               </div>
               <div style={{ fontSize:10, color:'#B8AFA6', marginTop:3 }}>
-                {pDone} из {pTasks.length} задач выполнено
+                {t('projects.tasksOf', { done: pDone, total: pTasks.length })}
               </div>
             </div>
           </div>
@@ -1325,14 +1325,14 @@ function ProjectList({ onSelect, onEdit, onDelete = null, onComplete = null, onR
           <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'center', fontSize:11, color:'#B8AFA6', marginBottom: (pPending > 0 || pOverdue > 0 || (!isCompleted && onComplete)) ? 10 : 0 }}>
             {p.address && <span>📍 {p.address}</span>}
             {p.deadline && <span>📅 {p.deadline}</span>}
-            {stages.length > 0 && <span>📋 {stages.length} эт.</span>}
+            {stages.length > 0 && <span>📋 {t('projects.stagesCount', { n: stages.length })}</span>}
           </div>
 
           {/* Alert chips */}
           {(pPending > 0 || pOverdue > 0) && (
             <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom: !isCompleted && onComplete ? 10 : 0 }}>
-              {pPending > 0 && <span style={{ fontSize:10, background:'#FEF3C7', color:'#92400E', borderRadius:6, padding:'2px 7px', fontWeight:600 }}>🕐 {pPending} на проверке</span>}
-              {pOverdue > 0 && <span style={{ fontSize:10, background:'#FEE2E2', color:'#991B1B', borderRadius:6, padding:'2px 7px', fontWeight:600 }}>⚠️ {pOverdue} просрочено</span>}
+              {pPending > 0 && <span style={{ fontSize:10, background:'#FEF3C7', color:'#92400E', borderRadius:6, padding:'2px 7px', fontWeight:600 }}>🕐 {pPending}</span>}
+              {pOverdue > 0 && <span style={{ fontSize:10, background:'#FEE2E2', color:'#991B1B', borderRadius:6, padding:'2px 7px', fontWeight:600 }}>⚠️ {pOverdue}</span>}
             </div>
           )}
 
@@ -1347,7 +1347,7 @@ function ProjectList({ onSelect, onEdit, onDelete = null, onComplete = null, onR
                   cursor:'pointer',
                 }}
               >
-                ✓ Завершить объект
+                {t('projects.completeBtn')}
               </button>
             )}
             {isCompleted && onReopen && (
@@ -1359,7 +1359,7 @@ function ProjectList({ onSelect, onEdit, onDelete = null, onComplete = null, onR
                   cursor:'pointer',
                 }}
               >
-                ↩ Вернуть в работу
+                {t('projects.reopenBtn')}
               </button>
             )}
           </div>
@@ -1398,7 +1398,7 @@ function ProjectList({ onSelect, onEdit, onDelete = null, onComplete = null, onR
               borderTop:'1.5px solid var(--border,#EAE3D8)',
             }}
           >
-            <span style={{ fontSize:13, fontWeight:700, color:'#5A9467' }}>✅ Завершённые объекты</span>
+            <span style={{ fontSize:13, fontWeight:700, color:'#5A9467' }}>✅ {t('projects.completedSection')}</span>
             <span style={{ fontSize:12, color:'#B8AFA6', background:'#E8F2EB', borderRadius:12, padding:'1px 8px', fontWeight:600 }}>{completed.length}</span>
             <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6' }}>{showCompleted ? '▲' : '▼'}</span>
           </button>

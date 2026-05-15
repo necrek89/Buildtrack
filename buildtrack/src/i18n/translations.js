@@ -69,6 +69,11 @@ const t = {
       overdue: '{n} overdue', forReview: '{n} for review',
       stagesLabel: 'Task Stages',
       stagePlaceholder: 'Stage name (e.g. Walls)',
+      completeBtn: '✓ Mark as completed',
+      reopenBtn: '↩ Reopen project',
+      completedSection: 'Completed projects',
+      stagesCount: '{n} stages',
+      tasksOf: '{done} of {total} tasks done',
     },
     detail: {
       overview: 'Overview', tasks: 'Tasks', materials: 'Materials',
@@ -308,6 +313,11 @@ const t = {
       overdue: '{n} просроченных', forReview: '{n} на проверке',
       stagesLabel: 'Этапы задач',
       stagePlaceholder: 'Название этапа (например: Стены)',
+      completeBtn: '✓ Завершить объект',
+      reopenBtn: '↩ Вернуть в работу',
+      completedSection: 'Завершённые объекты',
+      stagesCount: '{n} этапов',
+      tasksOf: '{done} из {total} задач выполнено',
     },
     detail: {
       overview: 'Обзор', tasks: 'Задачи', materials: 'Материалы',
@@ -546,6 +556,8 @@ const t = {
       deleteSub: '"{name}" će biti trajno obrisan.',
       overdue: '{n} u kašnjenju', forReview: '{n} na pregledu',
       stagesLabel: 'Faze zadataka', stagePlaceholder: 'Naziv faze (npr. Zidovi)',
+      completeBtn: '✓ Zatvori projekat', reopenBtn: '↩ Vrati u rad',
+      completedSection: 'Završeni projekti', stagesCount: '{n} faza', tasksOf: '{done} od {total} zadataka završeno',
     },
     detail: {
       overview: 'Pregled', tasks: 'Zadaci', materials: 'Materijali',
@@ -782,6 +794,8 @@ const t = {
       deleteSub: '"{name}" se eliminará permanentemente.',
       overdue: '{n} atrasados', forReview: '{n} en revisión',
       stagesLabel: 'Etapas de tareas', stagePlaceholder: 'Nombre de etapa (ej. Paredes)',
+      completeBtn: '✓ Marcar completado', reopenBtn: '↩ Reabrir proyecto',
+      completedSection: 'Proyectos completados', stagesCount: '{n} etapas', tasksOf: '{done} de {total} tareas completadas',
     },
     detail: {
       overview: 'Resumen', tasks: 'Tareas', materials: 'Materiales',
@@ -1018,6 +1032,8 @@ const t = {
       deleteSub: '"{name}" será excluído permanentemente.',
       overdue: '{n} atrasados', forReview: '{n} para revisão',
       stagesLabel: 'Etapas de tarefas', stagePlaceholder: 'Nome da etapa (ex. Paredes)',
+      completeBtn: '✓ Marcar concluído', reopenBtn: '↩ Reabrir projeto',
+      completedSection: 'Projetos concluídos', stagesCount: '{n} etapas', tasksOf: '{done} de {total} tarefas concluídas',
     },
     detail: {
       overview: 'Visão geral', tasks: 'Tarefas', materials: 'Materiais',
@@ -1254,6 +1270,8 @@ const t = {
       deleteSub: '"{name}" wird dauerhaft gelöscht.',
       overdue: '{n} überfällig', forReview: '{n} zur Prüfung',
       stagesLabel: 'Aufgabenphasen', stagePlaceholder: 'Phasenname (z.B. Wände)',
+      completeBtn: '✓ Projekt abschließen', reopenBtn: '↩ Projekt wieder öffnen',
+      completedSection: 'Abgeschlossene Projekte', stagesCount: '{n} Phasen', tasksOf: '{done} von {total} Aufgaben erledigt',
     },
     detail: {
       overview: 'Übersicht', tasks: 'Aufgaben', materials: 'Materialien',
@@ -1490,6 +1508,8 @@ const t = {
       deleteSub: '"{name}" sera supprimé définitivement.',
       overdue: '{n} en retard', forReview: '{n} à réviser',
       stagesLabel: 'Phases des tâches', stagePlaceholder: 'Nom de phase (ex. Murs)',
+      completeBtn: '✓ Terminer le projet', reopenBtn: '↩ Rouvrir le projet',
+      completedSection: 'Projets terminés', stagesCount: '{n} phases', tasksOf: '{done} sur {total} tâches terminées',
     },
     detail: {
       overview: 'Aperçu', tasks: 'Tâches', materials: 'Matériaux',
