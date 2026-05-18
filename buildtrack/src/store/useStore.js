@@ -30,6 +30,7 @@ export const useStore = create((set, get) => ({
   joinRequests: [],
   materials: loadMaterials(),
   documents: [],
+  expenses: [],
   loading: false,
   selectedProjectId: null,
   setSelectedProject: (id) => set({ selectedProjectId: id }),
@@ -554,6 +555,68 @@ export const useStore = create((set, get) => ({
     }
     return { data, error }
   },
+  // ── EXPENSES ─────────────────────────────────────────────────────────────────
+  fetchExpenses: async (projectId) => {
+    const { data } = await supabase
+      .from('expenses')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('date', { ascending: false })
+    set({ expenses: data || [] })
+  },
+
+  addExpense: async (expense, receiptFile) => {
+    const { profile } = get()
+    let receipt_url = null
+
+    if (receiptFile) {
+      const ext  = receiptFile.name.split('.').pop()
+      const path = `receipts/${expense.project_id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+      const { error: upErr } = await supabase.storage
+        .from('task-photos').upload(path, receiptFile, { upsert: true })
+      if (!upErr) {
+        const { data } = supabase.storage.from('task-photos').getPublicUrl(path)
+        receipt_url = data.publicUrl
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('expenses')
+      .insert({ ...expense, foreman_id: profile?.id, receipt_url })
+      .select()
+      .single()
+    if (!error && data) set(s => ({ expenses: [data, ...s.expenses] }))
+    return { data, error }
+  },
+
+  updateExpense: async (id, updates, newReceiptFile) => {
+    let receipt_url = updates.receipt_url
+    if (newReceiptFile) {
+      const ext  = newReceiptFile.name.split('.').pop()
+      const path = `receipts/edit/${id}_${Date.now()}.${ext}`
+      const { error: upErr } = await supabase.storage
+        .from('task-photos').upload(path, newReceiptFile, { upsert: true })
+      if (!upErr) {
+        const { data } = supabase.storage.from('task-photos').getPublicUrl(path)
+        receipt_url = data.publicUrl
+      }
+    }
+    const { data, error } = await supabase
+      .from('expenses')
+      .update({ ...updates, receipt_url })
+      .eq('id', id)
+      .select()
+      .single()
+    if (!error && data) set(s => ({ expenses: s.expenses.map(e => e.id === id ? data : e) }))
+    return { data, error }
+  },
+
+  deleteExpense: async (id) => {
+    const { error } = await supabase.from('expenses').delete().eq('id', id)
+    if (!error) set(s => ({ expenses: s.expenses.filter(e => e.id !== id) }))
+    return { error }
+  },
+
   // ── DOCUMENTS ────────────────────────────────────────────────────────────────
   fetchDocuments: async (projectId) => {
     const { data } = await supabase

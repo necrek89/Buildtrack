@@ -13,6 +13,7 @@ import { useT } from '../i18n/useLanguage'
 import TaskModal from '../components/TaskModal'
 import ConfirmModal from '../components/ConfirmModal'
 import InvoiceModal from '../components/InvoiceModal'
+import ExpensesTab from '../components/ExpensesTab'
 import MaterialModal from '../components/MaterialModal'
 import MaterialList  from '../components/MaterialList'
 import DatePicker from '../components/DatePicker'
@@ -275,12 +276,22 @@ function StatusSection({ icon, label, color, bg, tasks, openId, setOpenId, onEdi
 // ─── OVERVIEW TAB ────────────────────────────────────────────────────────────
 function OverviewTab({ proj, tasks, tools, team, onEdit }) {
   const { t } = useT()
+  const { expenses } = useStore()
 
   const pTasks   = tasks.filter(tk => tk.project_id === proj.id)
   const pDone    = pTasks.filter(tk => tk.status === 'approved').length
   const pPct     = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
   const daysLeft = proj.deadline ? Math.max(0, Math.ceil((new Date(proj.deadline) - new Date()) / 86400000)) : null
   const projTools = tools.filter(tk => tk.project_id === proj.id)
+
+  // Expenses rollup (USD-only sum for overview; mixed currencies show USD equivalent)
+  const projExpenses = expenses.filter(e => e.project_id === proj.id)
+  const totalExpenses = projExpenses.reduce((s, e) => s + Number(e.amount), 0)
+  const expCurrency = projExpenses.length > 0 ? (projExpenses[0].currency || 'USD') : 'USD'
+  const mixedCurrencies = new Set(projExpenses.map(e => e.currency)).size > 1
+  const expSymbol = mixedCurrencies ? '$' : (expCurrency === 'EUR' ? '€' : '$')
+  const expStr = projExpenses.length === 0 ? '—'
+    : `${expSymbol}${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 
   const projectStages = Array.isArray(proj.stages) && proj.stages.length > 0
     ? proj.stages
@@ -295,15 +306,16 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
 
   return (
     <div style={{ padding:'0 0 24px' }}>
-      {/* ── 2×2 Stats ── */}
+      {/* ── Stats grid ── */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:8, marginBottom:12 }}>
         {[
-          { v: pPct+'%',                    l: t('detail.progress'),  c: '#C96B3A' },
-          { v: team.length,                 l: t('detail.workers'),   c: '#2E2420' },
+          { v: pPct+'%',                    l: t('detail.progress'),      c: '#C96B3A' },
+          { v: team.length,                 l: t('detail.workers'),       c: '#2E2420' },
           { v: daysLeft !== null ? daysLeft+'d' : '—',
             l: t('detail.daysLeft'),
             c: daysLeft !== null && daysLeft < 7 ? '#A32D2D' : '#2E2420' },
-          { v: `${pDone}/${pTasks.length}`, l: t('detail.tasksDone'), c: '#2E2420' },
+          { v: `${pDone}/${pTasks.length}`, l: t('detail.tasksDone'),     c: '#2E2420' },
+          { v: expStr,                      l: t('expenses.totalLabel'),   c: projExpenses.length > 0 ? '#A32D2D' : '#B8AFA6' },
         ].map(s => (
           <div key={s.l} style={{ background:'var(--bg-accent, #F2EDE4)', borderRadius:10, padding:'10px 8px', textAlign:'center' }}>
             <div style={{ fontSize:18, fontWeight:700, color:s.c }}>{s.v}</div>
@@ -1593,6 +1605,7 @@ function ProjectDetail({ proj, onBack, onEdit, canDelete = true, canEdit = true 
   const TABS = [
     { id:'tasks',     label: t('detail.tasks')     },
     { id:'materials', label: t('detail.materials') },
+    { id:'expenses',  label: t('expenses.tab')     },
     { id:'photos',    label: t('detail.photos')    },
     { id:'docs',      label: t('detail.docs')      },
     { id:'team',      label: t('detail.team')      },
@@ -1663,6 +1676,7 @@ function ProjectDetail({ proj, onBack, onEdit, canDelete = true, canEdit = true 
       {/* ── Tab content ── */}
       {tab === 'tasks'     && <ProjectTasksTab proj={proj} canDelete={canDelete} canEdit={canEdit} tools={tools} team={team} />}
       {tab === 'materials' && <MaterialsTab proj={proj} canEdit={canEdit} />}
+      {tab === 'expenses'  && <ExpensesTab proj={proj} canEdit={canEdit} />}
       {tab === 'photos'    && <PhotosTab proj={proj} />}
       {tab === 'docs'      && <DocumentsTab proj={proj} />}
       {tab === 'team'      && <ProjectTeamTab proj={proj} />}
