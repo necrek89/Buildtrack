@@ -12,6 +12,7 @@ import { Badge, Button, StatCard, ProgressBar, SectionTitle, EmptyState, IconBut
 import { useT } from '../i18n/useLanguage'
 import TaskModal from '../components/TaskModal'
 import ConfirmModal from '../components/ConfirmModal'
+import InvoiceModal from '../components/InvoiceModal'
 import MaterialModal from '../components/MaterialModal'
 import MaterialList  from '../components/MaterialList'
 import DatePicker from '../components/DatePicker'
@@ -1588,6 +1589,7 @@ function ProjectDetail({ proj, onBack, onEdit, canDelete = true, canEdit = true 
   const { t } = useT()
   const { tasks, tools, team, fetchTasks, fetchTools, fetchTeam } = useStore()
   const [tab, setTab] = useState('tasks')
+  const [showInvoice, setShowInvoice] = useState(false)
   const TABS = [
     { id:'tasks',     label: t('detail.tasks')     },
     { id:'materials', label: t('detail.materials') },
@@ -1619,8 +1621,30 @@ function ProjectDetail({ proj, onBack, onEdit, canDelete = true, canEdit = true 
             🏗 {proj.name}
           </div>
         </div>
+        {canEdit && (
+          <button
+            onClick={() => setShowInvoice(true)}
+            title={t('invoice.title')}
+            style={{
+              display:'flex', alignItems:'center', gap:5,
+              padding:'5px 10px', borderRadius:8, border:'1.5px solid #BFDBFE',
+              background:'#EFF6FF', color:'#2563EB', fontSize:12, fontWeight:600,
+              cursor:'pointer', flexShrink:0,
+            }}
+          >
+            📄 {t('invoice.title')}
+          </button>
+        )}
         {onEdit && <IconButton onClick={() => onEdit(proj)} title="Edit project">✏️</IconButton>}
       </div>
+
+      {showInvoice && (
+        <InvoiceModal
+          proj={proj}
+          tasks={tasks}
+          onClose={() => setShowInvoice(false)}
+        />
+      )}
 
       {/* ── Progress strip ── */}
       <div style={{ height:4, background:'var(--border, #EAE3D8)', borderRadius:4, overflow:'hidden', marginBottom:0 }}>
