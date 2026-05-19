@@ -1003,7 +1003,26 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
     URL.revokeObjectURL(url)
   }
 
-  const printTasks = () => {
+  const [printWithComments, setPrintWithComments] = useState(true)
+  const [printing, setPrinting] = useState(false)
+
+  const printTasks = async () => {
+    setPrinting(true)
+
+    // ── Fetch all comments for project tasks in one query ──
+    let commentsMap = {}
+    if (printWithComments && pTasks.length > 0) {
+      const { data } = await supabase
+        .from('task_comments')
+        .select('task_id, author_name, text, created_at')
+        .in('task_id', pTasks.map(tk => tk.id))
+        .order('created_at', { ascending: true })
+      ;(data || []).forEach(c => {
+        if (!commentsMap[c.task_id]) commentsMap[c.task_id] = []
+        commentsMap[c.task_id].push(c)
+      })
+    }
+
     const allGroups = (() => {
       const map = {}
       pTasks.forEach(tk => {
@@ -1018,25 +1037,42 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
       return all.map((stage, i) => ({ stage, num: i + 1, items: sortTasks(map[stage] || []) }))
     })()
 
-    // Global row counter across all stages
     let globalRow = 1
     const rows = allGroups.map(({ stage, num, items }) => {
       const taskRows = items.map(tk => {
         const n = globalRow++
+        const comments = commentsMap[tk.id] || []
+        const commentsHtml = comments.length > 0 ? `
+          <div class="comments">
+            ${comments.map(c => `
+              <div class="comment">
+                <span class="comment-meta">
+                  💬 <strong>${c.author_name || '—'}</strong>
+                  <span class="comment-date">${new Date(c.created_at).toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' })}</span>
+                </span>
+                <div class="comment-text">${c.text}</div>
+              </div>`).join('')}
+          </div>` : ''
         return `<tr>
           <td class="col-num">${n}</td>
-          <td class="col-name">${tk.text}${tk.description ? `<div class="desc">${tk.description}</div>` : ''}</td>
+          <td class="col-name">
+            ${tk.text}
+            ${tk.description ? `<div class="desc">${tk.description}</div>` : ''}
+            ${commentsHtml}
+          </td>
           <td class="col-unit">${tk.unit || ''}</td>
           <td class="col-qty">${tk.quantity != null ? tk.quantity : ''}</td>
-          <td class="col-cost">${tk.cost != null ? `${Number(tk.cost).toLocaleString('ru-RU')} ${tk.currency || '₽'}` : ''}</td>
+          <td class="col-cost">${tk.cost != null ? `${Number(tk.cost).toLocaleString('ru-RU')} ${tk.currency || ''}` : ''}</td>
         </tr>`
       }).join('')
       return `
         <tr class="stage-row">
-          <td colspan="4"><span class="stage-num">${num}</span> ${stage}</td>
+          <td colspan="5"><span class="stage-num">${num}</span> ${stage}</td>
         </tr>
         ${taskRows}`
     }).join('')
+
+    const totalComments = Object.values(commentsMap).reduce((s, a) => s + a.length, 0)
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
       <title>${proj.name}</title>
@@ -1049,36 +1085,44 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
         th, td { border: 1px solid #000; padding: 6px 8px; vertical-align: top; }
         thead th { background: #f0f0f0; font-weight: bold; font-size: 11px; text-align: center; }
         .col-num  { width: 42px; text-align: center; }
-        .col-name { }
         .col-unit { width: 70px; text-align: center; }
         .col-qty  { width: 80px; text-align: center; }
-        .col-cost { width: 100px; text-align: right; }
+        .col-cost { width: 110px; text-align: right; }
         .stage-row td { background: #e8e8e8; font-weight: bold; font-size: 12px; padding: 6px 10px; }
         .stage-num { display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #333; color: #fff; text-align: center; line-height: 20px; font-size: 10px; font-weight: bold; margin-right: 6px; }
-        .desc { font-size: 10px; color: #555; margin-top: 2px; }
+        .desc { font-size: 10px; color: #555; margin-top: 3px; }
+        .comments { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #ccc; display: flex; flex-direction: column; gap: 5px; }
+        .comment { background: #f9f9f9; border-left: 3px solid #c96b3a; padding: 4px 7px; border-radius: 0 4px 4px 0; }
+        .comment-meta { font-size: 10px; color: #666; display: block; margin-bottom: 2px; }
+        .comment-date { color: #999; margin-left: 6px; }
+        .comment-text { font-size: 11px; color: #333; line-height: 1.4; white-space: pre-wrap; }
         .footer { margin-top: 16px; font-size: 10px; color: #aaa; text-align: right; }
         @media print { body { padding: 10px; } @page { margin: 15mm; } }
       </style>
     </head><body>
       <h1>${proj.name}</h1>
-      <div class="meta">${proj.address ? proj.address + ' · ' : ''}${proj.deadline ? 'Срок: ' + proj.deadline + ' · ' : ''}Задач: ${pTasks.length}</div>
+      <div class="meta">
+        ${proj.address ? proj.address + ' · ' : ''}
+        ${proj.deadline ? 'Срок: ' + proj.deadline + ' · ' : ''}
+        Задач: ${pTasks.length}
+        ${totalComments > 0 ? ` · Комментариев: ${totalComments}` : ''}
+      </div>
       <table>
         <thead>
           <tr>
-            <th class="col-num">№ п/п</th>
-            <th class="col-name">Наименование работы</th>
+            <th class="col-num">№</th>
+            <th>Наименование работы</th>
             <th class="col-unit">Ед. изм.</th>
             <th class="col-qty">Кол-во</th>
-            <th class="col-cost">Сумма (₽)</th>
+            <th class="col-cost">Сумма</th>
           </tr>
         </thead>
-        <tbody>
-          ${rows}
-        </tbody>
+        <tbody>${rows}</tbody>
       </table>
       <div class="footer">Tutuu · ${new Date().toLocaleDateString('ru-RU')}</div>
     </body></html>`
 
+    setPrinting(false)
     const w = window.open('', '_blank')
     w.document.write(html)
     w.document.close()
@@ -1167,10 +1211,29 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
             background:'var(--bg-accent,#F2EDE4)', border:'1.5px solid var(--border,#EAE3D8)',
             borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:14, lineHeight:1,
           }}>📊</button>
-          <button onClick={printTasks} title="Распечатать" style={{
-            background:'var(--bg-accent,#F2EDE4)', border:'1.5px solid var(--border,#EAE3D8)',
-            borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:14, lineHeight:1,
-          }}>🖨️</button>
+          <div style={{ display:'flex', alignItems:'center', gap:0, borderRadius:8, border:'1.5px solid var(--border,#EAE3D8)', overflow:'hidden' }}>
+            <button
+              onClick={printTasks}
+              disabled={printing}
+              title="Распечатать"
+              style={{
+                background:'var(--bg-accent,#F2EDE4)', border:'none', borderRight:'1px solid var(--border,#EAE3D8)',
+                padding:'5px 10px', cursor: printing ? 'default' : 'pointer', fontSize:14, lineHeight:1,
+              }}>
+              {printing ? '⏳' : '🖨️'}
+            </button>
+            <button
+              onClick={() => setPrintWithComments(v => !v)}
+              title={printWithComments ? 'Комментарии включены в отчёт' : 'Комментарии не включены'}
+              style={{
+                background: printWithComments ? '#FDF0E8' : 'var(--bg-accent,#F2EDE4)',
+                border:'none', padding:'5px 8px', cursor:'pointer', fontSize:11,
+                color: printWithComments ? '#C96B3A' : '#B8AFA6', fontWeight:700, lineHeight:1,
+                display:'flex', alignItems:'center', gap:3,
+              }}>
+              💬{printWithComments ? '✓' : ''}
+            </button>
+          </div>
           {canEdit && <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('tasks.add')}</Button>}
         </div>
       </div>
