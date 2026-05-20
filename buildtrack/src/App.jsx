@@ -10,6 +10,7 @@ import {
   Projects, MyTasks, Tools, Team, Notifications, Procurement,
   ClientDashboard, ClientProgress, ClientPhotos
 } from './pages/index'
+import WorkerMaterials from './features/materials/WorkerMaterials'
 import { supabase } from './lib/supabase'
 
 // ── Task Search Overlay ───────────────────────────────────────────────────────
@@ -176,10 +177,11 @@ const NAV = {
     { id: 'notifications', icon: 'notifications', labelKey: 'alerts'        },
   ],
   worker: [
-    { id: 'my-tasks',      icon: 'tasks',         labelKey: 'myTasks'       },
-    { id: 'tools',         icon: 'tools',         labelKey: 'tools'         },
-    { id: 'notifications', icon: 'notifications', labelKey: 'alerts'        },
-    { id: 'account',       icon: 'account',       labelKey: 'account'       },
+    { id: 'my-tasks',          icon: 'tasks',         labelKey: 'myTasks'   },
+    { id: 'worker-materials',  icon: 'materials',     labelKey: 'materials' },
+    { id: 'tools',             icon: 'tools',         labelKey: 'tools'     },
+    { id: 'notifications',     icon: 'notifications', labelKey: 'alerts'    },
+    { id: 'account',           icon: 'account',       labelKey: 'account'   },
   ],
   client: [
     { id: 'dashboard',     icon: 'projects',      labelKey: 'myProject'     },
@@ -203,9 +205,10 @@ function PageContent({ role, page, onNavigate }) {
     if (page === 'notifications') return <Notifications onNavigate={onNavigate} />
   }
   if (role === 'worker') {
-    if (page === 'my-tasks')      return <MyTasks />
-    if (page === 'tools')         return <Tools canAdd={false} />
-    if (page === 'notifications') return <Notifications onNavigate={onNavigate} />
+    if (page === 'my-tasks')          return <MyTasks />
+    if (page === 'worker-materials')  return <WorkerMaterials />
+    if (page === 'tools')             return <Tools canAdd={false} />
+    if (page === 'notifications')     return <Notifications onNavigate={onNavigate} />
   }
   if (role === 'client') {
     if (page === 'dashboard')     return <ClientDashboard />

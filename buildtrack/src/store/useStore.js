@@ -29,6 +29,7 @@ export const useStore = create((set, get) => ({
   activityLog: [],
   joinRequests: [],
   materials: loadMaterials(),
+  materialRequests: [],
   documents: [],
   expenses: [],
   loading: false,
@@ -435,6 +436,63 @@ export const useStore = create((set, get) => ({
       .from('project_workers').insert({ project_id: projectId, worker_id: client.id })
     if (e2) return { error: e2.code === '23505' ? 'Client already added to this project.' : e2.message }
     return { error: null, name: client.name }
+  },
+
+  // ── MATERIAL REQUESTS (Supabase) ─────────────────────
+  fetchMaterialRequests: async (projectId) => {
+    const { profile, role } = get()
+    if (!profile) return
+    let query = supabase
+      .from('material_requests')
+      .select('*, task:tasks(text), project:projects(name)')
+      .order('created_at', { ascending: false })
+    if (role === 'worker') {
+      query = query.eq('worker_id', profile.id)
+    } else if (projectId) {
+      query = query.eq('project_id', projectId)
+    }
+    const { data } = await query
+    set({ materialRequests: data || [] })
+  },
+
+  addMaterialRequest: async (payload, photoFile) => {
+    const { profile } = get()
+    let photo_url = null
+    if (photoFile) {
+      const ext = photoFile.name.split('.').pop()
+      const path = `material-requests/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error: upErr } = await supabase.storage.from('task-photos').upload(path, photoFile)
+      if (!upErr) {
+        const { data: urlData } = supabase.storage.from('task-photos').getPublicUrl(path)
+        photo_url = urlData.publicUrl
+      }
+    }
+    const { data, error } = await supabase
+      .from('material_requests')
+      .insert({ ...payload, worker_id: profile.id, worker_name: profile.name, photo_url })
+      .select('*, task:tasks(text), project:projects(name)')
+      .single()
+    if (!error && data) {
+      set(s => ({ materialRequests: [data, ...s.materialRequests] }))
+    }
+    return { error }
+  },
+
+  updateMaterialRequestStatus: async (id, status) => {
+    const { error } = await supabase
+      .from('material_requests')
+      .update({ status })
+      .eq('id', id)
+    if (!error) {
+      set(s => ({
+        materialRequests: s.materialRequests.map(r => r.id === id ? { ...r, status } : r)
+      }))
+    }
+  },
+
+  deleteMaterialRequest: async (id) => {
+    await supabase.from('material_requests').delete().eq('id', id)
+    set(s => ({ materialRequests: s.materialRequests.filter(r => r.id !== id) }))
   },
 
   // ── MATERIALS ────────────────────────────────────────────

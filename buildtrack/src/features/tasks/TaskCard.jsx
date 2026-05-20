@@ -5,6 +5,7 @@ import { useStore } from '../../store/useStore'
 import TaskComments from '../../components/TaskComments'
 import MaterialModal from '../../components/MaterialModal'
 import MaterialList from '../../components/MaterialList'
+import MaterialRequestModal from '../../components/MaterialRequestModal'
 
 // ─── MEDIA LIGHTBOX ──────────────────────────────────────────────────────────
 function MediaLightbox({ urls, startIndex, onClose }) {
@@ -148,8 +149,26 @@ function TaskMaterialSection({ task }) {
 // ─── TASK ACCORDION CARD ─────────────────────────────────────────────────────
 export default function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApprove, onReject, onMarkDone, showProject, projects }) {
   const { t: tr } = useT()
+  const { role, addMaterialRequest, tasks: storeTasks } = useStore()
   const isOpen = openId === t.id
   const projName = showProject && projects ? projects.find(p => p.id === t.project_id)?.name : null
+
+  const [showReqModal, setShowReqModal] = useState(false)
+  const [reqSent, setReqSent]           = useState(false)
+
+  const handleReqSave = async (payload, photoFile) => {
+    const result = await addMaterialRequest(payload, photoFile)
+    if (!result.error) {
+      setReqSent(true)
+      setTimeout(() => setReqSent(false), 2000)
+      setShowReqModal(false)
+    }
+    return result
+  }
+
+  // Tasks for the same project (for the dropdown in modal)
+  const projectTasks = storeTasks.filter(tk => tk.project_id === t.project_id)
+
   return (
     <div id={`task-card-${t.id}`} style={{
       background: 'var(--surface, #fff)',
@@ -219,8 +238,37 @@ export default function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApp
             )}
           </div>
           <TaskMaterialSection task={t} />
+
+          {/* Worker: request material button */}
+          {role === 'worker' && t.status !== 'approved' && (
+            <div style={{ marginTop: 10 }}>
+              <button
+                onClick={e => { e.stopPropagation(); setShowReqModal(true) }}
+                style={{
+                  fontSize: 12, fontWeight: 600, padding: '5px 12px', borderRadius: 8,
+                  background: reqSent ? '#E8F2EB' : '#EEF3FD',
+                  color:      reqSent ? '#3D7A52' : '#4A7FC1',
+                  border:     `1px solid ${reqSent ? '#A8D4B4' : '#B8D0F0'}`,
+                  cursor: 'pointer', transition: 'all .15s',
+                }}
+              >
+                {reqSent ? '✓ Sent' : '📦 Request material'}
+              </button>
+            </div>
+          )}
+
           <TaskComments taskId={t.id} />
         </div>
+      )}
+
+      {showReqModal && (
+        <MaterialRequestModal
+          projectId={t.project_id}
+          taskId={t.id}
+          tasks={projectTasks}
+          onClose={() => setShowReqModal(false)}
+          onSave={handleReqSave}
+        />
       )}
     </div>
   )
