@@ -468,6 +468,7 @@ function OverviewTab({ proj, tasks, tools, team, onEdit }) {
 
 // ─── QUICK ADD ROW ───────────────────────────────────────────────────────────
 function QuickAddRow({ stage, onAdd }) {
+  const { t } = useT()
   const [val, setVal] = useState('')
   const [busy, setBusy] = useState(false)
   const ref = useRef()
@@ -494,7 +495,7 @@ function QuickAddRow({ stage, onAdd }) {
         value={val}
         onChange={e => setVal(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setVal('') }}
-        placeholder="Быстрое добавление задачи..."
+        placeholder={t('tasks.quickAdd')}
         disabled={busy}
         style={{
           flex:1, border:'none', outline:'none', background:'transparent',
@@ -521,6 +522,7 @@ function QuickAddRow({ stage, onAdd }) {
 // ─── SORTABLE STAGE ITEM ─────────────────────────────────────────────────────
 function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggleStage, openId, setOpenId,
   canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, color, isDragging, onRename, onDeleteStage, onQuickAdd }) {
+  const { t } = useT()
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: stage })
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -601,7 +603,7 @@ function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggl
               <span
                 onDoubleClick={startEdit}
                 onClick={() => toggleStage(stage)}
-                title={canEdit ? 'Двойной клик — переименовать' : undefined}
+                title={canEdit ? t('tasks.stageRename') : undefined}
                 style={{ fontSize:13, fontWeight:700, color:'var(--text-1,#2E2420)', letterSpacing:'.02em', cursor:'pointer', flex:1, minWidth:0 }}
               >{stage}</span>
             )}
@@ -617,7 +619,7 @@ function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggl
         {canEdit && onDeleteStage && (
           <button
             onClick={e => { e.stopPropagation(); onDeleteStage(stage) }}
-            title="Удалить этап"
+            title={t('tasks.stageDelete')}
             style={{
               background:'none', border:'none', cursor:'pointer', padding:'2px 4px',
               fontSize:13, color:'#C8C0B8', lineHeight:1, flexShrink:0,
@@ -1214,16 +1216,16 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
         <div style={{ display:'flex', gap:6 }}>
           {canEdit && <>
             <input ref={importRef} type="file" accept=".csv" style={{ display:'none' }} onChange={handleImportFile} />
-            <button onClick={downloadTemplate} title="Скачать шаблон CSV" style={{
+            <button onClick={downloadTemplate} title={t('tasks.csvTemplate')} style={{
               background:'var(--bg-accent,#F2EDE4)', border:'1.5px solid var(--border,#EAE3D8)',
               borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:14, lineHeight:1,
             }}>📋</button>
-            <button onClick={() => importRef.current?.click()} title="Импорт задач из CSV" style={{
+            <button onClick={() => importRef.current?.click()} title={t('tasks.csvImport')} style={{
               background:'var(--bg-accent,#F2EDE4)', border:'1.5px solid var(--border,#EAE3D8)',
               borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:14, lineHeight:1,
             }}>📥</button>
           </>}
-          <button onClick={exportCSV} title="Скачать CSV (Google Таблицы)" style={{
+          <button onClick={exportCSV} title={t('tasks.csvExport')} style={{
             background:'var(--bg-accent,#F2EDE4)', border:'1.5px solid var(--border,#EAE3D8)',
             borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:14, lineHeight:1,
           }}>📊</button>
@@ -1231,7 +1233,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
             <button
               onClick={printTasks}
               disabled={printing}
-              title="Распечатать"
+              title={t('tasks.printReport')}
               style={{
                 background:'var(--bg-accent,#F2EDE4)', border:'none', borderRight:'1px solid var(--border,#EAE3D8)',
                 padding:'5px 10px', cursor: printing ? 'default' : 'pointer', fontSize:14, lineHeight:1,
@@ -1240,7 +1242,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
             </button>
             <button
               onClick={() => setPrintWithComments(v => !v)}
-              title={printWithComments ? 'Комментарии включены в отчёт' : 'Комментарии не включены'}
+              title={printWithComments ? t('tasks.commentsOn') : t('tasks.commentsOff')}
               style={{
                 background: printWithComments ? '#FDF0E8' : 'var(--bg-accent,#F2EDE4)',
                 border:'none', padding:'5px 8px', cursor:'pointer', fontSize:11,
@@ -1302,7 +1304,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
               borderRadius:14, cursor:'pointer', fontSize:13, color:'#B8AFA6',
               fontWeight:500, width:'100%',
             }}>
-              <span style={{ fontSize:16, lineHeight:1 }}>＋</span> Добавить этап
+              <span style={{ fontSize:16, lineHeight:1 }}>＋</span> {t('tasks.addStage')}
             </button>
           )}
         </div>
@@ -1335,15 +1337,15 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
       {importPreview && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setImportPreview(null)}>
           <div className="modal" style={{ maxWidth:700, maxHeight:'85dvh', display:'flex', flexDirection:'column' }}>
-            <div className="modal-title">📥 Импорт задач — проверьте перед добавлением</div>
+            <div className="modal-title">📥 {t('tasks.importTitle')}</div>
             <div style={{ overflowY:'auto', flex:1 }}>
               <div style={{ fontSize:12, color:'#888', marginBottom:10 }}>
-                Найдено {importPreview.length} задач. Нажмите «Импортировать» чтобы добавить все.
+                {t('tasks.importFound').replace('{n}', importPreview.length)}
               </div>
               <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
                 <thead>
                   <tr style={{ background:'var(--bg-accent,#F2EDE4)' }}>
-                    {['Этап','Название','Описание','Ед.изм.','Кол-во','Сумма'].map(h => (
+                    {[t('tasks.importColStage'),t('tasks.importColName'),t('tasks.importColDesc'),t('tasks.importColUnit'),t('tasks.importColQty'),t('tasks.importColAmount')].map(h => (
                       <th key={h} style={{ padding:'6px 8px', textAlign:'left', border:'1px solid var(--border,#EAE3D8)', fontWeight:700, fontSize:11, color:'#7A6E66' }}>{h}</th>
                     ))}
                   </tr>
@@ -1363,9 +1365,9 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
               </table>
             </div>
             <div className="modal-actions" style={{ paddingTop:12, borderTop:'1px solid #EAE3D8', marginTop:4 }}>
-              <Button size="sm" onClick={() => setImportPreview(null)}>Отмена</Button>
+              <Button size="sm" onClick={() => setImportPreview(null)}>{t('tasks.importCancel')}</Button>
               <Button variant="primary" size="sm" onClick={confirmImport}>
-                📥 Импортировать {importPreview.length} задач
+                📥 {t('tasks.importConfirm').replace('{n}', importPreview.length)}
               </Button>
             </div>
           </div>
