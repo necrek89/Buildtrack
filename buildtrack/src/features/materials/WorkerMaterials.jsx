@@ -160,6 +160,7 @@ export default function WorkerMaterials() {
           projectId={null}
           taskId={null}
           tasks={tasks}
+          projects={projects}
           onClose={() => setShowModal(false)}
           onSave={handleSave}
         />

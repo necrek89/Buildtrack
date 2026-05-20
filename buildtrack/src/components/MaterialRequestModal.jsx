@@ -9,7 +9,7 @@ const inp = {
   fontSize: 13, color: 'var(--text-1,#2E2420)', fontFamily: 'inherit', outline: 'none',
 }
 
-export default function MaterialRequestModal({ projectId, taskId, taskName, tasks = [], onClose, onSave }) {
+export default function MaterialRequestModal({ projectId, taskId, taskName, tasks = [], projects = [], onClose, onSave }) {
   const { t } = useT()
   const fileRef = useRef()
   const [saving, setSaving]           = useState(false)
@@ -18,11 +18,12 @@ export default function MaterialRequestModal({ projectId, taskId, taskName, task
   const [photoPreview, setPhotoPreview] = useState(null)
 
   const [form, setForm] = useState({
-    name:    '',
-    qty:     '',
-    unit:    MATERIAL_UNITS[0],
-    task_id: taskId != null ? String(taskId) : '',
-    notes:   '',
+    name:       '',
+    qty:        '',
+    unit:       MATERIAL_UNITS[0],
+    project_id: projectId != null ? String(projectId) : '',
+    task_id:    taskId != null ? String(taskId) : '',
+    notes:      '',
   })
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export default function MaterialRequestModal({ projectId, taskId, taskName, task
     setSaving(true)
     setSaveError(null)
     const payload = {
-      project_id: projectId,
+      project_id: form.project_id ? Number(form.project_id) : null,
       task_id:    form.task_id ? Number(form.task_id) : null,
       name:       form.name.trim(),
       qty:        form.qty ? parseFloat(form.qty) : null,
@@ -65,6 +66,18 @@ export default function MaterialRequestModal({ projectId, taskId, taskName, task
         <div className="modal-title">{t('matReq.addTitle')}</div>
 
         <div style={{ overflowY: 'auto', flex: 1, paddingRight: 2 }}>
+
+          {/* Project selector — shown only when projectId not pre-filled */}
+          {projectId == null && (
+            <FormGroup label="Объект *">
+              <select style={inp} value={form.project_id} onChange={setField('project_id')} required>
+                <option value="">— выберите объект —</option>
+                {projects.map(p => (
+                  <option key={p.id} value={String(p.id)}>{p.name}</option>
+                ))}
+              </select>
+            </FormGroup>
+          )}
 
           {/* Material name */}
           <FormGroup label={t('matReq.nameLabel')}>
@@ -158,7 +171,8 @@ export default function MaterialRequestModal({ projectId, taskId, taskName, task
 
         <div className="modal-actions" style={{ paddingTop: 12, borderTop: '1px solid var(--border,#EAE3D8)', marginTop: 4 }}>
           <Button size="sm" onClick={onClose}>{t('common.cancel')}</Button>
-          <Button variant="primary" size="sm" onClick={handleSave} disabled={saving || !form.name.trim()}>
+          <Button variant="primary" size="sm" onClick={handleSave}
+            disabled={saving || !form.name.trim() || (projectId == null && !form.project_id)}>
             {saving ? '...' : t('matReq.saveBtn')}
           </Button>
         </div>
