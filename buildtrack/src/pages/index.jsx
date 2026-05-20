@@ -177,7 +177,7 @@ function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApprove, onReject,
   const isOpen = openId === t.id
   const projName = showProject && projects ? projects.find(p => p.id === t.project_id)?.name : null
   return (
-    <div style={{
+    <div id={`task-card-${t.id}`} style={{
       background: 'var(--surface, #fff)',
       border: `1.5px solid ${isOpen ? '#C96B3A' : 'var(--border, #EAE3D8)'}`,
       borderRadius: 10, overflow: 'hidden',
@@ -730,7 +730,8 @@ function SortableStageList({ stageGroups, projStages, openStages, toggleStage, o
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
 function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], team = [] }) {
   const { t } = useT()
-  const { tasks, fetchTasks, addTask, deleteTask, approveTask, rejectTask, updateProject, updateTask } = useStore()
+  const { tasks, fetchTasks, addTask, deleteTask, approveTask, rejectTask, updateProject, updateTask,
+          pendingOpenTaskId, setPendingOpenTask } = useStore()
   const [filter,       setFilter]       = useState('all')
   const [showAdd,      setShowAdd]      = useState(false)
   const [editTask,     setEditTask]     = useState(null)
@@ -1135,6 +1136,21 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
     stageGroups.forEach(({ stage }) => { initial[stage] = false })
     setOpenStages(initial)
   }, [filter, proj.id, tasks.length])
+
+  // Auto-open a task coming from notification / search
+  useEffect(() => {
+    if (!pendingOpenTaskId) return
+    const task = pTasks.find(tk => String(tk.id) === String(pendingOpenTaskId))
+    if (!task) return
+    const stageName = task.stage || '—'
+    setOpenStages(prev => ({ ...prev, [stageName]: true }))
+    setFilter('all')
+    setOpenId(task.id)
+    setPendingOpenTask(null)
+    setTimeout(() => {
+      document.getElementById(`task-card-${task.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 200)
+  }, [pendingOpenTaskId, pTasks.length])
 
   const toggleStage = (stage) => setOpenStages(prev => ({ ...prev, [stage]: !prev[stage] }))
 
@@ -3198,10 +3214,20 @@ function formatActivityTime(dateStr, lang) {
   return new Intl.DateTimeFormat(lang === 'ru' ? 'ru' : 'en', { day: 'numeric', month: 'short' }).format(d)
 }
 
-export function Notifications() {
+export function Notifications({ onNavigate }) {
   const { lang } = useT()
-  const { activityLog, fetchActivityLog } = useStore()
+  const { activityLog, fetchActivityLog, setSelectedProject, setPendingOpenTask } = useStore()
   const [filter, setFilter] = useState('all')
+
+  const TASK_ENTRY_TYPES = new Set(['task_created','task_submitted','task_approved','task_rejected','comment_added'])
+
+  const handleEntryClick = (entry) => {
+    if (!TASK_ENTRY_TYPES.has(entry.action_type)) return
+    if (!entry.entity_id || !entry.project_id) return
+    setSelectedProject(entry.project_id)
+    setPendingOpenTask(entry.entity_id)
+    onNavigate?.('projects')
+  }
 
   useEffect(() => { fetchActivityLog() }, [])
 
@@ -3236,13 +3262,21 @@ export function Notifications() {
 
         {filtered.map(entry => {
           const cfg = ACTIVITY_CFG[entry.action_type] || ACTIVITY_CFG_DEFAULT
+          const isClickable = TASK_ENTRY_TYPES.has(entry.action_type) && entry.entity_id && entry.project_id
           return (
-            <div key={entry.id} style={{
-              display:'flex', alignItems:'flex-start', gap:12,
-              background: cfg.bg,
-              border: `1.5px solid ${cfg.border}`,
-              borderRadius: 14, padding:'12px 14px',
-            }}>
+            <div key={entry.id}
+              onClick={() => handleEntryClick(entry)}
+              style={{
+                display:'flex', alignItems:'flex-start', gap:12,
+                background: cfg.bg,
+                border: `1.5px solid ${cfg.border}`,
+                borderRadius: 14, padding:'12px 14px',
+                cursor: isClickable ? 'pointer' : 'default',
+                transition: 'opacity 0.15s',
+              }}
+              onMouseEnter={e => { if (isClickable) e.currentTarget.style.opacity = '0.82' }}
+              onMouseLeave={e => { if (isClickable) e.currentTarget.style.opacity = '1' }}
+            >
               {/* Icon */}
               <div style={{
                 width:40, height:40, borderRadius:'50%', flexShrink:0,
@@ -3270,8 +3304,9 @@ export function Notifications() {
                     </span>
                   )}
                   {/* Time — pushed to the right */}
-                  <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', whiteSpace:'nowrap' }}>
+                  <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:4 }}>
                     {formatActivityTime(entry.created_at, lang)}
+                    {isClickable && <span style={{ fontSize:12, color: cfg.color }}>›</span>}
                   </span>
                 </div>
               </div>

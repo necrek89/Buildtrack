@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useStore } from './store/useStore'
 import { useT } from './i18n/useLanguage'
 import LanguagePicker from './components/LanguagePicker'
@@ -11,6 +11,126 @@ import {
   ClientDashboard, ClientProgress, ClientPhotos
 } from './pages/index'
 import { supabase } from './lib/supabase'
+
+// ── Task Search Overlay ───────────────────────────────────────────────────────
+function TaskSearch({ onClose, onNavigate }) {
+  const { projects, searchTasks, setSelectedProject, setPendingOpenTask } = useStore()
+  const { t } = useT()
+  const [query, setQuery]     = useState('')
+  const [results, setResults] = useState([])
+  const [loading, setLoading] = useState(false)
+  const inputRef = useRef()
+  const timerRef = useRef()
+
+  useEffect(() => { inputRef.current?.focus() }, [])
+
+  useEffect(() => {
+    clearTimeout(timerRef.current)
+    if (!query.trim()) { setResults([]); return }
+    timerRef.current = setTimeout(async () => {
+      setLoading(true)
+      const data = await searchTasks(query)
+      setResults(data)
+      setLoading(false)
+    }, 300)
+    return () => clearTimeout(timerRef.current)
+  }, [query])
+
+  const handleKeyDown = (e) => { if (e.key === 'Escape') onClose() }
+
+  const goToTask = (task) => {
+    setSelectedProject(task.project_id)
+    setPendingOpenTask(String(task.id))
+    onNavigate('projects')
+    onClose()
+  }
+
+  const STATUS_COLOR = { approved:'#3D7A52', pending:'#C96B3A', rejected:'#A32D2D', new:'#4A7FC1' }
+  const STATUS_LABEL = { approved:'✅', pending:'🕐', rejected:'↩️', new:'📝' }
+
+  return (
+    <div
+      onClick={e => e.target === e.currentTarget && onClose()}
+      style={{
+        position:'fixed', inset:0, zIndex:9999,
+        background:'rgba(0,0,0,0.45)', backdropFilter:'blur(3px)',
+        display:'flex', flexDirection:'column', alignItems:'center',
+        paddingTop:'clamp(60px,10vh,120px)', padding:'clamp(60px,10vh,120px) 16px 0',
+      }}
+    >
+      <div style={{
+        background:'var(--surface,#fff)', borderRadius:16, width:'100%', maxWidth:520,
+        boxShadow:'0 8px 40px rgba(0,0,0,0.18)', overflow:'hidden',
+      }}>
+        {/* Search input */}
+        <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', borderBottom:'1.5px solid var(--border,#EAE3D8)' }}>
+          <span style={{ fontSize:18, flexShrink:0 }}>🔍</span>
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Search tasks…"
+            style={{
+              flex:1, border:'none', outline:'none', fontSize:15,
+              background:'transparent', color:'var(--text-1,#2E2420)',
+            }}
+          />
+          {loading && <span style={{ fontSize:12, color:'#B8AFA6' }}>…</span>}
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#B8AFA6', padding:0 }}>✕</button>
+        </div>
+
+        {/* Results */}
+        <div style={{ maxHeight:360, overflowY:'auto' }}>
+          {!query.trim() && (
+            <div style={{ padding:'24px 16px', textAlign:'center', color:'#B8AFA6', fontSize:13 }}>
+              Start typing to search tasks
+            </div>
+          )}
+          {query.trim() && !loading && results.length === 0 && (
+            <div style={{ padding:'24px 16px', textAlign:'center', color:'#B8AFA6', fontSize:13 }}>
+              No tasks found
+            </div>
+          )}
+          {results.map(task => {
+            const proj = projects.find(p => p.id === task.project_id)
+            return (
+              <div key={task.id} onClick={() => goToTask(task)}
+                style={{
+                  padding:'10px 16px', cursor:'pointer', borderBottom:'1px solid var(--border,#EAE3D8)',
+                  display:'flex', alignItems:'center', gap:10,
+                  transition:'background 0.1s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background='var(--bg-accent,#F2EDE4)'}
+                onMouseLeave={e => e.currentTarget.style.background=''}
+              >
+                <span style={{ fontSize:16, flexShrink:0 }}>{STATUS_LABEL[task.status] || '📋'}</span>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:'var(--text-1,#2E2420)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                    {task.text}
+                  </div>
+                  <div style={{ display:'flex', gap:6, marginTop:3, flexWrap:'wrap' }}>
+                    {proj && (
+                      <span style={{ fontSize:11, color:'#C96B3A', fontWeight:600 }}>📍 {proj.name}</span>
+                    )}
+                    {task.stage && (
+                      <span style={{ fontSize:11, color:'#7A6E66', background:'var(--bg-accent,#F2EDE4)', borderRadius:5, padding:'1px 6px' }}>
+                        {task.stage}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <span style={{ fontSize:11, color: STATUS_COLOR[task.status] || '#7A6E66', fontWeight:600, flexShrink:0 }}>
+                  {task.status}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // ── SVG Tab Icons ─────────────────────────────────────────────────────────────
 function TabIcon({ name, size = 22 }) {
@@ -101,6 +221,7 @@ export default function App() {
   const { t } = useT()
   const [page, setPage]               = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [searchOpen, setSearchOpen]   = useState(false)
   const [authed, setAuthed]           = useState(false)
   const [checking, setChecking]       = useState(true)
   const [recovering, setRecovering]   = useState(false)
@@ -187,6 +308,19 @@ export default function App() {
         </div>
 
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          {/* Search button — only for foreman/manager/worker */}
+          {(role === 'foreman' || role === 'manager' || role === 'worker') && (
+            <button
+              onClick={() => setSearchOpen(true)}
+              title="Search tasks"
+              style={{
+                background:'none', border:'none', cursor:'pointer',
+                padding:'4px 6px', borderRadius:8, fontSize:18, lineHeight:1,
+                color:'var(--text-2,#7A6E66)',
+                display:'flex', alignItems:'center',
+              }}
+            >🔍</button>
+          )}
           <span style={{ fontSize:12, color:'#888' }}>{profile?.name}</span>
           <div style={avatarStyle} onClick={() => setPage('account')} title="Account">
             {profile?.avatar_url
@@ -280,6 +414,10 @@ export default function App() {
           </button>
         ))}
       </nav>
+
+      {searchOpen && (
+        <TaskSearch onClose={() => setSearchOpen(false)} onNavigate={(p) => { setPage(p); setSidebarOpen(false) }} />
+      )}
     </div>
   )
 }

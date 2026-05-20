@@ -34,6 +34,19 @@ export const useStore = create((set, get) => ({
   loading: false,
   selectedProjectId: null,
   setSelectedProject: (id) => set({ selectedProjectId: id }),
+  pendingOpenTaskId: null,
+  setPendingOpenTask: (id) => set({ pendingOpenTaskId: id }),
+
+  searchTasks: async (query) => {
+    if (!query?.trim()) return []
+    const q = query.trim()
+    const { data } = await supabase
+      .from('tasks')
+      .select('id, text, description, stage, status, project_id, cost, currency, unit, quantity')
+      .or(`text.ilike.%${q}%,description.ilike.%${q}%,stage.ilike.%${q}%`)
+      .limit(30)
+    return data || []
+  },
 
   // ── THEME ─────────────────────────────────────────────────
   theme: savedTheme,
