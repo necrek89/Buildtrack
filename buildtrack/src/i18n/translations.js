@@ -271,7 +271,7 @@ const t = {
     confirm: { yes: 'Delete', no: 'Cancel' },
     lang: { label: 'Language' },
     expenses: {
-      tab: '💰 Expenses',
+      tab: 'Expenses',
       addBtn: 'Add Expense', addTitle: 'New Expense', editTitle: 'Edit Expense',
       saveBtn: 'Save Expense', saveError: 'Failed to save expense',
       deleteConfirm: 'Delete this expense?',
@@ -595,7 +595,7 @@ const t = {
     confirm: { yes: 'Удалить', no: 'Отмена' },
     lang: { label: 'Язык' },
     expenses: {
-      tab: '💰 Расходы',
+      tab: 'Расходы',
       addBtn: 'Добавить расход', addTitle: 'Новый расход', editTitle: 'Редактировать расход',
       saveBtn: 'Сохранить расход', saveError: 'Ошибка при сохранении',
       deleteConfirm: 'Удалить этот расход?',
@@ -913,7 +913,7 @@ const t = {
     confirm: { yes: 'Obriši', no: 'Otkaži' },
     lang: { label: 'Jezik' },
     expenses: {
-      tab: '💰 Troškovi', addBtn: 'Dodaj trošak', addTitle: 'Novi trošak', editTitle: 'Uredi trošak',
+      tab: 'Troškovi', addBtn: 'Dodaj trošak', addTitle: 'Novi trošak', editTitle: 'Uredi trošak',
       saveBtn: 'Spremi trošak', saveError: 'Greška pri čuvanju', deleteConfirm: 'Obrisati ovaj trošak?',
       totalLabel: 'Ukupni troškovi', titleLabel: 'Naziv', titlePlaceholder: 'npr. Kupljeni cementi',
       amountLabel: 'Iznos', categoryLabel: 'Kategorija', dateLabel: 'Datum',
@@ -1224,7 +1224,7 @@ const t = {
     confirm: { yes: 'Eliminar', no: 'Cancelar' },
     lang: { label: 'Idioma' },
     expenses: {
-      tab: '💰 Gastos', addBtn: 'Agregar gasto', addTitle: 'Nuevo gasto', editTitle: 'Editar gasto',
+      tab: 'Gastos', addBtn: 'Agregar gasto', addTitle: 'Nuevo gasto', editTitle: 'Editar gasto',
       saveBtn: 'Guardar gasto', saveError: 'Error al guardar', deleteConfirm: '¿Eliminar este gasto?',
       totalLabel: 'Total gastos', titleLabel: 'Título', titlePlaceholder: 'ej. Compré bolsas de cemento',
       amountLabel: 'Monto', categoryLabel: 'Categoría', dateLabel: 'Fecha',
@@ -1535,7 +1535,7 @@ const t = {
     confirm: { yes: 'Excluir', no: 'Cancelar' },
     lang: { label: 'Idioma' },
     expenses: {
-      tab: '💰 Despesas', addBtn: 'Adicionar despesa', addTitle: 'Nova despesa', editTitle: 'Editar despesa',
+      tab: 'Despesas', addBtn: 'Adicionar despesa', addTitle: 'Nova despesa', editTitle: 'Editar despesa',
       saveBtn: 'Salvar despesa', saveError: 'Erro ao salvar', deleteConfirm: 'Excluir esta despesa?',
       totalLabel: 'Total de despesas', titleLabel: 'Título', titlePlaceholder: 'ex. Comprei sacos de cimento',
       amountLabel: 'Valor', categoryLabel: 'Categoria', dateLabel: 'Data',
@@ -1846,7 +1846,7 @@ const t = {
     confirm: { yes: 'Löschen', no: 'Abbrechen' },
     lang: { label: 'Sprache' },
     expenses: {
-      tab: '💰 Ausgaben', addBtn: 'Ausgabe hinzufügen', addTitle: 'Neue Ausgabe', editTitle: 'Ausgabe bearbeiten',
+      tab: 'Ausgaben', addBtn: 'Ausgabe hinzufügen', addTitle: 'Neue Ausgabe', editTitle: 'Ausgabe bearbeiten',
       saveBtn: 'Ausgabe speichern', saveError: 'Fehler beim Speichern', deleteConfirm: 'Diese Ausgabe löschen?',
       totalLabel: 'Gesamtausgaben', titleLabel: 'Titel', titlePlaceholder: 'z.B. Zement gekauft',
       amountLabel: 'Betrag', categoryLabel: 'Kategorie', dateLabel: 'Datum',
@@ -2157,7 +2157,7 @@ const t = {
     confirm: { yes: 'Supprimer', no: 'Annuler' },
     lang: { label: 'Langue' },
     expenses: {
-      tab: '💰 Dépenses', addBtn: 'Ajouter une dépense', addTitle: 'Nouvelle dépense', editTitle: 'Modifier la dépense',
+      tab: 'Dépenses', addBtn: 'Ajouter une dépense', addTitle: 'Nouvelle dépense', editTitle: 'Modifier la dépense',
       saveBtn: 'Enregistrer', saveError: 'Erreur lors de l\'enregistrement', deleteConfirm: 'Supprimer cette dépense ?',
       totalLabel: 'Total des dépenses', titleLabel: 'Titre', titlePlaceholder: 'ex. Achat de sacs de ciment',
       amountLabel: 'Montant', categoryLabel: 'Catégorie', dateLabel: 'Date',

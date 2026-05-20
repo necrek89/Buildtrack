@@ -45,7 +45,7 @@ export default function ProjectDetail({ proj, onBack, onEdit, canDelete = true, 
         </button>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:16, fontWeight:700, color:'var(--text-1, #2E2420)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-            🏗 {proj.name}
+            {proj.name}
           </div>
         </div>
         {canEdit && (
@@ -59,7 +59,7 @@ export default function ProjectDetail({ proj, onBack, onEdit, canDelete = true, 
               cursor:'pointer', flexShrink:0,
             }}
           >
-            📄 {t('invoice.title')}
+            {t('invoice.title')}
           </button>
         )}
         {onEdit && <IconButton onClick={() => onEdit(proj)} title="Edit project">✏️</IconButton>}

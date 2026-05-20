@@ -479,59 +479,52 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
         </div>
       )}
 
-      {/* ── Filter + Add ── */}
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10, gap:6 }}>
-        <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
-          {['all','active','pending','done'].map(f => (
-            <button key={f} className={`filter-btn ${filter===f?'active':''}`} onClick={() => setFilter(f)}
-              style={{ fontSize:11, padding:'4px 10px' }}>
-              {f === 'all'     ? `${t('tasks.filterAll')} (${pTasks.length})` :
-               f === 'active'  ? t('tasks.filterActive') :
-               f === 'pending' ? `${t('tasks.filterReview')} (${pTasks.filter(t=>t.status==='pending').length})` : t('tasks.filterDone')}
-            </button>
-          ))}
-        </div>
-        <div style={{ display:'flex', gap:6 }}>
+      {/* ── Add + Tools row ── */}
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8, gap:6 }}>
+        {canEdit && (
+          <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>+ {t('tasks.add')}</Button>
+        )}
+        <div style={{ display:'flex', gap:5, marginLeft:'auto' }}>
           {canEdit && <>
             <input ref={importRef} type="file" accept=".csv" style={{ display:'none' }} onChange={handleImportFile} />
             <button onClick={downloadTemplate} title={t('tasks.csvTemplate')} style={{
-              background:'var(--bg-accent,#F2EDE4)', border:'1.5px solid var(--border,#EAE3D8)',
-              borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:14, lineHeight:1,
+              background:'var(--accent-light,#FFF7ED)', border:'0.5px solid var(--border-medium,#E8E4DC)',
+              borderRadius:7, padding:'5px 9px', cursor:'pointer', fontSize:13, lineHeight:1, color:'var(--text-secondary)',
             }}>📋</button>
             <button onClick={() => importRef.current?.click()} title={t('tasks.csvImport')} style={{
-              background:'var(--bg-accent,#F2EDE4)', border:'1.5px solid var(--border,#EAE3D8)',
-              borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:14, lineHeight:1,
+              background:'var(--accent-light,#FFF7ED)', border:'0.5px solid var(--border-medium,#E8E4DC)',
+              borderRadius:7, padding:'5px 9px', cursor:'pointer', fontSize:13, lineHeight:1, color:'var(--text-secondary)',
             }}>📥</button>
           </>}
           <button onClick={exportCSV} title={t('tasks.csvExport')} style={{
-            background:'var(--bg-accent,#F2EDE4)', border:'1.5px solid var(--border,#EAE3D8)',
-            borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:14, lineHeight:1,
+            background:'var(--accent-light,#FFF7ED)', border:'0.5px solid var(--border-medium,#E8E4DC)',
+            borderRadius:7, padding:'5px 9px', cursor:'pointer', fontSize:13, lineHeight:1, color:'var(--text-secondary)',
           }}>📊</button>
-          <div style={{ display:'flex', alignItems:'center', gap:0, borderRadius:8, border:'1.5px solid var(--border,#EAE3D8)', overflow:'hidden' }}>
-            <button
-              onClick={printTasks}
-              disabled={printing}
-              title={t('tasks.printReport')}
-              style={{
-                background:'var(--bg-accent,#F2EDE4)', border:'none', borderRight:'1px solid var(--border,#EAE3D8)',
-                padding:'5px 10px', cursor: printing ? 'default' : 'pointer', fontSize:14, lineHeight:1,
-              }}>
-              {printing ? '⏳' : '🖨️'}
-            </button>
-            <button
-              onClick={() => setPrintWithComments(v => !v)}
-              title={printWithComments ? t('tasks.commentsOn') : t('tasks.commentsOff')}
-              style={{
-                background: printWithComments ? '#FDF0E8' : 'var(--bg-accent,#F2EDE4)',
-                border:'none', padding:'5px 8px', cursor:'pointer', fontSize:11,
-                color: printWithComments ? '#C96B3A' : '#B8AFA6', fontWeight:700, lineHeight:1,
-                display:'flex', alignItems:'center', gap:3,
-              }}>
-              💬{printWithComments ? '✓' : ''}
-            </button>
+          <div style={{ display:'flex', alignItems:'center', borderRadius:7, border:'0.5px solid var(--border-medium,#E8E4DC)', overflow:'hidden' }}>
+            <button onClick={printTasks} disabled={printing} title={t('tasks.printReport')} style={{
+              background:'var(--accent-light,#FFF7ED)', border:'none', borderRight:'0.5px solid var(--border-medium,#E8E4DC)',
+              padding:'5px 9px', cursor: printing ? 'default' : 'pointer', fontSize:13, lineHeight:1,
+            }}>{printing ? '⏳' : '🖨️'}</button>
+            <button onClick={() => setPrintWithComments(v => !v)} title={printWithComments ? t('tasks.commentsOn') : t('tasks.commentsOff')} style={{
+              background: printWithComments ? 'var(--accent-light,#FFF7ED)' : 'var(--accent-light,#FFF7ED)',
+              border:'none', padding:'5px 8px', cursor:'pointer', fontSize:11,
+              color: printWithComments ? 'var(--accent,#EA580C)' : 'var(--text-muted)', lineHeight:1,
+              display:'flex', alignItems:'center', gap:3,
+            }}>💬{printWithComments ? '✓' : ''}</button>
           </div>
-          {canEdit && <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('tasks.add')}</Button>}
         </div>
+      </div>
+
+      {/* ── Filter chips ── */}
+      <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:10 }}>
+        {['all','active','pending','done'].map(f => (
+          <button key={f} className={`filter-btn ${filter===f?'active':''}`} onClick={() => setFilter(f)}
+            style={{ fontSize:11, padding:'4px 10px' }}>
+            {f === 'all'     ? `${t('tasks.filterAll')} (${pTasks.length})` :
+             f === 'active'  ? t('tasks.filterActive') :
+             f === 'pending' ? `${t('tasks.filterReview')} (${pTasks.filter(t=>t.status==='pending').length})` : t('tasks.filterDone')}
+          </button>
+        ))}
       </div>
 
       {filtered.length === 0 && stageGroups.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
