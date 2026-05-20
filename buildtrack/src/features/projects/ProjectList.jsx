@@ -54,7 +54,7 @@ function EditStages({ stages, onChange, placeholder }) {
             <button type="button" style={arrowStyle(i===safe.length-1)} disabled={i===safe.length-1} onClick={() => move(i,1)}>▼</button>
           </div>
           {/* Number */}
-          <div style={{ width:20, height:20, borderRadius:'50%', background:'var(--bg-accent,#F2EDE4)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, color:'#7A6E66', flexShrink:0 }}>{i+1}</div>
+          <div style={{ width:20, height:20, borderRadius:'50%', background:'var(--bg-accent,#F2EDE4)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:500, color:'#7A6E66', flexShrink:0 }}>{i+1}</div>
           {/* Name / input */}
           {editingIdx === i ? (
             <input
@@ -146,13 +146,12 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
           background: 'var(--surface,#fff)',
           border: `1.5px solid ${isCompleted ? '#C5DEC9' : 'var(--border,#EAE3D8)'}`,
           borderRadius: 16, overflow: 'hidden', cursor: 'pointer',
-          transition: 'box-shadow .15s, transform .15s',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          boxShadow: 'none',
           opacity: isCompleted ? 0.85 : 1,
           display: 'flex', flexDirection: 'column',
         }}
-        onMouseEnter={e => { e.currentTarget.style.boxShadow='0 6px 20px rgba(0,0,0,0.10)'; e.currentTarget.style.transform='translateY(-2px)' }}
-        onMouseLeave={e => { e.currentTarget.style.boxShadow='0 2px 8px rgba(0,0,0,0.04)'; e.currentTarget.style.transform='translateY(0)' }}
+        onMouseEnter={e => { e.currentTarget.style.opacity='0.9' }}
+        onMouseLeave={e => { e.currentTarget.style.opacity='1' }}
       >
         {/* Top progress line */}
         <div style={{ height: 4, background: 'var(--border,#EAE3D8)', position: 'relative' }}>
@@ -162,7 +161,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
         <div style={{ padding: '14px 14px 12px', display:'flex', flexDirection:'column', flex:1 }}>
           {/* Name + actions */}
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:8 }}>
-            <div style={{ fontSize:14, fontWeight:700, color: isCompleted ? '#5A9467' : 'var(--text-1,#2E2420)', lineHeight:1.3, flex:1, minWidth:0 }}>
+            <div style={{ fontSize:14, fontWeight:500, color: isCompleted ? '#5A9467' : 'var(--text-1,#1C1917)', lineHeight:1.3, flex:1, minWidth:0 }}>
               {isCompleted ? '✅ ' : ''}{p.name}
             </div>
             <div style={{ display:'flex', gap:4, alignItems:'center', flexShrink:0 }}>
@@ -177,7 +176,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
 
           {/* Percentage + subtitle */}
           <div style={{ marginBottom: 10 }}>
-            <span style={{ fontSize:28, fontWeight:800, color:accent, fontFamily:'monospace', lineHeight:1 }}>{pPct}%</span>
+            <span style={{ fontSize:22, fontWeight:500, color:accent, fontFamily:'monospace', lineHeight:1 }}>{pPct}%</span>
             <div style={{ fontSize:10, color:'#B8AFA6', marginTop:3 }}>
               {t('projects.tasksOf', { done: pDone, total: pTasks.length })}
             </div>
@@ -194,14 +193,14 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                 return (
                   <span key={s} style={{
                     display:'inline-flex', alignItems:'center', gap:4,
-                    fontSize:11, fontWeight:600, borderRadius:20, padding:'3px 9px',
+                    fontSize:11, fontWeight:500, borderRadius:20, padding:'3px 9px',
                     background: full ? `${accent}22` : '#F2EDE6',
                     color:      full ? accent         : '#7A6E66',
                     border:     `1px solid ${full ? accent + '55' : '#EAE3D8'}`,
                   }}>
                     {s}
                     {sAlert > 0 && (
-                      <span style={{ background:'#FEE2E2', color:'#991B1B', borderRadius:10, padding:'0 5px', fontSize:10, fontWeight:700 }}>
+                      <span style={{ background:'#FEE2E2', color:'#991B1B', borderRadius:10, padding:'0 5px', fontSize:10, fontWeight:500 }}>
                         ⚠️{sAlert}
                       </span>
                     )}
@@ -209,7 +208,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                 )
               })}
               {extraCount > 0 && (
-                <span style={{ fontSize:11, color:'#B8AFA6', fontWeight:600 }}>+{extraCount}</span>
+                <span style={{ fontSize:11, color:'#B8AFA6', fontWeight:500 }}>+{extraCount}</span>
               )}
             </div>
           )}
@@ -224,8 +223,8 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
           {/* Alert chips */}
           {(pPending > 0 || pOverdue > 0) && (
             <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom: !isCompleted && onComplete ? 8 : 0 }}>
-              {pPending > 0 && <span style={{ fontSize:10, background:'#FEF3C7', color:'#92400E', borderRadius:6, padding:'2px 7px', fontWeight:600 }}>🕐 {pPending}</span>}
-              {pOverdue > 0 && <span style={{ fontSize:10, background:'#FEE2E2', color:'#991B1B', borderRadius:6, padding:'2px 7px', fontWeight:600 }}>⚠️ {pOverdue}</span>}
+              {pPending > 0 && <span style={{ fontSize:10, background:'#FEF3C7', color:'#92400E', borderRadius:6, padding:'2px 7px', fontWeight:500 }}>🕐 {pPending}</span>}
+              {pOverdue > 0 && <span style={{ fontSize:10, background:'#FEE2E2', color:'#991B1B', borderRadius:6, padding:'2px 7px', fontWeight:500 }}>⚠️ {pOverdue}</span>}
             </div>
           )}
 
@@ -235,7 +234,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
               <button onClick={e => { e.stopPropagation(); onComplete(p.id) }} style={{
                 width:'100%', padding:'7px', borderRadius:8,
                 border:'1.5px solid #C5DEC9', background:'#F0FAF2',
-                color:'#3D7A52', fontSize:12, fontWeight:600, cursor:'pointer',
+                color:'#3D7A52', fontSize:12, fontWeight:500, cursor:'pointer',
               }}>
                 {t('projects.completeBtn')}
               </button>
@@ -245,7 +244,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                 width:'100%', padding:'7px', borderRadius:8,
                 border:'1.5px solid var(--border,#EAE3D8)',
                 background:'var(--surface-2,#FDFBF8)',
-                color:'#7A6E66', fontSize:12, fontWeight:600, cursor:'pointer',
+                color:'#7A6E66', fontSize:12, fontWeight:500, cursor:'pointer',
               }}>
                 {t('projects.reopenBtn')}
               </button>
@@ -286,8 +285,8 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
               borderTop:'1.5px solid var(--border,#EAE3D8)',
             }}
           >
-            <span style={{ fontSize:13, fontWeight:700, color:'#5A9467' }}>✅ {t('projects.completedSection')}</span>
-            <span style={{ fontSize:12, color:'#B8AFA6', background:'#E8F2EB', borderRadius:12, padding:'1px 8px', fontWeight:600 }}>{completed.length}</span>
+            <span style={{ fontSize:13, fontWeight:500, color:'#5A9467' }}>✅ {t('projects.completedSection')}</span>
+            <span style={{ fontSize:12, color:'#B8AFA6', background:'#E8F2EB', borderRadius:12, padding:'1px 8px', fontWeight:500 }}>{completed.length}</span>
             <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6' }}>{showCompleted ? '▲' : '▼'}</span>
           </button>
           {showCompleted && (

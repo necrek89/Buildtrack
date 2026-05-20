@@ -139,9 +139,9 @@ function TabIcon({ name, size = 22 }) {
   const p = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }
   switch (name) {
     case 'projects':
-      return <svg style={s} viewBox="0 0 24 24" {...p}><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
+      return <svg style={s} viewBox="0 0 24 24" {...p}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
     case 'materials':
-      return <svg style={s} viewBox="0 0 24 24" {...p}><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      return <svg style={s} viewBox="0 0 24 24" {...p}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
     case 'tools':
       return <svg style={s} viewBox="0 0 24 24" {...p}><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
     case 'team':
@@ -307,10 +307,25 @@ export default function App() {
           <button className="burger-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
             <span /><span /><span />
           </button>
-          <span className="topbar-logo">Tutuu</span>
+          <span className="topbar-logo">tutuu<span style={{ color: 'var(--accent)' }}>.</span></span>
         </div>
 
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '4px 6px', borderRadius: 8, lineHeight: 1,
+              color: 'var(--text-secondary)',
+              display: 'flex', alignItems: 'center',
+            }}
+          >
+            {theme === 'dark'
+              ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            }
+          </button>
           {/* Search button — only for foreman/manager/worker */}
           {(role === 'foreman' || role === 'manager' || role === 'worker') && (
             <button
@@ -372,19 +387,6 @@ export default function App() {
           {/* Language picker in sidebar */}
           <div style={{ padding: '8px 16px', borderTop: '1px solid #EAE3D8', marginTop: 4 }}>
             <LanguagePicker />
-          </div>
-
-          {/* Theme toggle */}
-          <div style={{ padding: '8px 16px' }}>
-            <div className="nav-item" onClick={toggleTheme} style={{ borderRadius: 8 }}>
-              <span className="nav-icon">
-                {theme === 'dark'
-                  ? <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                  : <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                }
-              </span>
-              <span>{theme === 'dark' ? t('nav.lightMode') : t('nav.darkMode')}</span>
-            </div>
           </div>
 
           <div className="nav-signout">
