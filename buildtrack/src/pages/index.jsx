@@ -634,7 +634,7 @@ function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggl
       {isOpen && (
         <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
           {items.length === 0 && (
-            <div style={{ padding:'12px 14px', fontSize:12, color:'#B8AFA6', textAlign:'center' }}>Нет задач в этом этапе</div>
+            <div style={{ padding:'12px 14px', fontSize:12, color:'#B8AFA6', textAlign:'center' }}>{t('tasks.noTasksStage')}</div>
           )}
           {items.map((tk, ti) => (
             <div key={tk.id} style={{ borderTop: ti > 0 ? '1px solid var(--border,#F2EDE6)' : 'none' }}>
@@ -908,7 +908,7 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
       const iCurrency = find('валют', 'curr')
 
       if (iText === -1) {
-        alert('Не найдена колонка с названием задачи. Убедитесь что в заголовке есть слово "Название" или "Наименование".')
+        alert(t('tasks.csvColError'))
         return
       }
 
@@ -1287,13 +1287,13 @@ function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], t
               <input
                 className="form-input"
                 style={{ flex:1, fontSize:13 }}
-                placeholder="Название этапа..."
+                placeholder={t('projects.stagePlaceholder')}
                 value={newStageName}
                 onChange={e => setNewStageName(e.target.value)}
                 onKeyDown={e => { if (e.key==='Enter') addStage(); if (e.key==='Escape') setAddingStage(false) }}
                 autoFocus
               />
-              <Button variant="primary" size="sm" onClick={addStage}>Добавить</Button>
+              <Button variant="primary" size="sm" onClick={addStage}>{t('common.add')}</Button>
               <button onClick={() => { setAddingStage(false); setNewStageName('') }}
                 style={{ background:'none', border:'none', fontSize:18, color:'#B8AFA6', cursor:'pointer', lineHeight:1 }}>✕</button>
             </div>
@@ -1826,10 +1826,10 @@ function ProjectList({ onSelect, onEdit, onDelete = null, onComplete = null, onR
             </div>
             <div style={{ display:'flex', gap:4, alignItems:'center', flexShrink:0 }}>
               {onEdit && !isCompleted && (
-                <IconButton onClick={e => { e.stopPropagation(); onEdit(p) }} title="Редактировать">✏️</IconButton>
+                <IconButton onClick={e => { e.stopPropagation(); onEdit(p) }} title={t('common.edit')}>✏️</IconButton>
               )}
               {onDelete && (
-                <IconButton danger onClick={e => { e.stopPropagation(); onDelete(p.id) }} title="Удалить">🗑</IconButton>
+                <IconButton danger onClick={e => { e.stopPropagation(); onDelete(p.id) }} title={t('common.delete')}>🗑</IconButton>
               )}
             </div>
           </div>

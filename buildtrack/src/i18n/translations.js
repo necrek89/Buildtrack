@@ -143,6 +143,7 @@ const t = {
       importColAmount: 'Amount',
       importCancel: 'Cancel',
       importConfirm: 'Import {n} tasks',
+      csvColError: 'Task name column not found. Make sure the header contains "Name" or "Title".',
     },
     materials: {
       title: 'Materials', add: '+ Add item',
@@ -442,6 +443,7 @@ const t = {
       importColAmount: 'Сумма',
       importCancel: 'Отмена',
       importConfirm: 'Импортировать {n} задач',
+      csvColError: 'Не найдена колонка с названием задачи. Убедитесь что в заголовке есть слово "Название" или "Наименование".',
     },
     materials: {
       title: 'Материалы', add: '+ Добавить',
@@ -735,6 +737,7 @@ const t = {
       importColAmount: 'Iznos',
       importCancel: 'Otkaži',
       importConfirm: 'Uvezi {n} zadataka',
+      csvColError: 'Kolona sa nazivom zadatka nije pronađena. Proverite da li zaglavlje sadrži reč "Naziv".',
     },
     materials: {
       title: 'Materijali', add: '+ Dodaj',
@@ -1021,6 +1024,7 @@ const t = {
       importColAmount: 'Monto',
       importCancel: 'Cancelar',
       importConfirm: 'Importar {n} tareas',
+      csvColError: 'Columna de nombre de tarea no encontrada. Asegúrese de que el encabezado contenga "Nombre".',
     },
     materials: {
       title: 'Materiales', add: '+ Agregar',
@@ -1307,6 +1311,7 @@ const t = {
       importColAmount: 'Valor',
       importCancel: 'Cancelar',
       importConfirm: 'Importar {n} tarefas',
+      csvColError: 'Coluna de nome da tarefa não encontrada. Certifique-se de que o cabeçalho contenha "Nome".',
     },
     materials: {
       title: 'Materiais', add: '+ Adicionar',
@@ -1593,6 +1598,7 @@ const t = {
       importColAmount: 'Betrag',
       importCancel: 'Abbrechen',
       importConfirm: '{n} Aufgaben importieren',
+      csvColError: 'Spalte mit Aufgabenname nicht gefunden. Stellen Sie sicher, dass die Kopfzeile "Name" enthält.',
     },
     materials: {
       title: 'Materialien', add: '+ Hinzufügen',
@@ -1879,6 +1885,7 @@ const t = {
       importColAmount: 'Montant',
       importCancel: 'Annuler',
       importConfirm: 'Importer {n} tâches',
+      csvColError: 'Colonne de nom de tâche introuvable. Assurez-vous que l\'en-tête contient "Nom".',
     },
     materials: {
       title: 'Matériaux', add: '+ Ajouter',
