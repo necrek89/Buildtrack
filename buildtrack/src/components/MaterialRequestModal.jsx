@@ -9,7 +9,7 @@ const inp = {
   fontSize: 13, color: 'var(--text-1,#2E2420)', fontFamily: 'inherit', outline: 'none',
 }
 
-export default function MaterialRequestModal({ projectId, taskId, taskName, tasks = [], projects = [], onClose, onSave }) {
+export default function MaterialRequestModal({ projectId, taskId, taskName, tasks = [], projects = [], onClose, onSave, showTaskLink = false }) {
   const { t } = useT()
   const fileRef = useRef()
   const [saving, setSaving]           = useState(false)
@@ -108,15 +108,17 @@ export default function MaterialRequestModal({ projectId, taskId, taskName, task
             </div>
           </div>
 
-          {/* Task link */}
-          <FormGroup label={t('matReq.taskLabel')}>
-            <select style={inp} value={form.task_id} onChange={setField('task_id')}>
-              <option value="">{t('matReq.noTask')}</option>
-              {tasks.map(tk => (
-                <option key={tk.id} value={String(tk.id)}>{tk.text}</option>
-              ))}
-            </select>
-          </FormGroup>
+          {/* Task link — only shown when explicitly requested (e.g. from task card) */}
+          {showTaskLink && (
+            <FormGroup label={t('matReq.taskLabel')}>
+              <select style={inp} value={form.task_id} onChange={setField('task_id')}>
+                <option value="">{t('matReq.noTask')}</option>
+                {tasks.map(tk => (
+                  <option key={tk.id} value={String(tk.id)}>{tk.text}</option>
+                ))}
+              </select>
+            </FormGroup>
+          )}
 
           {/* Notes */}
           <FormGroup label={t('matReq.notesLabel')}>

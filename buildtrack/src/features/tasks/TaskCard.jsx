@@ -266,6 +266,7 @@ export default function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApp
           projectId={t.project_id}
           taskId={t.id}
           tasks={projectTasks}
+          showTaskLink={true}
           onClose={() => setShowReqModal(false)}
           onSave={handleReqSave}
         />
