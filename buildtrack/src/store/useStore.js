@@ -752,6 +752,50 @@ export const useStore = create((set, get) => ({
       team: s.team.map(m => m.id === workerId ? { ...m, default_rate: defaultRate, rate_type: rateType } : m)
     }))
   },
+
+  // ── Attendance ────────────────────────────────────────────────────────────
+  attendance: [],
+
+  fetchAttendance: async (date) => {
+    const dateStr = date || new Date().toISOString().slice(0, 10)
+    const { data } = await supabase.from('attendance').select('*').eq('date', dateStr)
+    set({ attendance: data || [] })
+  },
+
+  saveAttendance: async (records) => {
+    const { profile } = useStore.getState()
+    if (!profile) return { error: 'No profile' }
+    const rows = records.map(r => ({
+      foreman_id: profile.id,
+      worker_id: r.worker_id,
+      date: r.date,
+      status: r.status,
+      arrived_at: r.arrived_at || null,
+      note: r.note || null,
+    }))
+    const { error } = await supabase.from('attendance').upsert(rows, { onConflict: 'worker_id,date' })
+    if (!error) set({ attendance: rows })
+    return { error }
+  },
+
+  copyYesterdayAttendance: async () => {
+    const today = new Date().toISOString().slice(0, 10)
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+    const { data } = await supabase.from('attendance').select('*').eq('date', yesterday)
+    const { profile } = useStore.getState()
+    if (!data || data.length === 0) return false
+    const rows = data.map(r => ({
+      foreman_id: profile.id,
+      worker_id: r.worker_id,
+      date: today,
+      status: r.status,
+      arrived_at: null,
+      note: null,
+    }))
+    await supabase.from('attendance').upsert(rows, { onConflict: 'worker_id,date' })
+    set({ attendance: rows })
+    return true
+  },
 }))
 
 export const STAGES = ['Foundation', 'Electrical', 'Walls', 'Roofing', 'Finishing']

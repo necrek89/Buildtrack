@@ -3,6 +3,7 @@ import { Badge, Button, StatCard, EmptyState } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore } from '../../store/useStore'
 import { supabase } from '../../lib/supabase'
+import AttendanceModal from '../../components/AttendanceModal'
 
 // ─── WORKER STATUS CONFIG ────────────────────────────────────────────────────
 const WORKER_STATUS = {
@@ -17,7 +18,7 @@ const STATUS_CYCLE = ['on_site', 'day_off', 'sick', 'vacation', 'other']
 // ─── TEAM ────────────────────────────────────────────────────────────────────
 export default function Team() {
   const { t } = useT()
-  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam, workLogs, fetchWorkLogs, addWorkLog, deleteWorkLog, updateMemberRate } = useStore()
+  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam, workLogs, fetchWorkLogs, addWorkLog, deleteWorkLog, updateMemberRate, attendance } = useStore()
   const [showInvite, setShowInvite] = useState(false)
   const [email, setEmail]           = useState('')
   const [loading, setLoading]       = useState(false)
@@ -34,12 +35,14 @@ export default function Team() {
   const [showLogForm, setShowLogForm] = useState(null) // workerId or null
   const [rateEditId, setRateEditId]   = useState(null) // workerId editing rate
   const [rateInput, setRateInput]     = useState({ rate: '', type: 'shift' })
+  const [showAttendance, setShowAttendance] = useState(false)
 
   useEffect(() => {
     fetchProjects().then(() => {
       fetchAllWorkers()
     })
     if (profile?.role === 'foreman') fetchJoinRequests()
+    useStore.getState().fetchAttendance(new Date().toISOString().slice(0, 10))
   }, [])
 
   const invite = async () => {
@@ -95,6 +98,22 @@ export default function Team() {
     <div>
       <div className="page-header">
         <h1 className="page-title">{t('team.title')}</h1>
+        {profile?.role === 'foreman' && (() => {
+          const today = new Date().toISOString().slice(0, 10)
+          const todayDone = attendance.filter(a => a.date === today).length > 0
+          return (
+            <button onClick={() => setShowAttendance(true)} style={{
+              display:'flex', alignItems:'center', gap:5,
+              padding:'6px 12px', borderRadius:8,
+              background: todayDone ? '#F0FDF4' : 'var(--accent-light)',
+              color: todayDone ? '#16A34A' : 'var(--accent)',
+              border: `0.5px solid ${todayDone ? '#86EFAC' : 'var(--accent-border)'}`,
+              cursor:'pointer', fontSize:12, fontWeight:500,
+            }}>
+              {todayDone ? '✅ Проведена' : '📋 Перекличка'}
+            </button>
+          )
+        })()}
         <Button variant="primary" size="sm" onClick={() => { setShowInvite(!showInvite); setMsg('') }}>
           {showInvite ? t('team.close') : t('team.invite')}
         </Button>
@@ -247,6 +266,19 @@ export default function Team() {
                     width:11, height:11, borderRadius:'50%',
                     background: stCfg.dot, border:'2px solid #fff',
                   }} />
+                  {(() => {
+                    const today = new Date().toISOString().slice(0, 10)
+                    const rec = attendance.find(a => a.worker_id === m.id && a.date === today)
+                    if (!rec) return null
+                    const dotColor = rec.status === 'present' ? '#16A34A' : rec.status === 'absent' ? '#DC2626' : rec.status === 'sick' ? '#7C3AED' : '#0891B2'
+                    return (
+                      <div style={{
+                        position:'absolute', bottom:0, left:0,
+                        width:10, height:10, borderRadius:'50%',
+                        background: dotColor, border:'2px solid var(--bg)',
+                      }} />
+                    )
+                  })()}
                 </div>
 
                 {/* Name + quick info */}
@@ -520,6 +552,7 @@ export default function Team() {
           )
         })}
       </div>
+      {showAttendance && <AttendanceModal onClose={() => { setShowAttendance(false); useStore.getState().fetchAttendance(new Date().toISOString().slice(0, 10)) }} />}
     </div>
   )
 }
