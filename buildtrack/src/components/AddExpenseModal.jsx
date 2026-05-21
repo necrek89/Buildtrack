@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useT } from '../i18n/useLanguage'
 import { FormGroup, Button } from './UI'
+import { useStore } from '../store/useStore'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -29,7 +30,7 @@ export default function AddExpenseModal({ projectId, expense, onClose, onSave })
   const [form, setForm] = useState({
     title:    expense?.title    || '',
     amount:   expense?.amount   != null ? String(expense.amount) : '',
-    currency: expense?.currency || 'USD',
+    currency: expense?.currency || useStore.getState().profile?.currency || 'USD',
     category: expense?.category || 'other',
     date:     expense?.date     || today(),
     notes:    expense?.notes    || '',

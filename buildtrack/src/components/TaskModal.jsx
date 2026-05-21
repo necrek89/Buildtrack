@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useStore } from '../store/useStore'
+import { useStore, currencySymbol } from '../store/useStore'
 import { useT } from '../i18n/useLanguage'
 import { Button, FormGroup } from './UI'
 import { supabase } from '../lib/supabase'
@@ -71,7 +71,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
     quantity:    task?.quantity    || '',
     unit:        task?.unit        || '',
     cost:        task?.cost        || '',
-    currency:    task?.currency    || '$',
+    currency:    task?.currency    || useStore.getState().profile?.currency || 'USD',
   })
 
   useEffect(() => {

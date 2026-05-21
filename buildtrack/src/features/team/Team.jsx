@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Badge, Button, StatCard, EmptyState } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
-import { useStore } from '../../store/useStore'
+import { useStore, currencySymbol } from '../../store/useStore'
 import { supabase } from '../../lib/supabase'
 import AttendanceModal from '../../components/AttendanceModal'
 
@@ -36,6 +36,7 @@ export default function Team() {
   const [rateEditId, setRateEditId]   = useState(null) // workerId editing rate
   const [rateInput, setRateInput]     = useState({ rate: '', type: 'shift' })
   const [showAttendance, setShowAttendance] = useState(false)
+  const currSym = currencySymbol(profile?.currency)
 
   useEffect(() => {
     fetchProjects().then(() => {
@@ -518,7 +519,7 @@ export default function Team() {
                             {logs.length > 0 && (
                               <div style={{ marginBottom: 6, padding: '6px 10px', background: 'var(--accent-light)', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{logs.length} записей</span>
-                                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--accent)' }}>{total.toLocaleString()} ₽</span>
+                                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--accent)' }}>{total.toLocaleString()} {currSym}</span>
                               </div>
                             )}
                             {logs.length === 0 && (
@@ -530,7 +531,7 @@ export default function Team() {
                                   <div style={{ fontSize: 11, color: 'var(--text-primary)' }}>
                                     {log.log_date} · {log.log_type === 'hours' ? `${log.value}ч` : `${log.value} смен`}
                                     <span style={{ color: 'var(--text-secondary)', marginLeft: 4 }}>× {log.rate}</span>
-                                    <span style={{ fontWeight: 500, color: 'var(--accent)', marginLeft: 6 }}>= {(log.value * log.rate).toLocaleString()} ₽</span>
+                                    <span style={{ fontWeight: 500, color: 'var(--accent)', marginLeft: 6 }}>= {(log.value * log.rate).toLocaleString()} {currSym}</span>
                                   </div>
                                   {log.notes && <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{log.notes}</div>}
                                 </div>

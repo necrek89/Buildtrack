@@ -810,3 +810,9 @@ export const TOOL_STATUS_BADGE  = { active: 'blue', stored: 'green', lost: 'red'
 export const TOOL_STATUS_LABEL  = { active: 'On Site', stored: 'In Storage', lost: 'Lost' }
 export const STATUS_LABEL = { new: 'New', pending: 'In Review', approved: 'Completed', rejected: 'Revision' }
 export const STATUS_BADGE = { new: 'gray', pending: 'amber', approved: 'green', rejected: 'red' }
+
+// Returns the currency symbol for the current profile's currency code
+export function currencySymbol(code) {
+  const map = { USD:'$', EUR:'€', GBP:'£', RUB:'₽', AED:'د.إ', TRY:'₺', KZT:'₸', UAH:'₴', UZS:'сум', CNY:'¥', GEL:'₾', AMD:'֏', AZN:'₼' }
+  return map[code] || code || '$'
+}

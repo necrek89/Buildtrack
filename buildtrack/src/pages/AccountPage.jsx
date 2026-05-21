@@ -52,7 +52,7 @@ function JoinForeman({ t }) {
 export default function AccountPage() {
   const { profile, fetchProfile } = useStore()
   const { t } = useT()
-  const [form,    setForm]    = useState({ name:'', phone:'', company:'' })
+  const [form,    setForm]    = useState({ name:'', phone:'', company:'', currency:'USD' })
   const [avatarColor, setAvatarColor] = useState('#C96B3A')
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState(null)
@@ -63,7 +63,7 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (profile) {
-      setForm({ name: profile.name||'', phone: profile.phone||'', company: profile.company||'' })
+      setForm({ name: profile.name||'', phone: profile.phone||'', company: profile.company||'', currency: profile.currency || 'USD' })
       setAvatarColor(profile.avatar_color || '#C96B3A')
       setAvatarUrl(profile.avatar_url || null)
     }
@@ -74,7 +74,7 @@ export default function AccountPage() {
   const saveProfile = async () => {
     setSaving(true); setMsg('')
     const { error } = await supabase.from('profiles')
-      .update({ name: form.name, phone: form.phone, company: form.company, avatar_color: avatarColor })
+      .update({ name: form.name, phone: form.phone, company: form.company, avatar_color: avatarColor, currency: form.currency })
       .eq('id', profile.id)
     setSaving(false)
     if (error) setMsg(t('account.msgError', { err: error.message }))
@@ -186,6 +186,43 @@ export default function AccountPage() {
         <Button variant="primary" onClick={saveProfile}>
           {saving ? t('common.saving') : t('account.saveBtn')}
         </Button>
+      </div>
+
+      {/* ── Currency ── */}
+      <div className="card card-body" style={{ marginBottom:12 }}>
+        <div className="section-title">Валюта</div>
+        <p style={{ fontSize:12, color:'var(--text-secondary)', marginBottom:12, lineHeight:1.5 }}>
+          Выбранная валюта будет применяться ко всем задачам, расходам и зарплате
+        </p>
+        <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+          {[
+            { code:'USD', symbol:'$',    label:'USD — Доллар'   },
+            { code:'EUR', symbol:'€',    label:'EUR — Евро'     },
+            { code:'RUB', symbol:'₽',    label:'RUB — Рубль'    },
+            { code:'GBP', symbol:'£',    label:'GBP — Фунт'     },
+            { code:'AED', symbol:'د.إ',  label:'AED — Дирхам'   },
+            { code:'TRY', symbol:'₺',    label:'TRY — Лира'     },
+            { code:'KZT', symbol:'₸',    label:'KZT — Тенге'    },
+            { code:'UAH', symbol:'₴',    label:'UAH — Гривна'   },
+            { code:'GEL', symbol:'₾',    label:'GEL — Лари'     },
+            { code:'CNY', symbol:'¥',    label:'CNY — Юань'     },
+          ].map(c => (
+            <button key={c.code}
+              onClick={() => setForm(f => ({ ...f, currency: c.code }))}
+              style={{
+                padding:'8px 14px', borderRadius:8, cursor:'pointer',
+                background: form.currency === c.code ? 'var(--accent)' : 'var(--bg)',
+                color: form.currency === c.code ? '#fff' : 'var(--text-primary)',
+                border: form.currency === c.code ? '1.5px solid var(--accent)' : '0.5px solid var(--border-medium)',
+                fontSize:13, fontWeight: form.currency === c.code ? 500 : 400,
+                transition:'all .1s',
+              }}
+            >
+              <span style={{ fontSize:15 }}>{c.symbol}</span>
+              <span style={{ marginLeft:6, fontSize:11, color: form.currency === c.code ? 'rgba(255,255,255,0.8)' : 'var(--text-secondary)' }}>{c.code}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── Change Password ── */}
