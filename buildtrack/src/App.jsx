@@ -254,6 +254,7 @@ export default function App() {
   const handleLogin = () => {
     const { profile } = useStore.getState()
     setAuthed(true)
+    window.history.pushState({}, '', '/app')
     setPage(DEFAULT_PAGE[profile?.role] || 'dashboard')
   }
 
