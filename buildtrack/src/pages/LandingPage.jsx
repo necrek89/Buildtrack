@@ -7,7 +7,7 @@ function nav(to) { window.__navigate?.(to) }
 
 const FEATURES = (l) => [
   { n: '01', title: l.f1t, desc: l.f1d, tags: [l.f1tag1, l.f1tag2] },
-  { n: '02', title: l.f2t, desc: l.f2d, tags: [l.f2tag1, l.f2tag2] },
+  { n: '02', title: l.f2t, desc: l.f2d, tags: [l.f2tag1] },
   { n: '03', title: l.f3t, desc: l.f3d, tags: [l.f3tag1, l.f3tag2, l.f3tag3] },
   { n: '04', title: l.f4t, desc: l.f4d, tags: [l.f4tag1, l.f4tag2, l.f4tag3] },
   { n: '05', title: l.f5t, desc: l.f5d, tags: [l.f5tag1, l.f5tag2] },
