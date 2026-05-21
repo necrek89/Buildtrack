@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useT } from '../i18n/useLanguage'
 import { LANGUAGES } from '../i18n/useLanguage'
 import translations from '../i18n/translations'
@@ -13,7 +14,7 @@ const FEATURES = (l) => [
   { n: '06', title: l.f6t, desc: l.f6d, tags: [l.f6tag1, l.f6tag2] },
 ]
 
-// ── Phone mockup component ──────────────────────────────────────────────────
+// ── Phone mockup shell ──────────────────────────────────────────────────────
 function PhoneMockup({ size = 'center', children }) {
   const isCenter = size === 'center'
   return (
@@ -27,7 +28,7 @@ function PhoneMockup({ size = 'center', children }) {
       overflow: 'hidden',
       flexShrink: 0,
       opacity: isCenter ? 1 : 0.78,
-      alignSelf: isCenter ? 'center' : 'center',
+      alignSelf: 'center',
       position: 'relative',
       display: 'flex',
       flexDirection: 'column',
@@ -67,45 +68,56 @@ function PhoneMockup({ size = 'center', children }) {
 }
 
 // ── Tasks phone content ──────────────────────────────────────────────────────
-function TasksPhone() {
+function TasksPhone({ l }) {
+  const tasks = [
+    { name: l.scrTask1, done: true,  prog: 100 },
+    { name: l.scrTask2, done: false, prog: 0   },
+    { name: l.scrTask3, done: false, prog: 40  },
+    { name: l.scrTask4, done: true,  prog: 100 },
+  ]
   return (
     <div style={{ padding: '8px 8px 0' }}>
       {/* Project card */}
       <div style={{ border: '0.5px solid #F0EEE8', borderRadius: 10, padding: '8px 10px', marginBottom: 6 }}>
-        <div style={{ fontSize: 9, fontWeight: 500, marginBottom: 4 }}>Квартира ЖК Восток</div>
+        <div style={{ fontSize: 9, fontWeight: 500, marginBottom: 4, color: '#1C1917' }}>Project A</div>
         <div style={{ display: 'flex', gap: 6, marginBottom: 5 }}>
-          <div style={{ flex: 1, background: '#FFF7ED', borderRadius: 6, padding: '4px 6px', textAlign: 'center' }}>
+          <div style={{ flex: 1, border: '0.5px solid #F0EEE8', borderRadius: 6, padding: '4px 6px', textAlign: 'center' }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: '#EA580C' }}>31%</div>
-            <div style={{ fontSize: 7, color: '#A8A29E' }}>Прогресс</div>
+            <div style={{ fontSize: 7, color: '#A8A29E' }}>{l.scrProgress}</div>
           </div>
-          <div style={{ flex: 1, background: '#F9F8F6', borderRadius: 6, padding: '4px 6px', textAlign: 'center' }}>
-            <div style={{ fontSize: 11, fontWeight: 600 }}>40d</div>
-            <div style={{ fontSize: 7, color: '#A8A29E' }}>Осталось</div>
+          <div style={{ flex: 1, border: '0.5px solid #F0EEE8', borderRadius: 6, padding: '4px 6px', textAlign: 'center' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#1C1917' }}>40d</div>
+            <div style={{ fontSize: 7, color: '#A8A29E' }}>{l.scrDaysLeft}</div>
           </div>
-          <div style={{ flex: 1, background: '#F9F8F6', borderRadius: 6, padding: '4px 6px', textAlign: 'center' }}>
-            <div style={{ fontSize: 11, fontWeight: 600 }}>4/13</div>
-            <div style={{ fontSize: 7, color: '#A8A29E' }}>Задач</div>
+          <div style={{ flex: 1, border: '0.5px solid #F0EEE8', borderRadius: 6, padding: '4px 6px', textAlign: 'center' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#1C1917' }}>4/13</div>
+            <div style={{ fontSize: 7, color: '#A8A29E' }}>{l.scrTasksLabel}</div>
           </div>
         </div>
         <div style={{ height: 3, background: '#F0EEE8', borderRadius: 2 }}>
           <div style={{ height: 3, width: '31%', background: '#EA580C', borderRadius: 2 }} />
         </div>
       </div>
-      {/* Tabs */}
+      {/* Tabs — underline style matching real app */}
       <div style={{ display: 'flex', borderBottom: '0.5px solid #F0EEE8', marginBottom: 6 }}>
-        {['Задачи', 'Материалы', 'Расходы'].map((tab, i) => (
-          <div key={tab} style={{ flex: 1, textAlign: 'center', padding: '4px 0', fontSize: 8, fontWeight: 500, color: i === 0 ? '#EA580C' : '#C4B5A5', borderBottom: i === 0 ? '1.5px solid #EA580C' : '1.5px solid transparent' }}>{tab}</div>
+        {[l.scrTabTasks, l.scrTabMats, l.scrTabExp].map((tab, i) => (
+          <div key={i} style={{
+            flex: 1, textAlign: 'center', padding: '4px 0', fontSize: 8, fontWeight: 500,
+            color: i === 0 ? '#EA580C' : '#C4B5A5',
+            borderBottom: i === 0 ? '1.5px solid #EA580C' : '1.5px solid transparent',
+            marginBottom: -1,
+          }}>{tab}</div>
         ))}
       </div>
-      {/* Tasks */}
-      {[
-        { name: 'Потолок', done: true, prog: 100 },
-        { name: 'Двери', done: false, prog: 0 },
-        { name: 'Полы', done: false, prog: 40 },
-        { name: 'Электрика', done: true, prog: 100 },
-      ].map((task, i) => (
+      {/* Task rows */}
+      {tasks.map((task, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 0', borderBottom: '0.5px solid #F9F8F6' }}>
-          <div style={{ width: 14, height: 14, borderRadius: 4, border: task.done ? 'none' : '0.5px solid #E8E4DC', background: task.done ? '#EA580C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{
+            width: 14, height: 14, borderRadius: 4,
+            border: task.done ? 'none' : '0.5px solid #E8E4DC',
+            background: task.done ? '#EA580C' : 'transparent',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
             {task.done && <span style={{ color: '#fff', fontSize: 8, fontWeight: 700 }}>✓</span>}
           </div>
           <div style={{ flex: 1 }}>
@@ -121,31 +133,38 @@ function TasksPhone() {
 }
 
 // ── Materials phone content ──────────────────────────────────────────────────
-function MaterialsPhone() {
+function MaterialsPhone({ l }) {
+  const statusColor  = { pending: '#EA580C', delivered: '#16A34A', ordered: '#2563EB' }
+  const statusBg     = { pending: '#FFF7ED', delivered: '#F0FDF4', ordered: '#EFF6FF' }
+  const statusBorder = { pending: '#FED7AA', delivered: '#BBF7D0', ordered: '#BFDBFE' }
   const items = [
-    { name: 'Цемент М400', qty: '20 мешков', worker: 'Иван', status: 'pending', color: '#EA580C' },
-    { name: 'Плиточный клей', qty: '10 мешков', worker: 'Алексей', status: 'delivered', color: '#16A34A' },
-    { name: 'Грунтовка', qty: '5 л', worker: 'Михаил', status: 'ordered', color: '#2563EB' },
-    { name: 'Шпатлёвка', qty: '8 кг', worker: 'Иван', status: 'pending', color: '#EA580C' },
-    { name: 'Краска белая', qty: '3 кг', worker: 'Алексей', status: 'delivered', color: '#16A34A' },
+    { name: 'Cement M400', qty: '20 pcs', status: 'pending'   },
+    { name: 'Tile adhesive', qty: '10 bags', status: 'delivered' },
+    { name: 'Primer',       qty: '5 l',    status: 'ordered'   },
+    { name: 'Putty',        qty: '8 kg',   status: 'pending'   },
+    { name: 'White paint',  qty: '3 kg',   status: 'delivered' },
   ]
-  const statusLabel = { pending: 'Ожидает', delivered: 'Доставлено', ordered: 'Заказано' }
-  const statusBg = { pending: '#FFF7ED', delivered: '#F0FDF4', ordered: '#EFF6FF' }
+  const label = { pending: l.scrStatusPending, delivered: l.scrStatusDelivered, ordered: l.scrStatusOrdered }
   return (
     <div style={{ padding: '8px 8px 0' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span style={{ fontSize: 10, fontWeight: 500 }}>Материалы</span>
-        <div style={{ background: '#EA580C', color: '#fff', borderRadius: 5, padding: '2px 7px', fontSize: 8 }}>+ Заявка</div>
+        <span style={{ fontSize: 10, fontWeight: 500, color: '#1C1917' }}>{l.scrMatTitle}</span>
+        <div style={{ background: '#EA580C', color: '#fff', borderRadius: 5, padding: '2px 7px', fontSize: 8 }}>{l.scrAddRequest}</div>
       </div>
       {items.map((item, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 0', borderBottom: '0.5px solid #F0EEE8' }}>
-          <div style={{ width: 6, height: 6, borderRadius: '50%', background: item.color, flexShrink: 0 }} />
+          <div style={{ width: 6, height: 6, borderRadius: '50%', background: statusColor[item.status], flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 9, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
-            <div style={{ fontSize: 7, color: '#A8A29E' }}>{item.qty} · {item.worker}</div>
+            <div style={{ fontSize: 9, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#1C1917' }}>{item.name}</div>
+            <div style={{ fontSize: 7, color: '#A8A29E' }}>{item.qty}</div>
           </div>
-          <div style={{ background: statusBg[item.status], color: item.color, borderRadius: 4, padding: '2px 5px', fontSize: 7, fontWeight: 500, flexShrink: 0 }}>
-            {statusLabel[item.status]}
+          <div style={{
+            background: statusBg[item.status],
+            color: statusColor[item.status],
+            border: `0.5px solid ${statusBorder[item.status]}`,
+            borderRadius: 4, padding: '2px 5px', fontSize: 7, fontWeight: 500, flexShrink: 0,
+          }}>
+            {label[item.status]}
           </div>
         </div>
       ))}
@@ -154,27 +173,27 @@ function MaterialsPhone() {
 }
 
 // ── Team/Salary phone content ────────────────────────────────────────────────
-function TeamPhone() {
+function TeamPhone({ l }) {
   const workers = [
-    { name: 'Иван С.', initials: 'ИС', color: '#EA580C', shifts: 22, rate: 2500, salary: 55000 },
-    { name: 'Алексей М.', initials: 'АМ', color: '#16A34A', shifts: 20, rate: 3000, salary: 60000 },
-    { name: 'Михаил К.', initials: 'МК', color: '#2563EB', shifts: 18, rate: 2000, salary: 36000 },
-    { name: 'Дмитрий Р.', initials: 'ДР', color: '#7C3AED', shifts: 21, rate: 2800, salary: 58800 },
+    { name: 'Ivan S.',    initials: 'IS', color: '#EA580C', shifts: 22, rate: 2500, salary: 55000 },
+    { name: 'Alexei M.', initials: 'AM', color: '#16A34A', shifts: 20, rate: 3000, salary: 60000 },
+    { name: 'Mikhail K.',initials: 'MK', color: '#2563EB', shifts: 18, rate: 2000, salary: 36000 },
+    { name: 'Dmitri R.', initials: 'DR', color: '#7C3AED', shifts: 21, rate: 2800, salary: 58800 },
   ]
   const total = workers.reduce((s, w) => s + w.salary, 0)
   return (
     <div style={{ padding: '8px 8px 0' }}>
-      <div style={{ background: '#FFF7ED', borderRadius: 8, padding: '7px 10px', marginBottom: 7 }}>
-        <div style={{ fontSize: 7, color: '#A8A29E', marginBottom: 2 }}>Май 2026 · {workers.length} рабочих</div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#EA580C' }}>{total.toLocaleString()} ₽</div>
-        <div style={{ fontSize: 7, color: '#A8A29E' }}>Итого к выплате</div>
+      <div style={{ border: '0.5px solid #F0EEE8', borderRadius: 8, padding: '7px 10px', marginBottom: 7 }}>
+        <div style={{ fontSize: 7, color: '#A8A29E', marginBottom: 2 }}>May 2026 · {workers.length} {l.scrTeamTitle}</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#EA580C' }}>{total.toLocaleString()}</div>
+        <div style={{ fontSize: 7, color: '#A8A29E' }}>{l.scrTeamTotal}</div>
       </div>
       {workers.map((w, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 0', borderBottom: '0.5px solid #F0EEE8' }}>
           <div style={{ width: 20, height: 20, borderRadius: 5, background: w.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, color: '#fff', fontWeight: 700, flexShrink: 0 }}>{w.initials}</div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 9, fontWeight: 500 }}>{w.name}</div>
-            <div style={{ fontSize: 7, color: '#A8A29E' }}>{w.shifts} смен × {w.rate.toLocaleString()}</div>
+            <div style={{ fontSize: 9, fontWeight: 500, color: '#1C1917' }}>{w.name}</div>
+            <div style={{ fontSize: 7, color: '#A8A29E' }}>{w.shifts} {l.scrShifts} {w.rate.toLocaleString()}</div>
           </div>
           <div style={{ fontSize: 9, fontWeight: 600, color: '#EA580C' }}>{w.salary.toLocaleString()}</div>
         </div>
@@ -183,10 +202,70 @@ function TeamPhone() {
   )
 }
 
+// ── Beta pricing popup ───────────────────────────────────────────────────────
+function BetaModal({ l, onClose }) {
+  return (
+    <div
+      onClick={e => e.target === e.currentTarget && onClose()}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(28,25,23,0.5)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '24px',
+      }}
+    >
+      <div style={{
+        background: '#fff', borderRadius: 16, padding: '32px 28px',
+        maxWidth: 420, width: '100%', textAlign: 'center',
+        border: '0.5px solid #F0EEE8',
+        boxShadow: '0 24px 60px rgba(0,0,0,0.12)',
+      }}>
+        {/* Beta badge */}
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          background: '#FFF7ED', border: '0.5px solid #FED7AA',
+          borderRadius: 20, padding: '4px 14px', marginBottom: 20,
+        }}>
+          <span style={{ fontSize: 14 }}>🚀</span>
+          <span style={{ fontSize: 12, fontWeight: 500, color: '#EA580C' }}>{l.betaTitle}</span>
+        </div>
+
+        <h2 style={{ fontSize: 22, fontWeight: 500, color: '#1C1917', margin: '0 0 12px', lineHeight: 1.2 }}>
+          {l.ftPrice}
+        </h2>
+        <p style={{ fontSize: 14, color: '#78716C', lineHeight: 1.7, margin: '0 0 28px' }}>
+          {l.betaMsg}
+        </p>
+
+        {/* Free badge */}
+        <div style={{
+          background: '#F0FDF4', border: '0.5px solid #BBF7D0',
+          borderRadius: 10, padding: '16px', marginBottom: 24,
+        }}>
+          <div style={{ fontSize: 28, fontWeight: 600, color: '#16A34A', marginBottom: 4 }}>$0</div>
+          <div style={{ fontSize: 12, color: '#16A34A', fontWeight: 500 }}>Free forever during beta</div>
+        </div>
+
+        <button
+          onClick={onClose}
+          style={{
+            background: '#EA580C', color: '#fff', border: 'none',
+            borderRadius: 8, padding: '12px 32px', fontSize: 14,
+            fontWeight: 500, cursor: 'pointer', width: '100%',
+          }}
+        >
+          {l.betaClose}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── MAIN LANDING PAGE ────────────────────────────────────────────────────────
 export default function LandingPage() {
   const { lang, setLang } = useT()
   const l = translations[lang]?.landing || translations.en.landing
+  const [showPricing, setShowPricing] = useState(false)
 
   const btnPrimary = {
     background: '#EA580C', color: '#fff', border: 'none',
@@ -270,9 +349,9 @@ export default function LandingPage() {
       {/* ── PHONE MOCKUPS ── */}
       <section style={{ background: '#F9F8F6', borderTop: '0.5px solid #F0EEE8', borderBottom: '0.5px solid #F0EEE8', padding: 'clamp(32px, 5vw, 64px) 24px', overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, maxWidth: 700, margin: '0 auto' }}>
-          <PhoneMockup size="side"><TasksPhone /></PhoneMockup>
-          <PhoneMockup size="center"><MaterialsPhone /></PhoneMockup>
-          <PhoneMockup size="side"><TeamPhone /></PhoneMockup>
+          <PhoneMockup size="side"><TasksPhone l={l} /></PhoneMockup>
+          <PhoneMockup size="center"><MaterialsPhone l={l} /></PhoneMockup>
+          <PhoneMockup size="side"><TeamPhone l={l} /></PhoneMockup>
         </div>
       </section>
 
@@ -340,11 +419,14 @@ export default function LandingPage() {
         <div style={{ fontSize: 16, fontWeight: 500 }}>tutuu<span style={{ color: '#EA580C' }}>.</span></div>
         <div style={{ display: 'flex', gap: 20, fontSize: 13, color: '#A8A29E' }}>
           <span style={{ cursor: 'pointer' }} onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>{l.ftFeat}</span>
-          <span style={{ cursor: 'pointer' }}>{l.ftPrice}</span>
+          <span style={{ cursor: 'pointer' }} onClick={() => setShowPricing(true)}>{l.ftPrice}</span>
           <span style={{ cursor: 'pointer' }} onClick={() => nav('/app')}>{l.ftSignin}</span>
         </div>
         <div style={{ fontSize: 11, color: '#C4B5A5' }}>© 2026 Tutuu</div>
       </footer>
+
+      {/* ── BETA PRICING MODAL ── */}
+      {showPricing && <BetaModal l={l} onClose={() => setShowPricing(false)} />}
     </div>
   )
 }
