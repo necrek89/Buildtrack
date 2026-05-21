@@ -178,14 +178,6 @@ export default function AccountPage() {
             <input className="form-input" value={form.company} onChange={set('company')} placeholder={t('account.companyPlaceholder')} />
           </FormGroup>
         </div>
-        {msg && (
-          <div style={{ fontSize:12, padding:'6px 10px', borderRadius:6, marginBottom:8,
-            background: isSavedMsg ? '#E8F2EB' : '#FCEBEB',
-            color: isSavedMsg ? '#3D7A52' : '#A32D2D' }}>{msg}</div>
-        )}
-        <Button variant="primary" onClick={saveProfile}>
-          {saving ? t('common.saving') : t('account.saveBtn')}
-        </Button>
       </div>
 
       {/* ── Currency ── */}
@@ -223,6 +215,14 @@ export default function AccountPage() {
             </button>
           ))}
         </div>
+        {msg && (
+          <div style={{ fontSize:12, padding:'6px 10px', borderRadius:6, margin:'12px 0 8px',
+            background: isSavedMsg ? '#E8F2EB' : '#FCEBEB',
+            color: isSavedMsg ? '#3D7A52' : '#A32D2D' }}>{msg}</div>
+        )}
+        <Button variant="primary" onClick={saveProfile} style={{ marginTop:8 }}>
+          {saving ? t('common.saving') : t('account.saveBtn')}
+        </Button>
       </div>
 
       {/* ── Change Password ── */}

@@ -257,22 +257,8 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
                 onChange={e => setForm(f => ({ ...f, cost: e.target.value }))}
                 style={{ flex:1, minWidth:0 }}
               />
-              <div style={{ display:'flex', gap:4, flexShrink:0 }}>
-                {['$','€'].map(cur => (
-                  <button
-                    key={cur}
-                    type="button"
-                    onClick={() => setForm(f => ({ ...f, currency: cur }))}
-                    style={{
-                      width:42, height:38, borderRadius:8, border:'1.5px solid',
-                      borderColor: form.currency === cur ? '#C96B3A' : '#EAE3D8',
-                      background:  form.currency === cur ? '#FAECE4' : 'var(--surface,#fff)',
-                      color:       form.currency === cur ? '#C96B3A' : '#7A6E66',
-                      fontWeight:700, fontSize:16, cursor:'pointer',
-                      transition:'all .15s',
-                    }}
-                  >{cur}</button>
-                ))}
+              <div style={{ display:'flex', alignItems:'center', paddingLeft:10, fontSize:14, fontWeight:500, color:'var(--text-secondary)', flexShrink:0 }}>
+                {currencySymbol(useStore.getState().profile?.currency)}
               </div>
             </div>
           </FormGroup>
