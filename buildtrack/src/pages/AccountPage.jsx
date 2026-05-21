@@ -216,13 +216,15 @@ export default function AccountPage() {
           ))}
         </div>
         {msg && (
-          <div style={{ fontSize:12, padding:'6px 10px', borderRadius:6, margin:'12px 0 8px',
+          <div style={{ fontSize:12, padding:'6px 10px', borderRadius:6, marginTop:16,
             background: isSavedMsg ? '#E8F2EB' : '#FCEBEB',
             color: isSavedMsg ? '#3D7A52' : '#A32D2D' }}>{msg}</div>
         )}
-        <Button variant="primary" onClick={saveProfile} style={{ marginTop:8 }}>
-          {saving ? t('common.saving') : t('account.saveBtn')}
-        </Button>
+        <div style={{ borderTop:'0.5px solid var(--border)', marginTop:16, paddingTop:16 }}>
+          <Button variant="primary" onClick={saveProfile}>
+            {saving ? t('common.saving') : t('account.saveBtn')}
+          </Button>
+        </div>
       </div>
 
       {/* ── Change Password ── */}
