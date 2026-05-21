@@ -17,7 +17,7 @@ const STATUS_CYCLE = ['on_site', 'day_off', 'sick', 'vacation', 'other']
 // ─── TEAM ────────────────────────────────────────────────────────────────────
 export default function Team() {
   const { t } = useT()
-  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam } = useStore()
+  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam, workLogs, fetchWorkLogs, addWorkLog, deleteWorkLog, updateMemberRate } = useStore()
   const [showInvite, setShowInvite] = useState(false)
   const [email, setEmail]           = useState('')
   const [loading, setLoading]       = useState(false)
@@ -30,6 +30,10 @@ export default function Team() {
   const [managerEmail,   setManagerEmail]   = useState('')
   const [managerMsg,     setManagerMsg]     = useState('')
   const [managerLoading, setManagerLoading] = useState(false)
+  const [logForm, setLogForm]   = useState({}) // keyed by workerId
+  const [showLogForm, setShowLogForm] = useState(null) // workerId or null
+  const [rateEditId, setRateEditId]   = useState(null) // workerId editing rate
+  const [rateInput, setRateInput]     = useState({ rate: '', type: 'shift' })
 
   useEffect(() => {
     fetchProjects().then(() => {
@@ -220,7 +224,11 @@ export default function Team() {
             }}>
               {/* ── Collapsed row ── */}
               <div
-                onClick={() => setOpenId(prev => prev === m.id ? null : m.id)}
+                onClick={() => {
+                  const newId = openId === m.id ? null : m.id
+                  setOpenId(newId)
+                  if (newId && !workLogs[newId]) fetchWorkLogs(newId)
+                }}
                 style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', cursor:'pointer', background: isOpen ? '#FAECE4' : '#fff' }}
               >
                 {/* Avatar with status dot */}
@@ -351,6 +359,160 @@ export default function Team() {
                       )}
                     </div>
                   </div>
+
+                  {/* ── Payroll section ── */}
+                  {profile?.role === 'foreman' && (
+                    <div style={{ marginTop: 12, borderTop: '0.5px solid var(--border)', paddingTop: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                          Зарплата
+                        </div>
+                        <button
+                          onClick={() => setShowLogForm(prev => prev === m.id ? null : m.id)}
+                          style={{ fontSize: 11, fontWeight: 500, color: 'var(--accent)', background: 'var(--accent-light)', border: 'none', borderRadius: 6, padding: '3px 10px', cursor: 'pointer' }}
+                        >
+                          + Добавить
+                        </button>
+                      </div>
+
+                      {/* Rate settings */}
+                      {rateEditId === m.id ? (
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 8 }}>
+                          <select
+                            value={rateInput.type}
+                            onChange={e => setRateInput(r => ({ ...r, type: e.target.value }))}
+                            style={{ fontSize: 11, padding: '4px 6px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)', flex: 1 }}
+                          >
+                            <option value="shift">За смену</option>
+                            <option value="hours">За час</option>
+                          </select>
+                          <input
+                            type="number" min="0" step="any"
+                            placeholder="Ставка"
+                            value={rateInput.rate}
+                            onChange={e => setRateInput(r => ({ ...r, rate: e.target.value }))}
+                            style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)', width: 90 }}
+                          />
+                          <button
+                            onClick={async () => {
+                              await updateMemberRate(m.id, parseFloat(rateInput.rate) || 0, rateInput.type)
+                              setRateEditId(null)
+                            }}
+                            style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
+                          >
+                            ОК
+                          </button>
+                          <button onClick={() => setRateEditId(null)} style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6, background: 'var(--bg-subtle,#F5F5F5)', border: '0.5px solid var(--border)', cursor: 'pointer', color: 'var(--text-secondary)' }}>✕</button>
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span>Ставка: <strong style={{ color: 'var(--text-primary)' }}>{m.default_rate || 0} / {m.rate_type === 'hours' ? 'час' : 'смена'}</strong></span>
+                          <button
+                            onClick={() => { setRateEditId(m.id); setRateInput({ rate: m.default_rate || '', type: m.rate_type || 'shift' }) }}
+                            style={{ fontSize: 10, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}
+                          >
+                            изменить
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Add log form */}
+                      {showLogForm === m.id && (() => {
+                        const lf = logForm[m.id] || { date: new Date().toISOString().slice(0, 10), type: m.rate_type || 'shift', value: '', rate: m.default_rate || '', notes: '' }
+                        const setLf = (patch) => setLogForm(f => ({ ...f, [m.id]: { ...lf, ...patch } }))
+                        return (
+                          <div style={{ background: 'var(--bg-subtle,#FAFAF9)', border: '0.5px solid var(--border)', borderRadius: 8, padding: '10px 12px', marginBottom: 10 }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 6 }}>
+                              <div>
+                                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>Дата</div>
+                                <input type="date" value={lf.date} onChange={e => setLf({ date: e.target.value })}
+                                  style={{ width: '100%', fontSize: 11, padding: '5px 8px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)' }} />
+                              </div>
+                              <div>
+                                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>Тип</div>
+                                <select value={lf.type} onChange={e => setLf({ type: e.target.value })}
+                                  style={{ width: '100%', fontSize: 11, padding: '5px 8px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)' }}>
+                                  <option value="shift">Смена</option>
+                                  <option value="hours">Часы</option>
+                                </select>
+                              </div>
+                              <div>
+                                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>{lf.type === 'hours' ? 'Часов' : 'Смен'}</div>
+                                <input type="number" min="0" step="any" placeholder={lf.type === 'hours' ? '8' : '1'} value={lf.value} onChange={e => setLf({ value: e.target.value })}
+                                  style={{ width: '100%', fontSize: 11, padding: '5px 8px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)' }} />
+                              </div>
+                              <div>
+                                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>Ставка</div>
+                                <input type="number" min="0" step="any" placeholder="0" value={lf.rate} onChange={e => setLf({ rate: e.target.value })}
+                                  style={{ width: '100%', fontSize: 11, padding: '5px 8px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)' }} />
+                              </div>
+                            </div>
+                            <input placeholder="Заметка (необязательно)" value={lf.notes} onChange={e => setLf({ notes: e.target.value })}
+                              style={{ width: '100%', fontSize: 11, padding: '5px 8px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)', marginBottom: 8 }} />
+                            <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                              <button onClick={() => setShowLogForm(null)} style={{ fontSize: 11, padding: '5px 12px', borderRadius: 6, border: '0.5px solid var(--border)', background: 'var(--bg)', cursor: 'pointer', color: 'var(--text-secondary)' }}>Отмена</button>
+                              <button
+                                onClick={async () => {
+                                  if (!lf.value) return
+                                  const { profile: p } = useStore.getState()
+                                  await addWorkLog({
+                                    worker_id: m.id,
+                                    project_id: (m.project_ids || [])[0] || null,
+                                    log_date: lf.date,
+                                    log_type: lf.type,
+                                    value: parseFloat(lf.value),
+                                    rate: parseFloat(lf.rate) || 0,
+                                    notes: lf.notes || null,
+                                    created_by: p?.id,
+                                  })
+                                  setShowLogForm(null)
+                                  setLogForm(f => { const n = { ...f }; delete n[m.id]; return n })
+                                }}
+                                style={{ fontSize: 11, padding: '5px 14px', borderRadius: 6, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 500 }}
+                              >
+                                Сохранить
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })()}
+
+                      {/* Log entries list */}
+                      {(() => {
+                        const logs = workLogs[m.id] || []
+                        const total = logs.reduce((s, l) => s + (l.value * l.rate), 0)
+                        return (
+                          <>
+                            {logs.length > 0 && (
+                              <div style={{ marginBottom: 6, padding: '6px 10px', background: 'var(--accent-light)', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{logs.length} записей</span>
+                                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--accent)' }}>{total.toLocaleString()} ₽</span>
+                              </div>
+                            )}
+                            {logs.length === 0 && (
+                              <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', padding: '10px 0' }}>Записей нет</div>
+                            )}
+                            {logs.slice(0, 10).map(log => (
+                              <div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '0.5px solid var(--border)' }}>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontSize: 11, color: 'var(--text-primary)' }}>
+                                    {log.log_date} · {log.log_type === 'hours' ? `${log.value}ч` : `${log.value} смен`}
+                                    <span style={{ color: 'var(--text-secondary)', marginLeft: 4 }}>× {log.rate}</span>
+                                    <span style={{ fontWeight: 500, color: 'var(--accent)', marginLeft: 6 }}>= {(log.value * log.rate).toLocaleString()} ₽</span>
+                                  </div>
+                                  {log.notes && <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{log.notes}</div>}
+                                </div>
+                                <button
+                                  onClick={() => deleteWorkLog(log.id, m.id)}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 14, padding: '0 4px', flexShrink: 0 }}
+                                >🗑</button>
+                              </div>
+                            ))}
+                          </>
+                        )
+                      })()}
+                    </div>
+                  )}
 
                 </div>
               )}

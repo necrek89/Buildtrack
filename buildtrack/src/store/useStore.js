@@ -32,6 +32,7 @@ export const useStore = create((set, get) => ({
   materialRequests: [],
   documents: [],
   expenses: [],
+  workLogs: {},
   loading: false,
   selectedProjectId: null,
   setSelectedProject: (id) => set({ selectedProjectId: id }),
@@ -708,6 +709,48 @@ export const useStore = create((set, get) => ({
     const { error } = await supabase.from('documents').delete().eq('id', id)
     if (!error) set(s => ({ documents: s.documents.filter(d => d.id !== id) }))
     return { error }
+  },
+
+  // ── Work Logs ─────────────────────────────────────────────────────────────
+  fetchWorkLogs: async (workerId) => {
+    const { data, error } = await supabase
+      .from('work_logs')
+      .select('*, project:projects(name)')
+      .eq('worker_id', workerId)
+      .order('log_date', { ascending: false })
+    if (!error) set(s => ({ workLogs: { ...s.workLogs, [workerId]: data || [] } }))
+  },
+
+  addWorkLog: async (payload) => {
+    const { data, error } = await supabase.from('work_logs').insert(payload).select('*, project:projects(name)').single()
+    if (!error && data) {
+      set(s => ({
+        workLogs: {
+          ...s.workLogs,
+          [payload.worker_id]: [data, ...(s.workLogs[payload.worker_id] || [])]
+        }
+      }))
+    }
+    return { data, error }
+  },
+
+  deleteWorkLog: async (logId, workerId) => {
+    const { error } = await supabase.from('work_logs').delete().eq('id', logId)
+    if (!error) {
+      set(s => ({
+        workLogs: {
+          ...s.workLogs,
+          [workerId]: (s.workLogs[workerId] || []).filter(l => l.id !== logId)
+        }
+      }))
+    }
+  },
+
+  updateMemberRate: async (workerId, defaultRate, rateType) => {
+    await supabase.from('profiles').update({ default_rate: defaultRate, rate_type: rateType }).eq('id', workerId)
+    set(s => ({
+      team: s.team.map(m => m.id === workerId ? { ...m, default_rate: defaultRate, rate_type: rateType } : m)
+    }))
   },
 }))
 
