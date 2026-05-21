@@ -481,10 +481,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
 
       {/* ── Add + Tools row ── */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8, gap:6 }}>
-        {canEdit && (
-          <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>+ {t('tasks.add')}</Button>
-        )}
-        <div style={{ display:'flex', gap:5, marginLeft:'auto' }}>
+        <div style={{ display:'flex', gap:5 }}>
           {canEdit && <>
             <input ref={importRef} type="file" accept=".csv" style={{ display:'none' }} onChange={handleImportFile} />
             <button onClick={downloadTemplate} title={t('tasks.csvTemplate')} style={{
@@ -513,6 +510,9 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
             }}>💬{printWithComments ? '✓' : ''}</button>
           </div>
         </div>
+        {canEdit && (
+          <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('tasks.add')}</Button>
+        )}
       </div>
 
       {/* ── Filter chips ── */}
