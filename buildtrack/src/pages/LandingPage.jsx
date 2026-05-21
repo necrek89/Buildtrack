@@ -333,12 +333,34 @@ export default function LandingPage() {
         {/* Platform badges */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
           {[
-            { icon: '🖥️', name: 'Web', status: l.platLive, live: true },
-            { icon: '🍎', name: 'App Store', status: l.platSoon, live: false },
-            { icon: '▶', name: 'Google Play', status: l.platSoon, live: false },
+            {
+              icon: (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              ),
+              name: 'Web', status: l.platLive, live: true,
+            },
+            {
+              icon: (
+                <svg width="15" height="15" viewBox="0 0 814 1000" fill="currentColor">
+                  <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.5-155.5-127.4C46 790.7 0 663 0 541.8c0-207.5 135.4-317.3 269-317.3 70.1 0 128.4 46.4 172.5 46.4 42.8 0 109.9-49 192.5-49 30.9 0 110.8 2.6 168.1 83zM554.1 158.3c21.4-25.3 36.5-60.6 36.5-95.9 0-4.9-.3-9.9-1.1-14.1-34.6 1.3-75.7 23.1-100.3 51.5-19.8 22.2-38.2 57.2-38.2 93.1 0 5.5.9 11 1.3 12.8 2.2.4 5.8.6 9.3.6 31.3 0 70.6-21 92.5-47.9z"/>
+                </svg>
+              ),
+              name: 'App Store', status: l.platSoon, live: false,
+            },
+            {
+              icon: (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3.18 23.76c.37.21.8.25 1.21.1l12.44-7.19-2.8-2.8-10.85 9.89zM.49 1.4A1.55 1.55 0 0 0 .25 2.2v19.6c0 .28.08.54.24.77l.1.1 10.98-10.97v-.26L.59 1.3l-.1.1zM20.54 10.27l-2.94-1.7-3.08 3.08 3.08 3.08 2.97-1.72c.85-.49.85-1.28-.03-1.74zM4.39.14L16.83 7.33l-2.8 2.8L3.18.24C3.57.07 4.02.11 4.39.34z"/>
+                </svg>
+              ),
+              name: 'Google Play', status: l.platSoon, live: false,
+            },
           ].map(p => (
             <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: '0.5px solid #E8E4DC', fontSize: 12, color: '#A8A29E' }}>
-              <span>{p.icon}</span>
+              <span style={{ display: 'flex', alignItems: 'center', color: '#78716C' }}>{p.icon}</span>
               <span style={{ fontWeight: 500, color: '#1C1917' }}>{p.name}</span>
               <span style={{ fontSize: 10, background: p.live ? '#F0FDF4' : '#FFF7ED', color: p.live ? '#16A34A' : '#EA580C', padding: '1px 6px', borderRadius: 4 }}>{p.status}</span>
             </div>
