@@ -663,7 +663,7 @@ export default function Team() {
 
                       {/* Add log form */}
                       {showLogForm === m.id && (() => {
-                        const lf = logForm[m.id] || { date: new Date().toISOString().slice(0, 10), type: m.rate_type || 'shift', value: '', rate: m.default_rate || '', notes: '' }
+                        const lf = logForm[m.id] || { date: new Date().toISOString().slice(0, 10), type: m.rate_type || 'shift', value: '1', rate: m.default_rate || '', notes: '' }
                         const setLf = (patch) => setLogForm(f => ({ ...f, [m.id]: { ...lf, ...patch } }))
                         return (
                           <div style={{ background: 'var(--bg-subtle,#FAFAF9)', border: '0.5px solid var(--border)', borderRadius: 8, padding: '10px 12px', marginBottom: 10 }}>
