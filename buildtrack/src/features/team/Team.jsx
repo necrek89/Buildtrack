@@ -101,25 +101,47 @@ export default function Team() {
   const exportPayroll = async () => {
     // Fetch all projects for this foreman, then all work_logs
     const { profile: p, projects: projs } = useStore.getState()
+    console.log('[export] profile:', p?.id, 'projects:', projs.length)
     if (!p) return
-    const { data: pwRows } = await supabase
-      .from('project_workers')
-      .select('worker_id')
-      .in('project_id', projs.map(pr => pr.id))
-    const workerIds = [...new Set((pwRows || []).map(r => r.worker_id))]
+
+    let workerIds = []
+
+    if (projs.length) {
+      const { data: pwRows, error: pwErr } = await supabase
+        .from('project_workers')
+        .select('worker_id')
+        .in('project_id', projs.map(pr => pr.id))
+      console.log('[export] project_workers:', pwRows, pwErr)
+      workerIds = [...new Set((pwRows || []).map(r => r.worker_id))]
+    }
+
+    // fallback: try join_requests
+    if (!workerIds.length) {
+      const { data: jrRows, error: jrErr } = await supabase
+        .from('join_requests')
+        .select('worker_id')
+        .eq('foreman_id', p.id)
+        .eq('status', 'approved')
+      console.log('[export] join_requests fallback:', jrRows, jrErr)
+      workerIds = [...new Set((jrRows || []).map(r => r.worker_id))]
+    }
+
+    console.log('[export] workerIds:', workerIds)
     if (!workerIds.length) { alert('В бригаде нет рабочих'); return }
 
-    const { data: logs } = await supabase
+    const { data: logs, error: logsErr } = await supabase
       .from('work_logs')
       .select('*, worker:profiles(name)')
       .in('worker_id', workerIds)
       .order('worker_id').order('log_date', { ascending: true })
+    console.log('[export] logs:', logs, logsErr)
 
-    const { data: pays } = await supabase
+    const { data: pays, error: paysErr } = await supabase
       .from('worker_payments')
       .select('*, worker:profiles(name)')
       .in('worker_id', workerIds)
       .order('paid_at', { ascending: true })
+    console.log('[export] pays:', pays, paysErr)
 
     if (!logs?.length && !pays?.length) { alert('Нет записей для экспорта'); return }
 
