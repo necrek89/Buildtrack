@@ -150,25 +150,6 @@ export default function Team() {
             )}
           </div>
 
-          {/* Менеджер по email */}
-          <div style={{ borderBottom:'1px solid #EAE3D8', paddingTop:14, paddingBottom:14 }}>
-            <div style={{ fontSize:12, fontWeight:700, color:'#7A6E66', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
-              {t('team.managerMethod')}
-            </div>
-            <div style={{ fontSize:12, color:'#7A6E66', marginBottom:8 }}>{t('team.managerDesc')}</div>
-            <div style={{ display:'flex', gap:8 }}>
-              <input className="form-input" placeholder={t('team.managerPlaceholder')}
-                value={managerEmail} onChange={e => setManagerEmail(e.target.value)}
-                onKeyDown={e => e.key==='Enter' && inviteManager()} style={{ flex:1 }} />
-              <Button variant="primary" size="sm" onClick={inviteManager} disabled={managerLoading}>{managerLoading ? '...' : t('common.add')}</Button>
-            </div>
-            {managerMsg && (
-              <div style={{ marginTop:8, fontSize:12, padding:'6px 10px', borderRadius:6, background: managerMsg.includes('added') ? '#E8F2EB' : '#FCEBEB', color: managerMsg.includes('added') ? '#3D7A52' : '#A32D2D' }}>
-                {managerMsg}
-              </div>
-            )}
-          </div>
-
           {/* Заказчик по email + проект */}
           <div style={{ paddingTop:14 }}>
             <div style={{ fontSize:12, fontWeight:700, color:'#7A6E66', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
