@@ -85,6 +85,49 @@ export default function Team() {
     setManagerEmail('')
   }
 
+  const removeWorker = async (workerId, workerName) => {
+    if (!window.confirm(`Удалить ${workerName} из бригады?`)) return
+    const allProjects = useStore.getState().projects
+    await supabase.from('project_workers')
+      .delete()
+      .eq('worker_id', workerId)
+      .in('project_id', allProjects.map(p => p.id))
+    setOpenId(null)
+    fetchAllWorkers()
+  }
+
+  const exportPayroll = async () => {
+    const { data: logs } = await supabase
+      .from('work_logs')
+      .select('*, worker:profiles(name)')
+      .in('worker_id', team.map(m => m.id))
+      .order('log_date', { ascending: true })
+    if (!logs?.length) { alert('Нет записей для экспорта'); return }
+    const rows = [['Рабочий', 'Дата', 'Тип', 'Кол-во', 'Ставка', `Сумма (${currSym})`, 'Заметка']]
+    logs.forEach(l => {
+      rows.push([
+        l.worker?.name || '',
+        l.log_date,
+        l.log_type === 'hours' ? 'Часы' : 'Смены',
+        l.value,
+        l.rate,
+        (l.value * l.rate).toFixed(0),
+        l.notes || '',
+      ])
+    })
+    // summary row
+    const grandTotal = logs.reduce((s, l) => s + l.value * l.rate, 0)
+    rows.push(['', '', '', '', 'ИТОГО', grandTotal.toFixed(0), ''])
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `зарплата_${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const cycleStatus = (workerId, currentStatus) => {
     const idx  = STATUS_CYCLE.indexOf(currentStatus || 'on_site')
     const next = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length]
@@ -115,6 +158,17 @@ export default function Team() {
             </button>
           )
         })()}
+        {profile?.role === 'foreman' && (
+          <button onClick={exportPayroll} style={{
+            display:'flex', alignItems:'center', gap:5,
+            padding:'6px 12px', borderRadius:8,
+            background:'var(--bg)', color:'var(--text-secondary)',
+            border:'0.5px solid var(--border-medium)',
+            cursor:'pointer', fontSize:12, fontWeight:500,
+          }}>
+            ↓ CSV
+          </button>
+        )}
         <Button variant="primary" size="sm" onClick={() => { setShowInvite(!showInvite); setMsg('') }}>
           {showInvite ? t('team.close') : t('team.invite')}
         </Button>
@@ -373,6 +427,22 @@ export default function Team() {
                       )}
                     </div>
                   </div>
+
+                  {/* ── Remove from team ── */}
+                  {profile?.role === 'foreman' && (
+                    <div style={{ marginTop:10, paddingTop:10, borderTop:'0.5px solid var(--border)' }}>
+                      <button
+                        onClick={() => removeWorker(m.id, m.name)}
+                        style={{
+                          fontSize:12, color:'#A32D2D', background:'#FCEBEB',
+                          border:'0.5px solid #F0AAAA', borderRadius:7,
+                          padding:'5px 14px', cursor:'pointer', fontWeight:500,
+                        }}
+                      >
+                        Удалить из бригады
+                      </button>
+                    </div>
+                  )}
 
                   {/* ── Payroll section ── */}
                   {profile?.role === 'foreman' && (
