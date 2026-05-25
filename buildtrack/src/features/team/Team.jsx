@@ -131,14 +131,14 @@ export default function Team() {
 
     const { data: logs, error: logsErr } = await supabase
       .from('work_logs')
-      .select('*, worker:profiles(name)')
+      .select('*, worker:profiles!worker_id(name)')
       .in('worker_id', workerIds)
       .order('worker_id').order('log_date', { ascending: true })
     console.log('[export] logs:', logs, logsErr)
 
     const { data: pays, error: paysErr } = await supabase
       .from('worker_payments')
-      .select('*, worker:profiles(name)')
+      .select('*, worker:profiles!worker_id(name)')
       .in('worker_id', workerIds)
       .order('paid_at', { ascending: true })
     console.log('[export] pays:', pays, paysErr)
