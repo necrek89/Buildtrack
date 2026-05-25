@@ -145,31 +145,51 @@ export default function Team() {
 
     if (!logs?.length && !pays?.length) { alert('Нет записей для экспорта'); return }
 
-    const rows = [['Рабочий', 'Дата', 'Тип', 'Кол-во / Сумма', 'Ставка', `Сумма (${currSym})`, 'Заметка']]
-    ;(logs || []).forEach(l => {
-      rows.push([
-        l.worker?.name || '',
-        l.log_date,
-        l.log_type === 'hours' ? 'Часы' : 'Смены',
-        l.value,
-        l.rate,
-        (l.value * l.rate).toFixed(0),
-        l.notes || '',
-      ])
-    })
-    if (pays?.length) {
-      rows.push(['', '', '', '', '', '', ''])
-      rows.push(['--- ВЫПЛАТЫ ---', '', '', '', '', '', ''])
-      pays.forEach(p => {
-        rows.push([p.worker?.name || '', p.paid_at, 'Выплата', '', '', p.amount, p.notes || ''])
-      })
+    // Group by worker
+    const byWorker = {}
+    for (const id of workerIds) byWorker[id] = { name: '', logs: [], pays: [] }
+    ;(logs || []).forEach(l => { if (byWorker[l.worker_id]) { byWorker[l.worker_id].name = l.worker?.name || l.worker_id; byWorker[l.worker_id].logs.push(l) } })
+    ;(pays || []).forEach(p => { if (byWorker[p.worker_id]) { byWorker[p.worker_id].name = p.worker?.name || p.worker_id; byWorker[p.worker_id].pays.push(p) } })
+
+    const rows = []
+
+    // ── 1. Summary table ──
+    rows.push(['СВОДКА', '', '', ''])
+    rows.push(['Рабочий', `Начислено (${currSym})`, `Выплачено (${currSym})`, `Остаток (${currSym})`])
+    let totalEarned = 0, totalPaid = 0
+    for (const w of Object.values(byWorker)) {
+      const earned = w.logs.reduce((s, l) => s + l.value * l.rate, 0)
+      const paid   = w.pays.reduce((s, p) => s + Number(p.amount), 0)
+      totalEarned += earned; totalPaid += paid
+      if (earned || paid) rows.push([w.name || '—', earned.toFixed(0), paid.toFixed(0), (earned - paid).toFixed(0)])
     }
-    const earned = (logs || []).reduce((s, l) => s + l.value * l.rate, 0)
-    const paid   = (pays  || []).reduce((s, p) => s + p.amount, 0)
-    rows.push(['', '', '', '', '', '', ''])
-    rows.push(['ИТОГО НАЧИСЛЕНО', '', '', '', '', earned.toFixed(0), ''])
-    rows.push(['ИТОГО ВЫПЛАЧЕНО', '', '', '', '', paid.toFixed(0), ''])
-    rows.push(['ОСТАТОК', '', '', '', '', (earned - paid).toFixed(0), ''])
+    rows.push(['ИТОГО', totalEarned.toFixed(0), totalPaid.toFixed(0), (totalEarned - totalPaid).toFixed(0)])
+    rows.push(['', '', '', ''])
+
+    // ── 2. Shift logs per worker ──
+    if (logs?.length) {
+      rows.push(['СМЕНЫ / ЧАСЫ', '', '', '', '', '', ''])
+      rows.push(['Рабочий', 'Дата', 'Тип', 'Кол-во', 'Ставка', `Сумма (${currSym})`, 'Заметка'])
+      for (const w of Object.values(byWorker)) {
+        w.logs.forEach(l => rows.push([
+          w.name, l.log_date,
+          l.log_type === 'hours' ? 'Часы' : 'Смены',
+          l.value, l.rate,
+          (l.value * l.rate).toFixed(0),
+          l.notes || '',
+        ]))
+      }
+      rows.push(['', '', '', '', '', '', ''])
+    }
+
+    // ── 3. Payments per worker ──
+    if (pays?.length) {
+      rows.push(['ВЫПЛАТЫ', '', '', '', ''])
+      rows.push(['Рабочий', 'Дата', `Сумма (${currSym})`, 'Заметка'])
+      for (const w of Object.values(byWorker)) {
+        w.pays.forEach(p => rows.push([w.name, p.paid_at, Number(p.amount).toFixed(0), p.notes || '']))
+      }
+    }
 
     const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
