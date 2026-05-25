@@ -746,6 +746,37 @@ export const useStore = create((set, get) => ({
     }
   },
 
+  // ── Worker payments ───────────────────────────────────────────────────────
+  payments: {},  // keyed by workerId
+
+  fetchPayments: async (workerId) => {
+    const { data } = await supabase
+      .from('worker_payments')
+      .select('*')
+      .eq('worker_id', workerId)
+      .order('paid_at', { ascending: false })
+    set(s => ({ payments: { ...s.payments, [workerId]: data || [] } }))
+    return data || []
+  },
+
+  addPayment: async ({ worker_id, amount, notes, paid_at }) => {
+    const { profile } = get()
+    const { data, error } = await supabase.from('worker_payments').insert({
+      worker_id, foreman_id: profile?.id,
+      amount: parseFloat(amount) || 0,
+      notes: notes || null,
+      paid_at: paid_at || new Date().toISOString().slice(0, 10),
+    }).select().single()
+    if (error) return { error: error.message }
+    set(s => ({ payments: { ...s.payments, [worker_id]: [data, ...(s.payments[worker_id] || [])] } }))
+    return { data }
+  },
+
+  deletePayment: async (id, workerId) => {
+    await supabase.from('worker_payments').delete().eq('id', id)
+    set(s => ({ payments: { ...s.payments, [workerId]: (s.payments[workerId] || []).filter(p => p.id !== id) } }))
+  },
+
   updateMemberRate: async (workerId, defaultRate, rateType) => {
     await supabase.from('profiles').update({ default_rate: defaultRate, rate_type: rateType }).eq('id', workerId)
     set(s => ({

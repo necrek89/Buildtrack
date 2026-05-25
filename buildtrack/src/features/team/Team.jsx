@@ -18,7 +18,7 @@ const STATUS_CYCLE = ['on_site', 'day_off', 'sick', 'vacation', 'other']
 // ─── TEAM ────────────────────────────────────────────────────────────────────
 export default function Team() {
   const { t } = useT()
-  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam, workLogs, fetchWorkLogs, addWorkLog, deleteWorkLog, updateMemberRate, attendance } = useStore()
+  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam, workLogs, fetchWorkLogs, addWorkLog, deleteWorkLog, updateMemberRate, attendance, payments, fetchPayments, addPayment, deletePayment } = useStore()
   const [showInvite, setShowInvite] = useState(false)
   const [email, setEmail]           = useState('')
   const [loading, setLoading]       = useState(false)
@@ -36,6 +36,8 @@ export default function Team() {
   const [rateEditId, setRateEditId]   = useState(null) // workerId editing rate
   const [rateInput, setRateInput]     = useState({ rate: '', type: 'shift' })
   const [showAttendance, setShowAttendance] = useState(false)
+  const [payForm, setPayForm] = useState({})      // keyed by workerId
+  const [showPayForm, setShowPayForm] = useState(null) // workerId
   const currSym = currencySymbol(profile?.currency)
 
   useEffect(() => {
@@ -97,14 +99,32 @@ export default function Team() {
   }
 
   const exportPayroll = async () => {
+    // Fetch all projects for this foreman, then all work_logs
+    const { profile: p, projects: projs } = useStore.getState()
+    if (!p) return
+    const { data: pwRows } = await supabase
+      .from('project_workers')
+      .select('worker_id')
+      .in('project_id', projs.map(pr => pr.id))
+    const workerIds = [...new Set((pwRows || []).map(r => r.worker_id))]
+    if (!workerIds.length) { alert('В бригаде нет рабочих'); return }
+
     const { data: logs } = await supabase
       .from('work_logs')
       .select('*, worker:profiles(name)')
-      .in('worker_id', team.map(m => m.id))
-      .order('log_date', { ascending: true })
-    if (!logs?.length) { alert('Нет записей для экспорта'); return }
-    const rows = [['Рабочий', 'Дата', 'Тип', 'Кол-во', 'Ставка', `Сумма (${currSym})`, 'Заметка']]
-    logs.forEach(l => {
+      .in('worker_id', workerIds)
+      .order('worker_id').order('log_date', { ascending: true })
+
+    const { data: pays } = await supabase
+      .from('worker_payments')
+      .select('*, worker:profiles(name)')
+      .in('worker_id', workerIds)
+      .order('paid_at', { ascending: true })
+
+    if (!logs?.length && !pays?.length) { alert('Нет записей для экспорта'); return }
+
+    const rows = [['Рабочий', 'Дата', 'Тип', 'Кол-во / Сумма', 'Ставка', `Сумма (${currSym})`, 'Заметка']]
+    ;(logs || []).forEach(l => {
       rows.push([
         l.worker?.name || '',
         l.log_date,
@@ -115,9 +135,20 @@ export default function Team() {
         l.notes || '',
       ])
     })
-    // summary row
-    const grandTotal = logs.reduce((s, l) => s + l.value * l.rate, 0)
-    rows.push(['', '', '', '', 'ИТОГО', grandTotal.toFixed(0), ''])
+    if (pays?.length) {
+      rows.push(['', '', '', '', '', '', ''])
+      rows.push(['--- ВЫПЛАТЫ ---', '', '', '', '', '', ''])
+      pays.forEach(p => {
+        rows.push([p.worker?.name || '', p.paid_at, 'Выплата', '', '', p.amount, p.notes || ''])
+      })
+    }
+    const earned = (logs || []).reduce((s, l) => s + l.value * l.rate, 0)
+    const paid   = (pays  || []).reduce((s, p) => s + p.amount, 0)
+    rows.push(['', '', '', '', '', '', ''])
+    rows.push(['ИТОГО НАЧИСЛЕНО', '', '', '', '', earned.toFixed(0), ''])
+    rows.push(['ИТОГО ВЫПЛАЧЕНО', '', '', '', '', paid.toFixed(0), ''])
+    rows.push(['ОСТАТОК', '', '', '', '', (earned - paid).toFixed(0), ''])
+
     const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -283,6 +314,7 @@ export default function Team() {
                   const newId = openId === m.id ? null : m.id
                   setOpenId(newId)
                   if (newId && !workLogs[newId]) fetchWorkLogs(newId)
+                  if (newId && !payments[newId]) fetchPayments(newId)
                 }}
                 style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', cursor:'pointer', background: isOpen ? '#FAECE4' : '#fff' }}
               >
@@ -427,6 +459,93 @@ export default function Team() {
                       )}
                     </div>
                   </div>
+
+                  {/* ── Payments section ── */}
+                  {profile?.role === 'foreman' && (() => {
+                    const logs     = workLogs[m.id] || []
+                    const earned   = logs.reduce((s, l) => s + l.value * l.rate, 0)
+                    const pays     = payments[m.id] || []
+                    const paid     = pays.reduce((s, p) => s + p.amount, 0)
+                    const balance  = earned - paid
+                    const pf = payForm[m.id] || { date: new Date().toISOString().slice(0, 10), amount: '', notes: '' }
+                    const setPf = patch => setPayForm(f => ({ ...f, [m.id]: { ...pf, ...patch } }))
+                    return (
+                      <div style={{ marginTop:12, borderTop:'0.5px solid var(--border)', paddingTop:12 }}>
+                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
+                          <div style={{ fontSize:10, fontWeight:500, letterSpacing:'.06em', textTransform:'uppercase', color:'var(--text-muted)' }}>Выплаты</div>
+                          <button
+                            onClick={() => { setShowPayForm(prev => prev === m.id ? null : m.id); if (!payments[m.id]) fetchPayments(m.id) }}
+                            style={{ fontSize:11, fontWeight:500, color:'var(--accent)', background:'var(--accent-light)', border:'none', borderRadius:6, padding:'3px 10px', cursor:'pointer' }}
+                          >+ Выплата</button>
+                        </div>
+
+                        {/* Balance summary */}
+                        <div style={{ display:'flex', gap:8, marginBottom:8 }}>
+                          <div style={{ flex:1, background:'var(--bg-subtle,#F9F8F6)', borderRadius:8, padding:'7px 10px', textAlign:'center' }}>
+                            <div style={{ fontSize:11, fontWeight:600, color:'var(--text-primary)' }}>{earned.toLocaleString()} {currSym}</div>
+                            <div style={{ fontSize:9, color:'var(--text-muted)' }}>Начислено</div>
+                          </div>
+                          <div style={{ flex:1, background:'var(--bg-subtle,#F9F8F6)', borderRadius:8, padding:'7px 10px', textAlign:'center' }}>
+                            <div style={{ fontSize:11, fontWeight:600, color:'#16A34A' }}>{paid.toLocaleString()} {currSym}</div>
+                            <div style={{ fontSize:9, color:'var(--text-muted)' }}>Выплачено</div>
+                          </div>
+                          <div style={{ flex:1, background: balance > 0 ? '#FFF7ED' : '#F0FDF4', borderRadius:8, padding:'7px 10px', textAlign:'center', border:`0.5px solid ${balance > 0 ? '#FED7AA' : '#BBF7D0'}` }}>
+                            <div style={{ fontSize:11, fontWeight:600, color: balance > 0 ? 'var(--accent)' : '#16A34A' }}>{balance.toLocaleString()} {currSym}</div>
+                            <div style={{ fontSize:9, color:'var(--text-muted)' }}>Остаток</div>
+                          </div>
+                        </div>
+
+                        {/* Add payment form */}
+                        {showPayForm === m.id && (
+                          <div style={{ background:'var(--bg-subtle,#FAFAF9)', border:'0.5px solid var(--border)', borderRadius:8, padding:'10px 12px', marginBottom:10 }}>
+                            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, marginBottom:6 }}>
+                              <div>
+                                <div style={{ fontSize:10, color:'var(--text-muted)', marginBottom:3 }}>Дата</div>
+                                <input type="date" value={pf.date} onChange={e => setPf({ date: e.target.value })}
+                                  style={{ width:'100%', fontSize:11, padding:'5px 8px', borderRadius:6, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)' }} />
+                              </div>
+                              <div>
+                                <div style={{ fontSize:10, color:'var(--text-muted)', marginBottom:3 }}>Сумма ({currSym})</div>
+                                <input type="number" min="0" step="any" placeholder="0" value={pf.amount} onChange={e => setPf({ amount: e.target.value })}
+                                  style={{ width:'100%', fontSize:11, padding:'5px 8px', borderRadius:6, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)' }} />
+                              </div>
+                            </div>
+                            <input placeholder="Заметка (напр: аванс, за 2 недели...)" value={pf.notes} onChange={e => setPf({ notes: e.target.value })}
+                              style={{ width:'100%', fontSize:11, padding:'5px 8px', borderRadius:6, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)', marginBottom:8 }} />
+                            <div style={{ display:'flex', gap:6, justifyContent:'flex-end' }}>
+                              <button onClick={() => setShowPayForm(null)} style={{ fontSize:11, padding:'5px 12px', borderRadius:6, border:'0.5px solid var(--border)', background:'var(--bg)', cursor:'pointer', color:'var(--text-secondary)' }}>Отмена</button>
+                              <button
+                                onClick={async () => {
+                                  if (!pf.amount) return
+                                  await addPayment({ worker_id: m.id, amount: pf.amount, notes: pf.notes, paid_at: pf.date })
+                                  setShowPayForm(null)
+                                  setPayForm(f => { const n = { ...f }; delete n[m.id]; return n })
+                                }}
+                                style={{ fontSize:11, padding:'5px 14px', borderRadius:6, background:'var(--accent)', color:'#fff', border:'none', cursor:'pointer', fontWeight:500 }}
+                              >Сохранить</button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Payment list */}
+                        {pays.map(p => (
+                          <div key={p.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 0', borderBottom:'0.5px solid var(--border)' }}>
+                            <div style={{ flex:1, minWidth:0 }}>
+                              <div style={{ fontSize:11, color:'var(--text-primary)' }}>
+                                {p.paid_at}
+                                <span style={{ fontWeight:600, color:'#16A34A', marginLeft:8 }}>−{parseFloat(p.amount).toLocaleString()} {currSym}</span>
+                              </div>
+                              {p.notes && <div style={{ fontSize:10, color:'var(--text-muted)' }}>{p.notes}</div>}
+                            </div>
+                            <button onClick={() => deletePayment(p.id, m.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', fontSize:14, padding:'0 4px', flexShrink:0 }}>🗑</button>
+                          </div>
+                        ))}
+                        {pays.length === 0 && !showPayForm && (
+                          <div style={{ fontSize:11, color:'var(--text-muted)', textAlign:'center', padding:'6px 0' }}>Выплат нет</div>
+                        )}
+                      </div>
+                    )
+                  })()}
 
                   {/* ── Remove from team ── */}
                   {profile?.role === 'foreman' && (
