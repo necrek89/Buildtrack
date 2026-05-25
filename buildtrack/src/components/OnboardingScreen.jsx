@@ -14,7 +14,7 @@ const SLIDES = [
     color: '#2E6B4A',
     bg: 'linear-gradient(160deg, #F0F9F4 0%, #D8EFDF 100%)',
     circleBg: '#E0F2E8',
-    title: 'Прораб и Менеджер',
+    title: 'Прораб',
     subtitle: 'Создавай объекты, назначай задачи\nбригаде и следи за прогрессом',
   },
   {

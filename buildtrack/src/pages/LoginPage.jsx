@@ -158,7 +158,6 @@ export default function LoginPage({ onLogin }) {
                   <label className="form-label">{t('auth.roleLabel')}</label>
                   <select className="form-input" value={form.role} onChange={set('role')}>
                     <option value="foreman">{t('roles.foreman')}</option>
-                    <option value="manager">{t('roles.manager')}</option>
                     <option value="worker">{t('roles.worker')}</option>
                     <option value="client">{t('roles.client')}</option>
                   </select>
