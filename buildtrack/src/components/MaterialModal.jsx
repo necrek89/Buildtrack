@@ -1,106 +1,172 @@
 import { useState } from 'react'
 import { useStore, MATERIAL_UNITS } from '../store/useStore'
 import { useT } from '../i18n/useLanguage'
-import { Button, FormGroup } from './UI'
+import { Button } from './UI'
+
+const newRow = () => ({ _id: Math.random(), name: '', qty: 1, unit: 'pcs', note: '' })
 
 export default function MaterialModal({ open, onClose, defaultProjectId, defaultTaskId }) {
   const { addMaterial, profile, projects } = useStore()
   const { t } = useT()
 
-  const [form, setForm] = useState({
-    name:      '',
-    qty:       1,
-    unit:      'pcs',
-    note:      '',
-    projectId: defaultProjectId || '',
-  })
-  const [err,    setErr]    = useState('')
-  const [saving, setSaving] = useState(false)
+  const [projectId, setProjectId] = useState(defaultProjectId || '')
+  const [rows, setRows]           = useState([newRow(), newRow(), newRow()])
+  const [saving, setSaving]       = useState(false)
+  const [err, setErr]             = useState('')
 
   if (!open) return null
 
-  const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
+  const setRow = (id, field, value) =>
+    setRows(rs => rs.map(r => r._id === id ? { ...r, [field]: value } : r))
+
+  const addRow = () => setRows(rs => [...rs, newRow()])
+
+  const removeRow = (id) => {
+    if (rows.length === 1) return
+    setRows(rs => rs.filter(r => r._id !== id))
+  }
+
+  const filledRows = rows.filter(r => r.name.trim())
 
   const submit = () => {
-    if (!form.name.trim())                   { setErr(t('materials.errName')); return }
-    if (!form.qty || Number(form.qty) <= 0)  { setErr(t('materials.errQty'));  return }
+    if (!filledRows.length) { setErr('Введите хотя бы одно название'); return }
     setSaving(true)
-    addMaterial({
-      projectId:  form.projectId || null,
-      taskId:     defaultTaskId  || null,
-      name:       form.name.trim(),
-      qty:        Number(form.qty),
-      unit:       form.unit,
-      note:       form.note.trim(),
-      reportedBy: profile?.name || 'Worker',
-    })
+    for (const r of filledRows) {
+      addMaterial({
+        projectId:  projectId || null,
+        taskId:     defaultTaskId || null,
+        name:       r.name.trim(),
+        qty:        Number(r.qty) || 1,
+        unit:       r.unit,
+        note:       r.note.trim(),
+        reportedBy: profile?.name || 'Worker',
+      })
+    }
     setSaving(false)
-    setForm({ name: '', qty: 1, unit: 'pcs', note: '', projectId: defaultProjectId || '' })
+    setRows([newRow(), newRow(), newRow()])
     setErr('')
     onClose()
   }
 
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal">
-        <div className="modal-title">{t('materials.addModal')}</div>
+      <div className="modal" style={{ maxWidth: 560, width: '96vw', maxHeight: '90dvh', display: 'flex', flexDirection: 'column' }}>
 
-        <FormGroup label={t('materials.projectLabel')}>
-          <select className="form-input" value={form.projectId} onChange={set('projectId')}>
-            <option value="">{t('materials.generalOption')}</option>
-            {projects.map(p => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
-        </FormGroup>
+        {/* Header */}
+        <div className="modal-title" style={{ flexShrink: 0 }}>{t('materials.addModal')}</div>
 
-        <FormGroup label={t('materials.nameLabel')}>
-          <input
+        {/* Project selector */}
+        <div style={{ marginBottom: 12, flexShrink: 0 }}>
+          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>{t('materials.projectLabel')}</div>
+          <select
             className="form-input"
-            placeholder={t('materials.namePlaceholder')}
-            value={form.name}
-            onChange={set('name')}
-            autoFocus
-            onKeyDown={e => e.key === 'Enter' && submit()}
-          />
-        </FormGroup>
-
-        <div className="form-grid-2">
-          <FormGroup label={t('materials.qtyLabel')}>
-            <input
-              className="form-input"
-              type="number" min="0.1" step="0.1"
-              value={form.qty}
-              onChange={set('qty')}
-            />
-          </FormGroup>
-          <FormGroup label={t('materials.unitLabel')}>
-            <select className="form-input" value={form.unit} onChange={set('unit')}>
-              {MATERIAL_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-            </select>
-          </FormGroup>
+            value={projectId}
+            onChange={e => setProjectId(e.target.value)}
+            style={{ fontSize: 13 }}
+          >
+            <option value="">{t('materials.generalOption')}</option>
+            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
         </div>
 
-        <FormGroup label={t('materials.noteLabel')}>
-          <textarea
-            className="form-input" rows={2}
-            placeholder={t('materials.notePlaceholder')}
-            value={form.note} onChange={set('note')}
-            style={{ resize: 'vertical', minHeight: 60 }}
-          />
-        </FormGroup>
+        {/* Column headers */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 72px 80px 28px',
+          gap: 6, paddingBottom: 4, borderBottom: '1px solid var(--border)',
+          flexShrink: 0,
+        }}>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Название *</span>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Кол-во</span>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Ед. изм.</span>
+          <span />
+        </div>
 
+        {/* Rows */}
+        <div style={{ overflowY: 'auto', flex: 1, paddingTop: 6 }}>
+          {rows.map((r, i) => (
+            <div key={r._id} style={{ display: 'grid', gridTemplateColumns: '1fr 72px 80px 28px', gap: 6, marginBottom: 6, alignItems: 'center' }}>
+              <input
+                className="form-input mat-row-name"
+                placeholder={`Позиция ${i + 1}`}
+                value={r.name}
+                onChange={e => setRow(r._id, 'name', e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    if (i === rows.length - 1) addRow()
+                    const inputs = document.querySelectorAll('.mat-row-name')
+                    if (inputs[i + 1]) inputs[i + 1].focus()
+                  }
+                }}
+                style={{ fontSize: 13, padding: '6px 8px' }}
+                autoFocus={i === 0}
+              />
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                className="form-input"
+                value={r.qty}
+                onChange={e => setRow(r._id, 'qty', e.target.value)}
+                style={{ fontSize: 13, padding: '6px 6px', textAlign: 'center' }}
+              />
+              <select
+                className="form-input"
+                value={r.unit}
+                onChange={e => setRow(r._id, 'unit', e.target.value)}
+                style={{ fontSize: 13, padding: '6px 4px' }}
+              >
+                {MATERIAL_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+              </select>
+              <button
+                onClick={() => removeRow(r._id)}
+                disabled={rows.length === 1}
+                style={{
+                  background: 'none', border: 'none', cursor: rows.length === 1 ? 'default' : 'pointer',
+                  color: rows.length === 1 ? 'var(--border)' : 'var(--text-muted)',
+                  fontSize: 16, padding: 0, lineHeight: 1,
+                }}
+              >×</button>
+            </div>
+          ))}
+
+          {/* Add row button */}
+          <button
+            onClick={addRow}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              background: 'none', border: '1.5px dashed var(--border)', borderRadius: 8,
+              color: 'var(--text-muted)', fontSize: 12, cursor: 'pointer',
+              padding: '6px 12px', width: '100%', marginTop: 4, marginBottom: 8,
+            }}
+          >
+            <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Добавить строку
+          </button>
+        </div>
+
+        {/* Error */}
         {err && (
-          <div style={{ fontSize:12, color:'#A32D2D', background:'#FCEBEB', padding:'6px 10px', borderRadius:6, marginBottom:8 }}>
+          <div style={{ fontSize: 12, color: '#A32D2D', background: '#FCEBEB', padding: '6px 10px', borderRadius: 6, marginBottom: 8, flexShrink: 0 }}>
             {err}
           </div>
         )}
 
-        <div className="modal-actions">
-          <Button size="sm" onClick={onClose}>{t('common.cancel')}</Button>
-          <Button variant="primary" size="sm" onClick={submit} disabled={saving}>
-            {saving ? t('common.adding') : t('materials.addBtn')}
-          </Button>
+        {/* Footer */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: 12, flexShrink: 0 }}>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            {filledRows.length > 0 ? `${filledRows.length} позиц${filledRows.length === 1 ? 'ия' : filledRows.length < 5 ? 'ии' : 'ий'}` : 'Нет позиций'}
+          </span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button size="sm" onClick={onClose}>{t('common.cancel')}</Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={submit}
+              disabled={saving || !filledRows.length}
+            >
+              {saving ? t('common.adding') : `Добавить (${filledRows.length})`}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
