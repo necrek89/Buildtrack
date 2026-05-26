@@ -115,7 +115,10 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
   const active    = projects.filter(p => p.status !== 'completed')
   const completed = projects.filter(p => p.status === 'completed')
 
-  const overdueTasks  = tasks.filter(t => t.deadline && new Date(t.deadline) < new Date() && t.status !== 'approved').length
+  const [showOverdueModal, setShowOverdueModal] = useState(false)
+
+  const overdueList   = tasks.filter(t => t.deadline && new Date(t.deadline) < new Date() && t.status !== 'approved')
+  const overdueTasks  = overdueList.length
   const pendingReview = tasks.filter(t => t.status === 'pending').length
 
   const renderCard = (p, isCompleted = false) => {
@@ -260,9 +263,53 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
       {/* Summary chips */}
       {(overdueTasks > 0 || pendingReview > 0) && (
         <div className="summary-bar">
-          {overdueTasks > 0 && <div className="summary-chip danger">⚠️ {t('projects.overdue', { n: overdueTasks })}</div>}
+          {overdueTasks > 0 && (
+            <button
+              onClick={() => setShowOverdueModal(true)}
+              className="summary-chip danger"
+              style={{ cursor: 'pointer', background: 'none', border: 'none', font: 'inherit' }}
+            >
+              ⚠️ {t('projects.overdue', { n: overdueTasks })}
+            </button>
+          )}
           {pendingReview > 0 && <div className="summary-chip warning">🕐 {t('projects.forReview', { n: pendingReview })}</div>}
         </div>
+      )}
+
+      {showOverdueModal && (
+        <>
+          <div
+            onClick={() => setShowOverdueModal(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 200 }}
+          />
+          <div style={{
+            position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+            zIndex: 201, background: 'var(--surface,#fff)', borderRadius: 16,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.18)', width: 'min(480px, 92vw)',
+            maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+          }}>
+            <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 600, fontSize: 15 }}>⚠️ Просроченные задачи ({overdueTasks})</span>
+              <button onClick={() => setShowOverdueModal(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-muted)', lineHeight: 1 }}>×</button>
+            </div>
+            <div style={{ overflowY: 'auto', padding: '8px 0' }}>
+              {overdueList.map(task => {
+                const proj = projects.find(p => p.id === task.project_id)
+                const daysOverdue = Math.floor((new Date() - new Date(task.deadline)) / 86400000)
+                return (
+                  <div key={task.id} style={{ padding: '10px 18px', borderBottom: '0.5px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{task.title}</span>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                      {proj && <span style={{ fontSize: 11, color: 'var(--text-secondary)', background: 'var(--bg,#F9F6F0)', borderRadius: 6, padding: '1px 7px' }}>{proj.name}</span>}
+                      <span style={{ fontSize: 11, color: '#C0392B' }}>просрочено на {daysOverdue} {daysOverdue === 1 ? 'день' : daysOverdue < 5 ? 'дня' : 'дней'}</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>срок: {task.deadline}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </>
       )}
 
       {active.length === 0 && completed.length === 0 && <EmptyState>{t('projects.noProjects')}</EmptyState>}
