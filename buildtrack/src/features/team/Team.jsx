@@ -38,6 +38,7 @@ export default function Team() {
   const [rateEditId, setRateEditId]   = useState(null) // workerId editing rate
   const [rateInput, setRateInput]     = useState({ rate: '', type: 'shift' })
   const [showAttendance, setShowAttendance] = useState(false)
+  const [showReportMenu, setShowReportMenu] = useState(false)
   const [payForm, setPayForm] = useState({})      // keyed by workerId
   const [showPayForm, setShowPayForm] = useState(null) // workerId
   const now = new Date()
@@ -237,11 +238,11 @@ export default function Team() {
           )
         })()}
         {profile?.role === 'foreman' && (
-          <div style={{ display:'flex', alignItems:'center', border:'0.5px solid var(--border-medium)', borderRadius:8, background:'var(--bg)', overflow:'hidden' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:4, position:'relative' }}>
             <select
               value={reportMonth}
               onChange={e => setReportMonth(Number(e.target.value))}
-              style={{ fontSize:11, padding:'6px 6px', border:'none', borderRight:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)', cursor:'pointer', outline:'none' }}
+              style={{ fontSize:11, padding:'6px 6px', borderRadius:7, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)', cursor:'pointer', outline:'none' }}
             >
               {['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'].map((m, i) => (
                 <option key={i} value={i + 1}>{m}</option>
@@ -250,33 +251,53 @@ export default function Team() {
             <select
               value={reportYear}
               onChange={e => setReportYear(Number(e.target.value))}
-              style={{ fontSize:11, padding:'6px 6px', border:'none', borderRight:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)', cursor:'pointer', outline:'none', width:58 }}
+              style={{ fontSize:11, padding:'6px 6px', borderRadius:7, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)', cursor:'pointer', outline:'none', width:58 }}
             >
               {[now.getFullYear() - 1, now.getFullYear()].map(y => (
                 <option key={y} value={y}>{y}</option>
               ))}
             </select>
             <button
-              onClick={exportPayroll}
-              title="Скачать CSV"
-              style={{ padding:'6px 10px', border:'none', borderRight:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-secondary)', cursor:'pointer', display:'flex', alignItems:'center' }}
+              onClick={() => setShowReportMenu(v => !v)}
+              style={{
+                display:'flex', alignItems:'center', gap:5,
+                padding:'6px 11px', borderRadius:7, border:'0.5px solid var(--border-medium)',
+                background:'var(--bg)', color:'var(--text-secondary)',
+                cursor:'pointer', fontSize:12, fontWeight:500,
+              }}
             >
-              <FileCsv size={16} weight="bold" />
+              <DownloadSimple size={15} weight="bold" />
+              Отчёт
+              <span style={{ fontSize:9, marginLeft:1 }}>▾</span>
             </button>
-            <button
-              onClick={() => generateMonthlyReport(reportMonth, reportYear)}
-              title="Отчёт за месяц"
-              style={{ padding:'6px 10px', border:'none', borderRight:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-secondary)', cursor:'pointer', display:'flex', alignItems:'center' }}
-            >
-              <CalendarBlank size={16} weight="bold" />
-            </button>
-            <button
-              onClick={() => generateAnnualReport(reportYear)}
-              title="Годовой отчёт"
-              style={{ padding:'6px 10px', border:'none', background:'var(--bg)', color:'var(--text-secondary)', cursor:'pointer', display:'flex', alignItems:'center' }}
-            >
-              <ChartBar size={16} weight="bold" />
-            </button>
+
+            {showReportMenu && (
+              <>
+                <div style={{ position:'fixed', inset:0, zIndex:99 }} onClick={() => setShowReportMenu(false)} />
+                <div style={{
+                  position:'absolute', top:'calc(100% + 4px)', right:0, zIndex:100,
+                  background:'var(--bg,#fff)', border:'0.5px solid var(--border-medium)',
+                  borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.10)', minWidth:210, overflow:'hidden',
+                }}>
+                  {[
+                    { icon: <FileCsv size={15} weight="bold" />,      label: 'Скачать CSV',       action: exportPayroll },
+                    { icon: <CalendarBlank size={15} weight="bold" />, label: 'Отчёт за месяц',    action: () => generateMonthlyReport(reportMonth, reportYear) },
+                    { icon: <ChartBar size={15} weight="bold" />,      label: 'Годовой отчёт',     action: () => generateAnnualReport(reportYear) },
+                  ].map((item, i, arr) => (
+                    <button key={i} onClick={() => { item.action(); setShowReportMenu(false) }} style={{
+                      display:'flex', alignItems:'center', gap:10,
+                      width:'100%', padding:'10px 14px', border:'none', background:'transparent',
+                      cursor:'pointer', fontSize:13, textAlign:'left',
+                      color:'var(--text-primary,#2E2420)',
+                      borderBottom: i < arr.length - 1 ? '0.5px solid var(--border,#EAE3D8)' : 'none',
+                    }}>
+                      <span style={{ color:'var(--text-secondary)' }}>{item.icon}</span>
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
         <Button variant="primary" size="sm" onClick={() => { setShowInvite(!showInvite); setMsg('') }}>

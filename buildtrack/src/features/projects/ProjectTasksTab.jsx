@@ -287,6 +287,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
 
   const [printWithComments, setPrintWithComments] = useState(true)
   const [printing, setPrinting] = useState(false)
+  const [showExportMenu, setShowExportMenu] = useState(false)
 
   const printTasks = async () => {
     setPrinting(true)
@@ -482,52 +483,56 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
 
       {/* ── Add + Tools row ── */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8, gap:6 }}>
-        <div style={{ display:'flex', gap:5 }}>
-          {canEdit && <>
-            <input ref={importRef} type="file" accept=".csv" style={{ display:'none' }} onChange={handleImportFile} />
-            {/* Template download */}
-            <button onClick={downloadTemplate} title={t('tasks.csvTemplate')} style={{
+        <div style={{ display:'flex', gap:5, position:'relative' }}>
+          <input ref={importRef} type="file" accept=".csv" style={{ display:'none' }} onChange={handleImportFile} />
+          <button
+            onClick={() => setShowExportMenu(v => !v)}
+            style={{
+              display:'flex', alignItems:'center', gap:5,
               background:'var(--accent-light,#FFF7ED)', border:'0.5px solid var(--border-medium,#E8E4DC)',
-              borderRadius:7, padding:'5px 9px', cursor:'pointer', color:'var(--text-secondary)',
-              display:'flex', alignItems:'center',
-            }}>
-              <FileText size={16} weight="bold" />
-            </button>
-            {/* CSV import */}
-            <button onClick={() => importRef.current?.click()} title={t('tasks.csvImport')} style={{
-              background:'var(--accent-light,#FFF7ED)', border:'0.5px solid var(--border-medium,#E8E4DC)',
-              borderRadius:7, padding:'5px 9px', cursor:'pointer', color:'var(--text-secondary)',
-              display:'flex', alignItems:'center',
-            }}>
-              <UploadSimple size={16} weight="bold" />
-            </button>
-          </>}
-          {/* CSV export */}
-          <button onClick={exportCSV} title={t('tasks.csvExport')} style={{
-            background:'var(--accent-light,#FFF7ED)', border:'0.5px solid var(--border-medium,#E8E4DC)',
-            borderRadius:7, padding:'5px 9px', cursor:'pointer', color:'var(--text-secondary)',
-            display:'flex', alignItems:'center',
-          }}>
-            <DownloadSimple size={16} weight="bold" />
+              borderRadius:7, padding:'5px 11px', cursor:'pointer',
+              color:'var(--text-secondary)', fontSize:12, fontWeight:500,
+            }}
+          >
+            <DownloadSimple size={15} weight="bold" />
+            Экспорт
+            <span style={{ fontSize:9, marginLeft:1 }}>▾</span>
           </button>
-          <div style={{ display:'flex', alignItems:'center', borderRadius:7, border:'0.5px solid var(--border-medium,#E8E4DC)', overflow:'hidden' }}>
-            {/* Print */}
-            <button onClick={printTasks} disabled={printing} title={t('tasks.printReport')} style={{
-              background:'var(--accent-light,#FFF7ED)', border:'none', borderRight:'0.5px solid var(--border-medium,#E8E4DC)',
-              padding:'5px 9px', cursor: printing ? 'default' : 'pointer',
-              display:'flex', alignItems:'center', opacity: printing ? 0.5 : 1,
-            }}>
-              <Printer size={16} weight="bold" />
-            </button>
-            {/* Comments toggle */}
-            <button onClick={() => setPrintWithComments(v => !v)} title={printWithComments ? t('tasks.commentsOn') : t('tasks.commentsOff')} style={{
-              background:'var(--accent-light,#FFF7ED)', border:'none', padding:'5px 8px', cursor:'pointer',
-              color: printWithComments ? 'var(--accent,#EA580C)' : 'var(--text-muted)',
-              display:'flex', alignItems:'center',
-            }}>
-              <ChatCircle size={16} weight="bold" />
-            </button>
-          </div>
+
+          {showExportMenu && (
+            <>
+              <div style={{ position:'fixed', inset:0, zIndex:99 }} onClick={() => setShowExportMenu(false)} />
+              <div style={{
+                position:'absolute', top:'calc(100% + 4px)', left:0, zIndex:100,
+                background:'var(--bg,#fff)', border:'0.5px solid var(--border-medium,#E8E4DC)',
+                borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.10)', minWidth:190, overflow:'hidden',
+              }}>
+                {[
+                  canEdit && { icon: <FileText size={15} weight="bold" />,    label: 'Шаблон CSV',    action: () => downloadTemplate() },
+                  canEdit && { icon: <UploadSimple size={15} weight="bold" />, label: 'Импорт CSV',    action: () => importRef.current?.click() },
+                  { icon: <DownloadSimple size={15} weight="bold" />,          label: 'Скачать CSV',   action: () => exportCSV() },
+                  { icon: <Printer size={15} weight="bold" />,                 label: printing ? 'Печать...' : 'Печать', action: () => !printing && printTasks() },
+                  {
+                    icon: <ChatCircle size={15} weight="bold" />,
+                    label: `Комментарии ${printWithComments ? '(вкл)' : '(выкл)'}`,
+                    action: () => setPrintWithComments(v => !v),
+                    accent: printWithComments,
+                  },
+                ].filter(Boolean).map((item, i) => (
+                  <button key={i} onClick={() => { item.action(); setShowExportMenu(false) }} style={{
+                    display:'flex', alignItems:'center', gap:10,
+                    width:'100%', padding:'10px 14px', border:'none', background:'transparent',
+                    cursor:'pointer', fontSize:13, textAlign:'left',
+                    color: item.accent ? 'var(--accent,#EA580C)' : 'var(--text-primary,#2E2420)',
+                    borderBottom: i < 4 ? '0.5px solid var(--border,#EAE3D8)' : 'none',
+                  }}>
+                    <span style={{ color: item.accent ? 'var(--accent,#EA580C)' : 'var(--text-secondary)' }}>{item.icon}</span>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
         {canEdit && (
           <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('tasks.add')}</Button>
