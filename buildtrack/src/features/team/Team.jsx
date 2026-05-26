@@ -4,6 +4,7 @@ import { useT } from '../../i18n/useLanguage'
 import { useStore, currencySymbol } from '../../store/useStore'
 import { supabase } from '../../lib/supabase'
 import AttendanceModal from '../../components/AttendanceModal'
+import { generateMonthlyReport, generateAnnualReport } from './SalaryReportGenerator'
 
 // ─── WORKER STATUS CONFIG ────────────────────────────────────────────────────
 const WORKER_STATUS = {
@@ -38,6 +39,9 @@ export default function Team() {
   const [showAttendance, setShowAttendance] = useState(false)
   const [payForm, setPayForm] = useState({})      // keyed by workerId
   const [showPayForm, setShowPayForm] = useState(null) // workerId
+  const now = new Date()
+  const [reportMonth, setReportMonth] = useState(now.getMonth() + 1)
+  const [reportYear,  setReportYear]  = useState(now.getFullYear())
   const currSym = currencySymbol(profile?.currency)
 
   useEffect(() => {
@@ -241,6 +245,42 @@ export default function Team() {
           }}>
             ↓ CSV
           </button>
+        )}
+        {profile?.role === 'foreman' && (
+          <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+            <select
+              value={reportMonth}
+              onChange={e => setReportMonth(Number(e.target.value))}
+              style={{ fontSize:11, padding:'5px 6px', borderRadius:7, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)', cursor:'pointer' }}
+            >
+              {['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'].map((m, i) => (
+                <option key={i} value={i + 1}>{m}</option>
+              ))}
+            </select>
+            <select
+              value={reportYear}
+              onChange={e => setReportYear(Number(e.target.value))}
+              style={{ fontSize:11, padding:'5px 6px', borderRadius:7, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)', cursor:'pointer', width:64 }}
+            >
+              {[now.getFullYear() - 1, now.getFullYear()].map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => generateMonthlyReport(reportMonth, reportYear)}
+              title="Отчёт за месяц"
+              style={{ padding:'5px 10px', borderRadius:7, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-secondary)', cursor:'pointer', fontSize:12, fontWeight:500 }}
+            >
+              📄
+            </button>
+            <button
+              onClick={() => generateAnnualReport(reportYear)}
+              title="Годовой отчёт"
+              style={{ padding:'5px 10px', borderRadius:7, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-secondary)', cursor:'pointer', fontSize:12, fontWeight:500 }}
+            >
+              📊
+            </button>
+          </div>
         )}
         <Button variant="primary" size="sm" onClick={() => { setShowInvite(!showInvite); setMsg('') }}>
           {showInvite ? t('team.close') : t('team.invite')}
