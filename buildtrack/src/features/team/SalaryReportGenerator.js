@@ -387,12 +387,17 @@ function buildAnnualHTML({ workers, logs, pays, year, lang, currSym }) {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 export async function generateMonthlyReport(month, year) {
+  // Must open window synchronously (before any await) — mobile Safari blocks popup if called after async
+  const w = window.open('', '_blank')
+  if (!w) { alert('Разрешите открытие новых вкладок в браузере'); return }
+  w.document.write('<html><body style="font-family:system-ui;padding:32px;color:#888">Загрузка...</body></html>')
+
   const { profile, projects } = useStore.getState()
   const lang    = localStorage.getItem('tutuu_lang') || 'ru'
   const currSym = currencySymbol(profile?.currency)
 
   const workerIds = await getWorkerIds(profile, projects)
-  if (!workerIds.length) { alert('Нет рабочих'); return }
+  if (!workerIds.length) { w.document.write('<html><body style="font-family:system-ui;padding:32px">Нет рабочих</body></html>'); return }
 
   const start = `${year}-${String(month).padStart(2,'0')}-01`
   const end   = `${year}-${String(month).padStart(2,'0')}-${String(lastDay(year, month)).padStart(2,'0')}`
@@ -400,21 +405,28 @@ export async function generateMonthlyReport(month, year) {
   const { logs, pays, workers } = await fetchPeriodData(workerIds, start, end)
   const html = buildMonthlyHTML({ workers, logs, pays, month, year, lang, currSym })
 
-  const w = window.open('', '_blank')
-  if (w) { w.document.write(html); w.document.close() }
+  w.document.open()
+  w.document.write(html)
+  w.document.close()
 }
 
 export async function generateAnnualReport(year) {
+  // Must open window synchronously (before any await) — mobile Safari blocks popup if called after async
+  const w = window.open('', '_blank')
+  if (!w) { alert('Разрешите открытие новых вкладок в браузере'); return }
+  w.document.write('<html><body style="font-family:system-ui;padding:32px;color:#888">Загрузка...</body></html>')
+
   const { profile, projects } = useStore.getState()
   const lang    = localStorage.getItem('tutuu_lang') || 'ru'
   const currSym = currencySymbol(profile?.currency)
 
   const workerIds = await getWorkerIds(profile, projects)
-  if (!workerIds.length) { alert('Нет рабочих'); return }
+  if (!workerIds.length) { w.document.write('<html><body style="font-family:system-ui;padding:32px">Нет рабочих</body></html>'); return }
 
   const { logs, pays, workers } = await fetchPeriodData(workerIds, `${year}-01-01`, `${year}-12-31`)
   const html = buildAnnualHTML({ workers, logs, pays, year, lang, currSym })
 
-  const w = window.open('', '_blank')
-  if (w) { w.document.write(html); w.document.close() }
+  w.document.open()
+  w.document.write(html)
+  w.document.close()
 }
