@@ -286,7 +286,7 @@ export const useStore = create((set, get) => ({
   fetchTeam: async (projectId) => {
     const { data } = await supabase
       .from('project_workers')
-      .select('worker:profiles(id, name, role, worker_status)')
+      .select('worker:profiles(id, name, role, worker_status, phone, telegram)')
       .eq('project_id', projectId)
     set({ team: data?.map(d => d.worker) || [] })
   },
@@ -294,7 +294,7 @@ export const useStore = create((set, get) => ({
   fetchWorkers: async (projectId) => {
     const { data } = await supabase
       .from('project_workers')
-      .select('worker:profiles(id, name, role, worker_status)')
+      .select('worker:profiles(id, name, role, worker_status, phone, telegram)')
       .eq('project_id', projectId)
     const workers = data?.map(d => d.worker) || []
     set({ team: workers })
@@ -310,7 +310,7 @@ export const useStore = create((set, get) => ({
     if (projects.length) {
       const { data } = await supabase
         .from('project_workers')
-        .select('worker:profiles(id, name, role, worker_status), project_id')
+        .select('worker:profiles(id, name, role, worker_status, phone, telegram), project_id')
         .in('project_id', projects.map(p => p.id))
       for (const row of data || []) {
         const w = row.worker
@@ -333,7 +333,7 @@ export const useStore = create((set, get) => ({
       if (workerIds.length) {
         const { data: profData } = await supabase
           .from('profiles')
-          .select('id, name, role, worker_status')
+          .select('id, name, role, worker_status, phone, telegram')
           .in('id', workerIds)
         for (const w of profData || []) {
           if (!map[w.id]) map[w.id] = { ...w, project_ids: [] }
@@ -349,6 +349,13 @@ export const useStore = create((set, get) => ({
   updateWorkerStatus: async (workerId, status) => {
     await supabase.from('profiles').update({ worker_status: status }).eq('id', workerId)
     set(s => ({ team: s.team.map(m => m.id === workerId ? { ...m, worker_status: status } : m) }))
+  },
+
+  updateWorkerContact: async (workerId, phone, telegram) => {
+    await supabase.from('profiles')
+      .update({ phone: phone || null, telegram: telegram || null })
+      .eq('id', workerId)
+    set(s => ({ team: s.team.map(m => m.id === workerId ? { ...m, phone: phone || null, telegram: telegram || null } : m) }))
   },
 
   // ── JOIN REQUESTS ─────────────────────────────────────────

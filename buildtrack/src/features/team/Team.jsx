@@ -20,7 +20,7 @@ const STATUS_CYCLE = ['on_site', 'day_off', 'sick', 'vacation', 'other']
 // ─── TEAM ────────────────────────────────────────────────────────────────────
 export default function Team() {
   const { t } = useT()
-  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam, workLogs, fetchWorkLogs, addWorkLog, deleteWorkLog, updateMemberRate, attendance, payments, fetchPayments, addPayment, deletePayment } = useStore()
+  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, updateWorkerContact, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam, workLogs, fetchWorkLogs, addWorkLog, deleteWorkLog, updateMemberRate, attendance, payments, fetchPayments, addPayment, deletePayment } = useStore()
   const [showInvite, setShowInvite] = useState(false)
   const [email, setEmail]           = useState('')
   const [loading, setLoading]       = useState(false)
@@ -42,6 +42,8 @@ export default function Team() {
   const [expandedLogs, setExpandedLogs] = useState({}) // keyed by workerId
   const [payForm, setPayForm] = useState({})      // keyed by workerId
   const [showPayForm, setShowPayForm] = useState(null) // workerId
+  const [contactEditId, setContactEditId] = useState(null) // workerId
+  const [contactForm, setContactForm] = useState({}) // keyed by workerId
   const now = new Date()
   const [reportMonth, setReportMonth] = useState(now.getMonth() + 1)
   const [reportYear,  setReportYear]  = useState(now.getFullYear())
@@ -463,6 +465,15 @@ export default function Team() {
                     {workerTools.length > 0 && (
                       <span style={{ fontSize:10, color:'#7A6E66' }}>🔧 {workerTools.length}</span>
                     )}
+                    {m.phone && (
+                      <a
+                        href={`tel:${m.phone}`}
+                        onClick={e => e.stopPropagation()}
+                        style={{ fontSize:10, color:'var(--accent)', textDecoration:'none', display:'flex', alignItems:'center', gap:2 }}
+                      >
+                        📞 {m.phone}
+                      </a>
+                    )}
                   </div>
                 </div>
 
@@ -515,6 +526,80 @@ export default function Team() {
                       </div>
                     </div>
                   )}
+
+                  {/* Contacts */}
+                  <div style={{ marginBottom:12 }}>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
+                      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6' }}>Контакты</div>
+                      {(profile?.role === 'foreman' || profile?.id === m.id) && (
+                        <button
+                          onClick={() => {
+                            setContactEditId(contactEditId === m.id ? null : m.id)
+                            setContactForm(f => ({ ...f, [m.id]: { phone: m.phone || '', telegram: m.telegram || '' } }))
+                          }}
+                          style={{ fontSize:11, fontWeight:500, color:'var(--accent)', background:'var(--accent-light)', border:'none', borderRadius:6, padding:'3px 10px', cursor:'pointer' }}
+                        >
+                          {contactEditId === m.id ? 'Отмена' : 'Изменить'}
+                        </button>
+                      )}
+                    </div>
+
+                    {contactEditId === m.id ? (
+                      <div style={{ background:'var(--bg-subtle,#FAFAF9)', border:'0.5px solid var(--border)', borderRadius:8, padding:'10px 12px' }}>
+                        <div style={{ marginBottom:8 }}>
+                          <div style={{ fontSize:10, color:'var(--text-muted)', marginBottom:3 }}>Телефон</div>
+                          <input
+                            type="tel"
+                            placeholder="+7 999 123 45 67"
+                            value={contactForm[m.id]?.phone || ''}
+                            onChange={e => setContactForm(f => ({ ...f, [m.id]: { ...f[m.id], phone: e.target.value } }))}
+                            style={{ width:'100%', fontSize:12, padding:'6px 8px', borderRadius:6, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)' }}
+                          />
+                        </div>
+                        <div style={{ marginBottom:10 }}>
+                          <div style={{ fontSize:10, color:'var(--text-muted)', marginBottom:3 }}>Telegram</div>
+                          <input
+                            type="text"
+                            placeholder="@username"
+                            value={contactForm[m.id]?.telegram || ''}
+                            onChange={e => setContactForm(f => ({ ...f, [m.id]: { ...f[m.id], telegram: e.target.value } }))}
+                            style={{ width:'100%', fontSize:12, padding:'6px 8px', borderRadius:6, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)' }}
+                          />
+                        </div>
+                        <div style={{ display:'flex', justifyContent:'flex-end' }}>
+                          <button
+                            onClick={async () => {
+                              const cf = contactForm[m.id] || {}
+                              await updateWorkerContact(m.id, cf.phone?.trim(), cf.telegram?.trim())
+                              setContactEditId(null)
+                            }}
+                            style={{ fontSize:11, padding:'5px 14px', borderRadius:6, background:'var(--accent)', color:'#fff', border:'none', cursor:'pointer', fontWeight:500 }}
+                          >Сохранить</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+                        {m.phone ? (
+                          <a href={`tel:${m.phone}`} style={{ fontSize:12, color:'var(--accent)', textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>
+                            📞 {m.phone}
+                          </a>
+                        ) : null}
+                        {m.telegram ? (
+                          <a
+                            href={`https://t.me/${m.telegram.replace(/^@/, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize:12, color:'#229ED9', textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}
+                          >
+                            ✈️ {m.telegram.startsWith('@') ? m.telegram : `@${m.telegram}`}
+                          </a>
+                        ) : null}
+                        {!m.phone && !m.telegram && (
+                          <span style={{ fontSize:11, color:'#B8AFA6' }}>Не указаны</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
                   {/* Projects */}
                   <div style={{ marginBottom:10 }}>
