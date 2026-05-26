@@ -39,6 +39,7 @@ export default function Team() {
   const [rateInput, setRateInput]     = useState({ rate: '', type: 'shift' })
   const [showAttendance, setShowAttendance] = useState(false)
   const [showReportMenu, setShowReportMenu] = useState(false)
+  const [expandedLogs, setExpandedLogs] = useState({}) // keyed by workerId
   const [payForm, setPayForm] = useState({})      // keyed by workerId
   const [showPayForm, setShowPayForm] = useState(null) // workerId
   const now = new Date()
@@ -784,6 +785,9 @@ export default function Team() {
                       {(() => {
                         const logs = workLogs[m.id] || []
                         const total = logs.reduce((s, l) => s + (l.value * l.rate), 0)
+                        const PREVIEW = 3
+                        const isExpanded = expandedLogs[m.id]
+                        const visible = isExpanded ? logs : logs.slice(0, PREVIEW)
                         return (
                           <>
                             {logs.length > 0 && (
@@ -795,7 +799,7 @@ export default function Team() {
                             {logs.length === 0 && (
                               <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', padding: '10px 0' }}>Записей нет</div>
                             )}
-                            {logs.slice(0, 10).map(log => (
+                            {visible.map(log => (
                               <div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '0.5px solid var(--border)' }}>
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ fontSize: 11, color: 'var(--text-primary)' }}>
@@ -811,6 +815,14 @@ export default function Team() {
                                 >🗑</button>
                               </div>
                             ))}
+                            {logs.length > PREVIEW && (
+                              <button
+                                onClick={() => setExpandedLogs(prev => ({ ...prev, [m.id]: !prev[m.id] }))}
+                                style={{ marginTop: 6, width: '100%', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--accent)', padding: '4px 0', textAlign: 'center' }}
+                              >
+                                {isExpanded ? 'Свернуть' : `Показать все (${logs.length})`}
+                              </button>
+                            )}
                           </>
                         )
                       })()}
