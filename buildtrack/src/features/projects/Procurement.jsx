@@ -19,7 +19,7 @@ function timeAgo(dateStr) {
 // ─── PROCUREMENT (unified foreman + worker requests) ─────────────────────────
 export default function Procurement({ canDelete = true, canEdit = true }) {
   const { t } = useT()
-  const { materials, projects, fetchProjects, role, profile,
+  const { materials, projects, fetchProjects, fetchMaterials, role, profile,
           markMaterialPurchased, markMaterialNeeded, deleteMaterial,
           materialRequests, fetchMaterialRequests,
           updateMaterialRequestStatus, deleteMaterialRequest } = useStore()
@@ -30,6 +30,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
 
   useEffect(() => {
     fetchProjects()
+    fetchMaterials()
     fetchMaterialRequests()
   }, [])
 

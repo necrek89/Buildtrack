@@ -20,7 +20,7 @@ function timeAgo(dateStr) {
 export default function MaterialsTab({ proj, canEdit = true }) {
   const { t } = useT()
   const { materials, role, profile, projects,
-          markMaterialPurchased, markMaterialNeeded, deleteMaterial,
+          markMaterialPurchased, markMaterialNeeded, deleteMaterial, fetchMaterials,
           materialRequests, fetchMaterialRequests,
           updateMaterialRequestStatus, deleteMaterialRequest } = useStore()
   const [filter,    setFilter]    = useState('open')
@@ -28,6 +28,7 @@ export default function MaterialsTab({ proj, canEdit = true }) {
   const [reqLightbox, setReqLightbox] = useState(null)
 
   useEffect(() => {
+    fetchMaterials()
     fetchMaterialRequests(proj.id)
   }, [proj.id])
 

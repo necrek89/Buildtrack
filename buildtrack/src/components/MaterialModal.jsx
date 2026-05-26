@@ -28,11 +28,11 @@ export default function MaterialModal({ open, onClose, defaultProjectId, default
 
   const filledRows = rows.filter(r => r.name.trim())
 
-  const submit = () => {
+  const submit = async () => {
     if (!filledRows.length) { setErr('Введите хотя бы одно название'); return }
     setSaving(true)
     for (const r of filledRows) {
-      addMaterial({
+      await addMaterial({
         projectId:  projectId || null,
         taskId:     defaultTaskId || null,
         name:       r.name.trim(),

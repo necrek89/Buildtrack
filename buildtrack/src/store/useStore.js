@@ -6,13 +6,10 @@ const savedTheme = localStorage.getItem('tutuu_theme') || 'light'
 // apply immediately on load
 if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark')
 
-// ── localStorage helpers for materials ────────────────────────────────────────
+// ── localStorage migration helper (one-time) ─────────────────────────────────
 const LS_KEY = 'tutuu_materials'
-function loadMaterials() {
+function drainLocalStorage() {
   try { const s = localStorage.getItem(LS_KEY); return s ? JSON.parse(s) : [] } catch { return [] }
-}
-function saveMaterials(list) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(list)) } catch {}
 }
 
 export const MATERIAL_UNITS = ['pcs', 'm', 'm²', 'm³', 'kg', 'l', 'pack', 'roll']
@@ -28,7 +25,7 @@ export const useStore = create((set, get) => ({
   notifications: [],
   activityLog: [],
   joinRequests: [],
-  materials: loadMaterials(),
+  materials: [],
   materialRequests: [],
   documents: [],
   expenses: [],
@@ -504,52 +501,88 @@ export const useStore = create((set, get) => ({
   },
 
   // ── MATERIALS ────────────────────────────────────────────
-  addMaterial: (material) => {
-    const { materials } = get()
-    const nextId = Math.max(0, ...materials.map(m => m.id)) + 1
-    const entry = {
-      ...material,
-      id: nextId,
-      status: 'needed',
-      createdAt: new Date().toISOString(),
-      purchasedAt: null,
+  // Helper: map Supabase row → store shape
+  _matRow: (m) => ({
+    id:          m.id,
+    projectId:   m.project_id,
+    taskId:      m.task_id,
+    name:        m.name,
+    qty:         m.qty,
+    unit:        m.unit,
+    note:        m.note,
+    reportedBy:  m.reported_by,
+    status:      m.status,
+    createdAt:   m.created_at,
+    purchasedAt: m.purchased_at,
+  }),
+
+  fetchMaterials: async () => {
+    const { profile, _matRow } = get()
+    if (!profile) return
+
+    // One-time migration from localStorage
+    const lsData = drainLocalStorage()
+    if (lsData.length) {
+      const rows = lsData.map(m => ({
+        foreman_id:  profile.id,
+        project_id:  m.projectId || null,
+        name:        m.name,
+        qty:         m.qty || 1,
+        unit:        m.unit || 'pcs',
+        note:        m.note || null,
+        reported_by: m.reportedBy || profile.name,
+        status:      m.status || 'needed',
+        created_at:  m.createdAt || new Date().toISOString(),
+        purchased_at: m.purchasedAt || null,
+      }))
+      await supabase.from('materials').insert(rows)
+      localStorage.removeItem(LS_KEY)
     }
-    const next = [...materials, entry]
-    saveMaterials(next)
-    set({ materials: next })
-    get().logActivity({
-      action_type: 'material_added',
-      entity_name: material.name,
-      project_id:  material.projectId || null,
-      meta: { qty: material.qty, unit: material.unit },
-    })
+
+    const { data } = await supabase
+      .from('materials')
+      .select('*')
+      .eq('foreman_id', profile.id)
+      .order('created_at', { ascending: false })
+    set({ materials: (data || []).map(_matRow) })
   },
 
-  markMaterialPurchased: (id) => {
+  addMaterial: async (material) => {
+    const { profile, _matRow } = get()
+    const { data, error } = await supabase.from('materials').insert({
+      foreman_id:  profile.id,
+      project_id:  material.projectId || null,
+      task_id:     material.taskId    || null,
+      name:        material.name,
+      qty:         material.qty  || 1,
+      unit:        material.unit || 'pcs',
+      note:        material.note || null,
+      reported_by: material.reportedBy || profile?.name,
+      status:      'needed',
+    }).select().single()
+    if (!error && data) {
+      set(s => ({ materials: [_matRow(data), ...s.materials] }))
+      get().logActivity({ action_type: 'material_added', entity_name: material.name, project_id: material.projectId || null, meta: { qty: material.qty, unit: material.unit } })
+    }
+  },
+
+  markMaterialPurchased: async (id) => {
     const material = get().materials.find(m => m.id === id)
-    set(s => {
-      const next = s.materials.map(m =>
-        m.id === id ? { ...m, status: 'purchased', purchasedAt: new Date().toISOString() } : m
-      )
-      saveMaterials(next)
-      return { materials: next }
-    })
+    const now = new Date().toISOString()
+    await supabase.from('materials').update({ status: 'purchased', purchased_at: now }).eq('id', id)
+    set(s => ({ materials: s.materials.map(m => m.id === id ? { ...m, status: 'purchased', purchasedAt: now } : m) }))
     if (material) get().logActivity({ action_type: 'material_purchased', entity_name: material.name, project_id: material.projectId || null })
   },
 
-  markMaterialNeeded: (id) => set(s => {
-    const next = s.materials.map(m =>
-      m.id === id ? { ...m, status: 'needed', purchasedAt: null } : m
-    )
-    saveMaterials(next)
-    return { materials: next }
-  }),
+  markMaterialNeeded: async (id) => {
+    await supabase.from('materials').update({ status: 'needed', purchased_at: null }).eq('id', id)
+    set(s => ({ materials: s.materials.map(m => m.id === id ? { ...m, status: 'needed', purchasedAt: null } : m) }))
+  },
 
-  deleteMaterial: (id) => set(s => {
-    const next = s.materials.filter(m => m.id !== id)
-    saveMaterials(next)
-    return { materials: next }
-  }),
+  deleteMaterial: async (id) => {
+    await supabase.from('materials').delete().eq('id', id)
+    set(s => ({ materials: s.materials.filter(m => m.id !== id) }))
+  },
 
   getProjectMaterials: (projectId) => get().materials.filter(m => m.projectId === projectId),
   getTaskMaterials:    (taskId)     => get().materials.filter(m => m.taskId    === taskId),
