@@ -363,10 +363,15 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
     const totalComments = Object.values(commentsMap).reduce((s, a) => s + a.length, 0)
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
       <title>${proj.name}</title>
       <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: Arial, sans-serif; font-size: 12px; color: #000; padding: 24px; }
+        .top-bar { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 24px; }
+        .btn { padding: 8px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; font-family: inherit; font-weight: 500; }
+        .btn-primary { background: #EA580C; color: #fff; }
+        .btn-secondary { background: #F0EEE8; color: #1C1917; }
         h1 { font-size: 16px; font-weight: bold; margin-bottom: 2px; }
         .meta { font-size: 11px; color: #555; margin-bottom: 16px; }
         table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; }
@@ -385,9 +390,17 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
         .comment-date { color: #999; margin-left: 6px; }
         .comment-text { font-size: 11px; color: #333; line-height: 1.4; white-space: pre-wrap; }
         .footer { margin-top: 16px; font-size: 10px; color: #aaa; text-align: right; }
-        @media print { body { padding: 10px; } @page { margin: 15mm; } }
+        @media print {
+          .top-bar { display: none !important; }
+          body { padding: 10px; }
+          @page { margin: 15mm; }
+        }
       </style>
     </head><body>
+      <div class="top-bar">
+        <button class="btn btn-primary" onclick="window.print()">Сохранить как PDF</button>
+        <button class="btn btn-secondary" onclick="window.close()">Закрыть</button>
+      </div>
       <h1>${proj.name}</h1>
       <div class="meta">
         ${proj.address ? proj.address + ' · ' : ''}
@@ -414,8 +427,6 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
     w.document.open()
     w.document.write(html)
     w.document.close()
-    w.focus()
-    setTimeout(() => w.print(), 400)
   }
 
   useEffect(() => {
