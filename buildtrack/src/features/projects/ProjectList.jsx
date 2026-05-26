@@ -109,7 +109,7 @@ function EditStages({ stages, onChange, placeholder }) {
 // ─── PROJECT CARD LIST ───────────────────────────────────────────────────────
 function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null, onReopen = null }) {
   const { t } = useT()
-  const { projects, tasks } = useStore()
+  const { projects, tasks, setSelectedProject, setPendingOpenTask } = useStore()
   const [showCompleted, setShowCompleted] = useState(false)
 
   const active    = projects.filter(p => p.status !== 'completed')
@@ -297,14 +297,27 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                 const proj = projects.find(p => p.id === task.project_id)
                 const daysOverdue = Math.floor((new Date() - new Date(task.deadline)) / 86400000)
                 return (
-                  <div key={task.id} style={{ padding: '10px 18px', borderBottom: '0.5px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <button
+                    key={task.id}
+                    onClick={() => {
+                      setSelectedProject(task.project_id)
+                      setPendingOpenTask(task.id)
+                      setShowOverdueModal(false)
+                    }}
+                    style={{
+                      width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer',
+                      padding: '10px 18px', borderBottom: '0.5px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 3,
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-light,#FFF3ED)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                  >
                     <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{task.title}</span>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                       {proj && <span style={{ fontSize: 11, color: 'var(--text-secondary)', background: 'var(--bg,#F9F6F0)', borderRadius: 6, padding: '1px 7px' }}>{proj.name}</span>}
                       <span style={{ fontSize: 11, color: '#C0392B' }}>просрочено на {daysOverdue} {daysOverdue === 1 ? 'день' : daysOverdue < 5 ? 'дня' : 'дней'}</span>
                       <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>срок: {task.deadline}</span>
                     </div>
-                  </div>
+                  </button>
                 )
               })}
             </div>
