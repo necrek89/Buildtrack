@@ -236,22 +236,11 @@ export default function Team() {
           )
         })()}
         {profile?.role === 'foreman' && (
-          <button onClick={exportPayroll} style={{
-            display:'flex', alignItems:'center', gap:5,
-            padding:'6px 12px', borderRadius:8,
-            background:'var(--bg)', color:'var(--text-secondary)',
-            border:'0.5px solid var(--border-medium)',
-            cursor:'pointer', fontSize:12, fontWeight:500,
-          }}>
-            ↓ CSV
-          </button>
-        )}
-        {profile?.role === 'foreman' && (
-          <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+          <div style={{ display:'flex', alignItems:'center', border:'0.5px solid var(--border-medium)', borderRadius:8, background:'var(--bg)', overflow:'hidden' }}>
             <select
               value={reportMonth}
               onChange={e => setReportMonth(Number(e.target.value))}
-              style={{ fontSize:11, padding:'5px 6px', borderRadius:7, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)', cursor:'pointer' }}
+              style={{ fontSize:11, padding:'6px 6px', border:'none', borderRight:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)', cursor:'pointer', outline:'none' }}
             >
               {['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'].map((m, i) => (
                 <option key={i} value={i + 1}>{m}</option>
@@ -260,25 +249,46 @@ export default function Team() {
             <select
               value={reportYear}
               onChange={e => setReportYear(Number(e.target.value))}
-              style={{ fontSize:11, padding:'5px 6px', borderRadius:7, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)', cursor:'pointer', width:64 }}
+              style={{ fontSize:11, padding:'6px 6px', border:'none', borderRight:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)', cursor:'pointer', outline:'none', width:58 }}
             >
               {[now.getFullYear() - 1, now.getFullYear()].map(y => (
                 <option key={y} value={y}>{y}</option>
               ))}
             </select>
             <button
+              onClick={exportPayroll}
+              title="Скачать CSV"
+              style={{ padding:'6px 10px', border:'none', borderRight:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-secondary)', cursor:'pointer', display:'flex', alignItems:'center' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </button>
+            <button
               onClick={() => generateMonthlyReport(reportMonth, reportYear)}
               title="Отчёт за месяц"
-              style={{ padding:'5px 10px', borderRadius:7, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-secondary)', cursor:'pointer', fontSize:12, fontWeight:500 }}
+              style={{ padding:'6px 10px', border:'none', borderRight:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-secondary)', cursor:'pointer', display:'flex', alignItems:'center' }}
             >
-              📄
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
             </button>
             <button
               onClick={() => generateAnnualReport(reportYear)}
               title="Годовой отчёт"
-              style={{ padding:'5px 10px', borderRadius:7, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-secondary)', cursor:'pointer', fontSize:12, fontWeight:500 }}
+              style={{ padding:'6px 10px', border:'none', background:'var(--bg)', color:'var(--text-secondary)', cursor:'pointer', display:'flex', alignItems:'center' }}
             >
-              📊
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"/>
+                <line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/>
+                <line x1="2" y1="20" x2="22" y2="20"/>
+              </svg>
             </button>
           </div>
         )}
