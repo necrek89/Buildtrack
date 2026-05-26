@@ -290,6 +290,11 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
   const [showExportMenu, setShowExportMenu] = useState(false)
 
   const printTasks = async () => {
+    // Must open window synchronously (before any await) — mobile Safari blocks popup if called after async
+    const w = window.open('', '_blank')
+    if (!w) { alert('Разрешите открытие новых вкладок в браузере'); return }
+    w.document.write('<html><body style="font-family:system-ui;padding:32px;color:#888">Загрузка...</body></html>')
+
     setPrinting(true)
 
     // ── Fetch all comments for project tasks in one query ──
@@ -406,7 +411,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
     </body></html>`
 
     setPrinting(false)
-    const w = window.open('', '_blank')
+    w.document.open()
     w.document.write(html)
     w.document.close()
     w.focus()
