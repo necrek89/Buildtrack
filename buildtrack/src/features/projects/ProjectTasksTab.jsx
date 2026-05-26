@@ -495,7 +495,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
             }}
           >
             <DownloadSimple size={15} weight="bold" />
-            Экспорт
+            {t('tasks.exportBtn')}
             <span style={{ fontSize:9, marginLeft:1 }}>▾</span>
           </button>
 
@@ -508,13 +508,13 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
                 borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.10)', minWidth:190, overflow:'hidden',
               }}>
                 {[
-                  canEdit && { icon: <FileText size={15} weight="bold" />,    label: 'Шаблон CSV',    action: () => downloadTemplate() },
-                  canEdit && { icon: <UploadSimple size={15} weight="bold" />, label: 'Импорт CSV',    action: () => importRef.current?.click() },
-                  { icon: <DownloadSimple size={15} weight="bold" />,          label: 'Скачать CSV',   action: () => exportCSV() },
-                  { icon: <Printer size={15} weight="bold" />,                 label: printing ? 'Печать...' : 'Печать', action: () => !printing && printTasks() },
+                  canEdit && { icon: <FileText size={15} weight="bold" />,    label: t('tasks.menuTemplate'),  action: () => downloadTemplate() },
+                  canEdit && { icon: <UploadSimple size={15} weight="bold" />, label: t('tasks.menuImport'),    action: () => importRef.current?.click() },
+                  { icon: <DownloadSimple size={15} weight="bold" />,          label: t('tasks.menuDownload'),  action: () => exportCSV() },
+                  { icon: <Printer size={15} weight="bold" />,                 label: printing ? '...' : t('tasks.menuPrint'), action: () => !printing && printTasks() },
                   {
                     icon: <ChatCircle size={15} weight="bold" />,
-                    label: `Комментарии ${printWithComments ? '(вкл)' : '(выкл)'}`,
+                    label: printWithComments ? t('tasks.menuCommentsOn') : t('tasks.menuCommentsOff'),
                     action: () => setPrintWithComments(v => !v),
                     accent: printWithComments,
                   },

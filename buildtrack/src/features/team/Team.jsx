@@ -267,7 +267,7 @@ export default function Team() {
               }}
             >
               <DownloadSimple size={15} weight="bold" />
-              Отчёт
+              {t('team.reportBtn')}
               <span style={{ fontSize:9, marginLeft:1 }}>▾</span>
             </button>
 
@@ -280,9 +280,9 @@ export default function Team() {
                   borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.10)', minWidth:210, overflow:'hidden',
                 }}>
                   {[
-                    { icon: <FileCsv size={15} weight="bold" />,      label: 'Скачать CSV',       action: exportPayroll },
-                    { icon: <CalendarBlank size={15} weight="bold" />, label: 'Отчёт за месяц',    action: () => generateMonthlyReport(reportMonth, reportYear) },
-                    { icon: <ChartBar size={15} weight="bold" />,      label: 'Годовой отчёт',     action: () => generateAnnualReport(reportYear) },
+                    { icon: <FileCsv size={15} weight="bold" />,      label: t('team.downloadCsv'),    action: exportPayroll },
+                    { icon: <CalendarBlank size={15} weight="bold" />, label: t('team.monthlyReport'),  action: () => generateMonthlyReport(reportMonth, reportYear) },
+                    { icon: <ChartBar size={15} weight="bold" />,      label: t('team.annualReport'),   action: () => generateAnnualReport(reportYear) },
                   ].map((item, i, arr) => (
                     <button key={i} onClick={() => { item.action(); setShowReportMenu(false) }} style={{
                       display:'flex', alignItems:'center', gap:10,
