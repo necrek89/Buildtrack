@@ -308,7 +308,7 @@ export default function App() {
           <button className="burger-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
             <span /><span /><span />
           </button>
-          <span className="topbar-logo">tutuu<span style={{ color: 'var(--accent)' }}>.</span></span>
+          <a href="https://tutuu.net" target="_blank" rel="noopener noreferrer" className="topbar-logo" style={{ textDecoration: 'none', color: 'inherit' }}>tutuu<span style={{ color: 'var(--accent)' }}>.</span></a>
         </div>
 
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
