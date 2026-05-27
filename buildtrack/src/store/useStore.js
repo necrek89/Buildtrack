@@ -283,7 +283,7 @@ export const useStore = create((set, get) => ({
   fetchTeam: async (projectId) => {
     const { data } = await supabase
       .from('project_workers')
-      .select('worker:profiles(id, name, role, worker_status, phone, telegram)')
+      .select('worker:profiles(id, name, role, worker_status, phone, telegram, default_rate, rate_type)')
       .eq('project_id', projectId)
     set({ team: data?.map(d => d.worker) || [] })
   },
@@ -291,7 +291,7 @@ export const useStore = create((set, get) => ({
   fetchWorkers: async (projectId) => {
     const { data } = await supabase
       .from('project_workers')
-      .select('worker:profiles(id, name, role, worker_status, phone, telegram)')
+      .select('worker:profiles(id, name, role, worker_status, phone, telegram, default_rate, rate_type)')
       .eq('project_id', projectId)
     const workers = data?.map(d => d.worker) || []
     set({ team: workers })
@@ -307,7 +307,7 @@ export const useStore = create((set, get) => ({
     if (projects.length) {
       const { data } = await supabase
         .from('project_workers')
-        .select('worker:profiles(id, name, role, worker_status, phone, telegram), project_id')
+        .select('worker:profiles(id, name, role, worker_status, phone, telegram, default_rate, rate_type), project_id')
         .in('project_id', projects.map(p => p.id))
       for (const row of data || []) {
         const w = row.worker
@@ -330,7 +330,7 @@ export const useStore = create((set, get) => ({
       if (workerIds.length) {
         const { data: profData } = await supabase
           .from('profiles')
-          .select('id, name, role, worker_status, phone, telegram')
+          .select('id, name, role, worker_status, phone, telegram, default_rate, rate_type')
           .in('id', workerIds)
         for (const w of profData || []) {
           if (!map[w.id]) map[w.id] = { ...w, project_ids: [] }
