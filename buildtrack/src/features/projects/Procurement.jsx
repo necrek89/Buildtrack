@@ -46,11 +46,12 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
       name:        m.name,
       qty:         m.qty,
       unit:        m.unit,
-      notes:       m.notes,
+      notes:       m.note,
       reportedBy:  m.reportedBy,
       taskName:    m.taskText || null,
       photo:       null,
       createdAt:   m.createdAt,
+      purchasedAt: m.purchasedAt || null,
       isOpen:      m.status === 'needed',
       isPurchased: m.status === 'purchased',
       raw:         m,
@@ -67,6 +68,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
       taskName:    r.task?.text || null,
       photo:       r.photo_url,
       createdAt:   r.created_at,
+      purchasedAt: r.status === 'closed' ? r.updated_at || r.created_at : null,
       isOpen:      r.status === 'open',
       isPurchased: r.status === 'closed',
       raw:         r,
@@ -88,25 +90,49 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
     m.status === 'purchased' && m.purchasedAt && new Date(m.purchasedAt) >= today
   ).length
 
-  // ── Group by project ──────────────────────────────────────────────────────
+  // ── Group by purchase date (when purchased filter) or by project ─────────
+  const groupByDate = filter === 'purchased'
+
+  const fmtDay = (iso) => {
+    if (!iso) return 'Дата неизвестна'
+    const d = new Date(iso)
+    const today = new Date(); today.setHours(0,0,0,0)
+    const yesterday = new Date(today); yesterday.setDate(today.getDate()-1)
+    if (d >= today) return 'Сегодня'
+    if (d >= yesterday) return 'Вчера'
+    return d.toLocaleDateString('ru-RU', { day:'numeric', month:'long', year:'numeric' })
+  }
+
   const groupMap = {}
   for (const item of filtered) {
-    const key = item.projectId
+    const key = groupByDate
+      ? (item.purchasedAt ? new Date(item.purchasedAt).toISOString().slice(0,10) : '__unknown__')
+      : item.projectId
     if (!groupMap[key]) groupMap[key] = []
     groupMap[key].push(item)
   }
-  // Sort groups: named projects first, then __none__
+
   const groups = Object.entries(groupMap)
     .map(([key, items]) => ({
       key,
-      proj:  key === '__none__' ? null : projects.find(p => String(p.id) === key),
-      label: key === '__none__'
-        ? (t('materials.generalNoProject') || 'No project')
-        : (projects.find(p => String(p.id) === key)?.name || `Project ${key}`),
+      proj:  !groupByDate && key !== '__none__' ? projects.find(p => String(p.id) === key) : null,
+      label: groupByDate
+        ? fmtDay(key === '__unknown__' ? null : key + 'T00:00:00')
+        : key === '__none__'
+          ? (t('materials.generalNoProject') || 'No project')
+          : (projects.find(p => String(p.id) === key)?.name || `Project ${key}`),
       items,
       openCount: items.filter(i => i.isOpen).length,
+      dateKey: groupByDate ? key : null,
     }))
-    .sort((a, b) => a.key === '__none__' ? 1 : b.key === '__none__' ? -1 : 0)
+    .sort((a, b) => {
+      if (groupByDate) {
+        if (a.key === '__unknown__') return 1
+        if (b.key === '__unknown__') return -1
+        return b.key.localeCompare(a.key) // newest first
+      }
+      return a.key === '__none__' ? 1 : b.key === '__none__' ? -1 : 0
+    })
 
   // ── Toggle helpers ────────────────────────────────────────────────────────
   const toggleItem = (item) => {
@@ -183,14 +209,19 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
       {groups.map(g => (
         <div key={g.key} className="procurement-group">
           <div className="procurement-group-header">
-            <span>{g.key === '__none__' ? '📋' : '🏗'}</span>
+            <span>{groupByDate ? '📅' : g.key === '__none__' ? '📋' : '🏗'}</span>
             <h3>{g.label}</h3>
-            {g.openCount > 0 && (
+            {groupByDate && (
+              <span style={{ fontSize:11, color:'#B8AFA6', marginLeft:4 }}>
+                {g.items.length} позиц{g.items.length === 1 ? 'ия' : g.items.length < 5 ? 'ии' : 'ий'}
+              </span>
+            )}
+            {!groupByDate && g.openCount > 0 && (
               <span className="procurement-count-badge">
                 {t('materials.needed', { n: g.openCount })}
               </span>
             )}
-            {canEdit && (
+            {canEdit && !groupByDate && (
               <button
                 onClick={() => { setModalProj(g.proj?.id || null); setShowModal(true) }}
                 style={{ marginLeft:'auto', fontSize:11, fontWeight:600, color:'#C96B3A',
@@ -260,9 +291,15 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
                         {item.notes}
                       </span>
                     )}
-                    <span style={{ fontSize:11, color:'#C8C0B8', marginLeft:'auto' }}>
-                      {timeAgo(item.createdAt)}
-                    </span>
+                    {item.isPurchased && item.purchasedAt ? (
+                      <span style={{ fontSize:11, color:'#3D7A52', marginLeft:'auto', fontWeight:500 }}>
+                        ✓ {new Date(item.purchasedAt).toLocaleDateString('ru-RU', { day:'numeric', month:'short' })}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize:11, color:'#C8C0B8', marginLeft:'auto' }}>
+                        {timeAgo(item.createdAt)}
+                      </span>
+                    )}
                   </div>
                   {/* Photo thumbnail */}
                   {item.photo && (
