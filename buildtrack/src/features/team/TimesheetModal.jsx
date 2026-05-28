@@ -55,29 +55,25 @@ export default function TimesheetModal({ onClose }) {
       const val  = parseFloat(row.value)
       const rate = parseFloat(row.rate) || 0
 
+      if (!row.value || isNaN(val) || val <= 0) continue  // пусто — пропускаем
+
       if (row.existingId) {
-        if (!row.value || isNaN(val) || val <= 0) {
-          await deleteWorkLog(row.existingId, w.id)
-        } else {
-          await updateWorkLog(row.existingId, w.id, {
-            log_type: row.type,
-            value:    val,
-            rate,
-            notes:    row.notes || null,
-          })
-        }
+        await updateWorkLog(row.existingId, w.id, {
+          log_type: row.type,
+          value:    val,
+          rate,
+          notes:    row.notes || null,
+        })
       } else {
-        if (row.value && !isNaN(val) && val > 0) {
-          await addWorkLog({
-            worker_id:  w.id,
-            log_date:   date,
-            log_type:   row.type,
-            value:      val,
-            rate,
-            notes:      row.notes || null,
-            created_by: profile.id,
-          })
-        }
+        await addWorkLog({
+          worker_id:  w.id,
+          log_date:   date,
+          log_type:   row.type,
+          value:      val,
+          rate,
+          notes:      row.notes || null,
+          created_by: profile.id,
+        })
       }
     }
     setSaving(false)

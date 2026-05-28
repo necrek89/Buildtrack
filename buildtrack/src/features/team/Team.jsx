@@ -773,8 +773,20 @@ export default function Team() {
                   {profile?.role === 'foreman' && (
                     <div style={{ marginTop: 12, borderTop: '0.5px solid var(--border)', paddingTop: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                        <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                          Зарплата
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                            Зарплата
+                          </div>
+                          <button
+                            onClick={() => generateMonthlyReport(reportMonth, reportYear, m.id)}
+                            style={{ fontSize: 10, color: 'var(--text-secondary)', background: 'var(--bg)', border: '0.5px solid var(--border)', borderRadius: 5, padding: '2px 7px', cursor: 'pointer' }}
+                            title="Отчёт за месяц"
+                          >📄 месяц</button>
+                          <button
+                            onClick={() => generateAnnualReport(reportYear, m.id)}
+                            style={{ fontSize: 10, color: 'var(--text-secondary)', background: 'var(--bg)', border: '0.5px solid var(--border)', borderRadius: 5, padding: '2px 7px', cursor: 'pointer' }}
+                            title="Отчёт за год"
+                          >📊 год</button>
                         </div>
                         <button
                           onClick={() => setShowLogForm(prev => prev === m.id ? null : m.id)}

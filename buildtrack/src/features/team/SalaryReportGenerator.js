@@ -386,8 +386,8 @@ function buildAnnualHTML({ workers, logs, pays, year, lang, currSym }) {
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
-export async function generateMonthlyReport(month, year) {
-  // Must open window synchronously (before any await) — mobile Safari blocks popup if called after async
+// workerId: optional — if provided, generates report for that worker only
+export async function generateMonthlyReport(month, year, workerId = null) {
   const w = window.open('', '_blank')
   if (!w) { alert('Разрешите открытие новых вкладок в браузере'); return }
   w.document.write('<html><body style="font-family:system-ui;padding:32px;color:#888">Загрузка...</body></html>')
@@ -396,7 +396,7 @@ export async function generateMonthlyReport(month, year) {
   const lang    = localStorage.getItem('tutuu_lang') || 'ru'
   const currSym = currencySymbol(profile?.currency)
 
-  const workerIds = await getWorkerIds(profile, projects)
+  let workerIds = workerId ? [workerId] : await getWorkerIds(profile, projects)
   if (!workerIds.length) { w.document.write('<html><body style="font-family:system-ui;padding:32px">Нет рабочих</body></html>'); return }
 
   const start = `${year}-${String(month).padStart(2,'0')}-01`
@@ -410,8 +410,7 @@ export async function generateMonthlyReport(month, year) {
   w.document.close()
 }
 
-export async function generateAnnualReport(year) {
-  // Must open window synchronously (before any await) — mobile Safari blocks popup if called after async
+export async function generateAnnualReport(year, workerId = null) {
   const w = window.open('', '_blank')
   if (!w) { alert('Разрешите открытие новых вкладок в браузере'); return }
   w.document.write('<html><body style="font-family:system-ui;padding:32px;color:#888">Загрузка...</body></html>')
@@ -420,7 +419,7 @@ export async function generateAnnualReport(year) {
   const lang    = localStorage.getItem('tutuu_lang') || 'ru'
   const currSym = currencySymbol(profile?.currency)
 
-  const workerIds = await getWorkerIds(profile, projects)
+  let workerIds = workerId ? [workerId] : await getWorkerIds(profile, projects)
   if (!workerIds.length) { w.document.write('<html><body style="font-family:system-ui;padding:32px">Нет рабочих</body></html>'); return }
 
   const { logs, pays, workers } = await fetchPeriodData(workerIds, `${year}-01-01`, `${year}-12-31`)
