@@ -786,6 +786,35 @@ export const useStore = create((set, get) => ({
     }
   },
 
+  updateWorkLog: async (logId, workerId, payload) => {
+    const { error } = await supabase.from('work_logs').update(payload).eq('id', logId)
+    if (!error) {
+      set(s => ({
+        workLogs: {
+          ...s.workLogs,
+          [workerId]: (s.workLogs[workerId] || []).map(l => l.id === logId ? { ...l, ...payload } : l)
+        }
+      }))
+    }
+  },
+
+  fetchWorkLogsByDate: async (date) => {
+    const { projects } = get()
+    if (!projects.length) return []
+    const { data: pwRows } = await supabase
+      .from('project_workers')
+      .select('worker_id')
+      .in('project_id', projects.map(p => p.id))
+    const workerIds = [...new Set((pwRows || []).map(r => r.worker_id))]
+    if (!workerIds.length) return []
+    const { data } = await supabase
+      .from('work_logs')
+      .select('*')
+      .in('worker_id', workerIds)
+      .eq('log_date', date)
+    return data || []
+  },
+
   // ── Worker payments ───────────────────────────────────────────────────────
   payments: {},  // keyed by workerId
 

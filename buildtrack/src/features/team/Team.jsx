@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase'
 import AttendanceModal from '../../components/AttendanceModal'
 import { generateMonthlyReport, generateAnnualReport } from './SalaryReportGenerator'
 import { DownloadSimple, FileCsv, CalendarBlank, ChartBar } from '@phosphor-icons/react'
+import TimesheetModal from './TimesheetModal'
 
 // ─── WORKER STATUS CONFIG ────────────────────────────────────────────────────
 const WORKER_STATUS = {
@@ -40,6 +41,7 @@ export default function Team() {
   const [showAttendance, setShowAttendance] = useState(false)
   const [showReportMenu, setShowReportMenu] = useState(false)
   const [expandedLogs, setExpandedLogs] = useState({}) // keyed by workerId
+  const [showTimesheet, setShowTimesheet] = useState(false)
   const [payForm, setPayForm] = useState({})      // keyed by workerId
   const [showPayForm, setShowPayForm] = useState(null) // workerId
   const [contactEditId, setContactEditId] = useState(null) // workerId
@@ -228,16 +230,27 @@ export default function Team() {
           const today = new Date().toISOString().slice(0, 10)
           const todayDone = attendance.filter(a => a.date === today).length > 0
           return (
-            <button onClick={() => setShowAttendance(true)} style={{
-              display:'flex', alignItems:'center', gap:5,
-              padding:'6px 12px', borderRadius:8,
-              background: todayDone ? '#F0FDF4' : 'var(--accent-light)',
-              color: todayDone ? '#16A34A' : 'var(--accent)',
-              border: `0.5px solid ${todayDone ? '#86EFAC' : 'var(--accent-border)'}`,
-              cursor:'pointer', fontSize:12, fontWeight:500,
-            }}>
-              {todayDone ? '✅ Проведена' : '📋 Перекличка'}
-            </button>
+            <div style={{ display:'flex', gap:6 }}>
+              <button onClick={() => setShowAttendance(true)} style={{
+                display:'flex', alignItems:'center', gap:5,
+                padding:'6px 12px', borderRadius:8,
+                background: todayDone ? '#F0FDF4' : 'var(--accent-light)',
+                color: todayDone ? '#16A34A' : 'var(--accent)',
+                border: `0.5px solid ${todayDone ? '#86EFAC' : 'var(--accent-border)'}`,
+                cursor:'pointer', fontSize:12, fontWeight:500,
+              }}>
+                {todayDone ? '✅ Проведена' : '📋 Перекличка'}
+              </button>
+              <button onClick={() => setShowTimesheet(true)} style={{
+                display:'flex', alignItems:'center', gap:5,
+                padding:'6px 12px', borderRadius:8,
+                background:'var(--bg)', color:'var(--text-secondary)',
+                border:'0.5px solid var(--border-medium)',
+                cursor:'pointer', fontSize:12, fontWeight:500,
+              }}>
+                📅 Табель
+              </button>
+            </div>
           )
         })()}
         {profile?.role === 'foreman' && (
@@ -389,9 +402,16 @@ export default function Team() {
       )}
 
       {/* ── Worker cards ── */}
-      <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-        {team.length === 0 && <EmptyState>{t('team.noMembers')}</EmptyState>}
-        {team.map(m => {
+      {team.length === 0 && <EmptyState>{t('team.noMembers')}</EmptyState>}
+
+      {/* Workers section */}
+      {team.filter(m => m.role !== 'client').length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:8, paddingLeft:2 }}>
+            Рабочие ({team.filter(m => m.role !== 'client').length})
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            {team.filter(m => m.role !== 'client').map(m => {
           const st       = m.worker_status || 'on_site'
           const stCfg    = WORKER_STATUS[st] || WORKER_STATUS.on_site
           const isOpen   = openId === m.id
@@ -919,8 +939,70 @@ export default function Team() {
             </div>
           )
         })}
-      </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clients section */}
+      {team.filter(m => m.role === 'client').length > 0 && (
+        <div>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:8, paddingLeft:2 }}>
+            Заказчики ({team.filter(m => m.role === 'client').length})
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            {team.filter(m => m.role === 'client').map(m => {
+              const isOpen = openId === m.id
+              const workerProjects = (m.project_ids || []).map(pid => projects.find(p => p.id === pid)).filter(Boolean)
+              return (
+                <div key={m.id} style={{ background:'#fff', border:`1.5px solid ${isOpen ? '#C96B3A' : '#EAE3D8'}`, borderRadius:14, overflow:'hidden' }}>
+                  <div onClick={() => setOpenId(isOpen ? null : m.id)} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', cursor:'pointer', background: isOpen ? '#FAECE4' : '#fff' }}>
+                    <div style={{ width:40, height:40, borderRadius:'50%', background: isOpen ? '#C96B3A' : '#F2EDE4', color: isOpen ? '#fff' : '#C96B3A', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:700, flexShrink:0 }}>
+                      {m.name?.charAt(0)?.toUpperCase()}
+                    </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : '#2E2420' }}>{m.name}</div>
+                      <div style={{ fontSize:10, color:'var(--text-muted)' }}>Заказчик</div>
+                    </div>
+                    {m.phone && (
+                      <a href={`tel:${m.phone}`} onClick={e => e.stopPropagation()} style={{ fontSize:10, color:'var(--accent)', textDecoration:'none' }}>📞 {m.phone}</a>
+                    )}
+                    <span style={{ fontSize:10, color:'#B8AFA6' }}>{isOpen ? '▲' : '▼'}</span>
+                  </div>
+                  {isOpen && (
+                    <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'#FDFBF8' }}>
+                      {/* Contacts */}
+                      <div style={{ marginBottom:10 }}>
+                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>Контакты</div>
+                        <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+                          {m.phone ? <a href={`tel:${m.phone}`} style={{ fontSize:12, color:'var(--accent)', textDecoration:'none' }}>📞 {m.phone}</a> : null}
+                          {m.telegram ? <a href={`https://t.me/${m.telegram.replace(/^@/,'')}`} target="_blank" rel="noopener noreferrer" style={{ fontSize:12, color:'#229ED9', textDecoration:'none' }}>✈️ {m.telegram.startsWith('@') ? m.telegram : `@${m.telegram}`}</a> : null}
+                          {!m.phone && !m.telegram && <span style={{ fontSize:11, color:'#B8AFA6' }}>Не указаны</span>}
+                        </div>
+                      </div>
+                      {/* Projects */}
+                      <div style={{ marginBottom:10 }}>
+                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>Объекты</div>
+                        {workerProjects.length === 0
+                          ? <span style={{ fontSize:11, color:'#B8AFA6' }}>Нет</span>
+                          : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
+                              {workerProjects.map(p => <span key={p.id} style={{ fontSize:11, fontWeight:600, background:'#FAECE4', color:'#C96B3A', borderRadius:8, padding:'3px 10px' }}>{p.name}</span>)}
+                            </div>
+                        }
+                      </div>
+                      <button onClick={() => removeWorker(m.id, m.name)} style={{ fontSize:11, color:'#A32D2D', background:'#FCEBEB', border:'none', borderRadius:8, padding:'6px 14px', cursor:'pointer', fontWeight:500 }}>
+                        Удалить из бригады
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {showAttendance && <AttendanceModal onClose={() => { setShowAttendance(false); useStore.getState().fetchAttendance(new Date().toISOString().slice(0, 10)) }} />}
+      {showTimesheet && <TimesheetModal onClose={() => setShowTimesheet(false)} />}
     </div>
   )
 }
