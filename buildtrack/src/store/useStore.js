@@ -404,7 +404,7 @@ export const useStore = create((set, get) => ({
 
     // И менеджер, и рабочий добавляются во все проекты прораба
     const inserts = projects.map(p => ({ project_id: p.id, worker_id: workerId }))
-    await supabase.from('project_workers').insert(inserts)
+    if (inserts.length) await supabase.from('project_workers').insert(inserts)
 
     await supabase.from('join_requests').update({ status: 'approved' }).eq('id', requestId)
     set(s => ({ joinRequests: s.joinRequests.filter(r => r.id !== requestId) }))

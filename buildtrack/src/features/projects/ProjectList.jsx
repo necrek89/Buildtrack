@@ -311,7 +311,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                     onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-light,#FFF3ED)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'none'}
                   >
-                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{task.title}</span>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{task.text}</span>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                       {proj && <span style={{ fontSize: 11, color: 'var(--text-secondary)', background: 'var(--bg,#F9F6F0)', borderRadius: 6, padding: '1px 7px' }}>{proj.name}</span>}
                       <span style={{ fontSize: 11, color: '#C0392B' }}>просрочено на {daysOverdue} {daysOverdue === 1 ? 'день' : daysOverdue < 5 ? 'дня' : 'дней'}</span>
