@@ -85,10 +85,18 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
   }
 
   const renameStage = async (oldName, newName) => {
-    const updatedStages = projStages.map(s => s === oldName ? newName : s)
-    await updateProject(proj.id, { stages: updatedStages })
-    const affected = pTasks.filter(tk => tk.stage === oldName)
-    await Promise.all(affected.map(tk => updateTask(tk.id, { stage: newName })))
+    if (oldName === '—') {
+      // "—" means tasks without a stage — assign them to a new stage
+      const updatedStages = projStages.includes(newName) ? projStages : [...projStages, newName]
+      await updateProject(proj.id, { stages: updatedStages })
+      const affected = pTasks.filter(tk => !tk.stage)
+      await Promise.all(affected.map(tk => updateTask(tk.id, { stage: newName })))
+    } else {
+      const updatedStages = projStages.map(s => s === oldName ? newName : s)
+      await updateProject(proj.id, { stages: updatedStages })
+      const affected = pTasks.filter(tk => tk.stage === oldName)
+      await Promise.all(affected.map(tk => updateTask(tk.id, { stage: newName })))
+    }
   }
 
   const deleteStage = async (stageName) => {

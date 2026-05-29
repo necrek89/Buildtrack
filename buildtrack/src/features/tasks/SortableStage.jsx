@@ -36,9 +36,10 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
   const startEdit = (e) => {
     if (!canEdit) return
     e.stopPropagation()
-    setNameVal(stage)
+    // For the "no stage" group, start with empty input so user types a fresh name
+    setNameVal(stage === '—' ? '' : stage)
     setEditing(true)
-    setTimeout(() => { nameRef.current?.focus(); nameRef.current?.select() }, 0)
+    setTimeout(() => { nameRef.current?.focus() }, 0)
   }
   const commitEdit = () => {
     setEditing(false)
@@ -81,6 +82,7 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
               <input
                 ref={nameRef}
                 value={nameVal}
+                placeholder="Название этапа"
                 onChange={e => setNameVal(e.target.value)}
                 onBlur={commitEdit}
                 onKeyDown={e => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') cancelEdit() }}
@@ -96,12 +98,30 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
                 onDoubleClick={startEdit}
                 onClick={() => toggleStage(stage)}
                 title={canEdit ? t('tasks.stageRename') : undefined}
-                style={{ fontSize:13, fontWeight:700, color:'var(--text-1,#2E2420)', letterSpacing:'.02em', cursor:'pointer', flex:1, minWidth:0 }}
-              >{stage}</span>
+                style={{
+                  fontSize:13, fontWeight:700, letterSpacing:'.02em', cursor:'pointer', flex:1, minWidth:0,
+                  color: stage === '—' ? '#B8AFA6' : 'var(--text-1,#2E2420)',
+                  fontStyle: stage === '—' ? 'italic' : 'normal',
+                }}
+              >{stage === '—' ? 'Без этапа' : stage}</span>
             )}
             {!editing && hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600 }}>⚡</span>}
             {!editing && hasPend  && <span style={{ fontSize:11, color:'#9A6E10', fontWeight:600 }}>🕐</span>}
             <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', fontWeight:500, flexShrink:0 }}>{done}/{total}</span>
+            {/* ✏️ rename button — visible on hover, always present for "—" stage */}
+            {canEdit && !editing && (
+              <button
+                onClick={startEdit}
+                title="Переименовать этап"
+                style={{
+                  background:'none', border:'none', cursor:'pointer', padding:'2px 5px',
+                  fontSize:12, color: stage === '—' ? '#C96B3A' : '#C8C0B8', lineHeight:1, flexShrink:0,
+                  borderRadius:4,
+                }}
+                onMouseEnter={e => e.currentTarget.style.color='#C96B3A'}
+                onMouseLeave={e => e.currentTarget.style.color = stage === '—' ? '#C96B3A' : '#C8C0B8'}
+              >✏️</button>
+            )}
           </div>
           <div onClick={() => toggleStage(stage)} style={{ height:5, borderRadius:3, background:'var(--border,#EAE3D8)', overflow:'hidden', cursor:'pointer' }}>
             <div style={{ height:'100%', borderRadius:3, width:`${pct}%`, background: isDone ? '#5A9467' : color, transition:'width .4s ease' }} />
