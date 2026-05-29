@@ -74,6 +74,34 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
     currency:    task?.currency    || useStore.getState().profile?.currency || 'USD',
   })
 
+  // Unit price helper (not saved to DB — cost = quantity × unitPrice)
+  const [unitPrice, setUnitPrice] = useState(() => {
+    if (task?.cost && task?.quantity && parseFloat(task.quantity) > 0) {
+      return String(Math.round((parseFloat(task.cost) / parseFloat(task.quantity)) * 100) / 100)
+    }
+    return ''
+  })
+
+  const currSym = currencySymbol(useStore.getState().profile?.currency)
+
+  const handleUnitPriceChange = (val) => {
+    setUnitPrice(val)
+    const qty = parseFloat(form.quantity)
+    const price = parseFloat(val)
+    if (!isNaN(qty) && qty > 0 && !isNaN(price) && price > 0) {
+      setForm(f => ({ ...f, cost: String(Math.round(qty * price * 100) / 100) }))
+    }
+  }
+
+  const handleQuantityChange = (val) => {
+    setForm(f => ({ ...f, quantity: val }))
+    const qty = parseFloat(val)
+    const price = parseFloat(unitPrice)
+    if (!isNaN(qty) && qty > 0 && !isNaN(price) && price > 0) {
+      setForm(f => ({ ...f, quantity: val, cost: String(Math.round(qty * price * 100) / 100) }))
+    }
+  }
+
   useEffect(() => {
     const load = async () => {
       let projs = projects
@@ -207,9 +235,9 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
                 type="number"
                 min="0"
                 step="any"
-                placeholder="Например: 25"
+                placeholder="Например: 50"
                 value={form.quantity}
-                onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
+                onChange={e => handleQuantityChange(e.target.value)}
               />
             </FormGroup>
             <FormGroup label="Единица измерения">
@@ -218,6 +246,35 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
               </select>
             </FormGroup>
           </div>
+
+          {/* ── Unit price → auto-calc total ── */}
+          <FormGroup label={`Цена за единицу${form.unit ? ` (за ${form.unit})` : ''}`}>
+            <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+              <input
+                className="form-input"
+                type="number"
+                min="0"
+                step="any"
+                placeholder="Например: 2"
+                value={unitPrice}
+                onChange={e => handleUnitPriceChange(e.target.value)}
+                style={{ flex:1, minWidth:0 }}
+              />
+              <span style={{ fontSize:13, color:'var(--text-secondary)', flexShrink:0 }}>{currSym}</span>
+              {unitPrice && form.quantity && parseFloat(unitPrice) > 0 && parseFloat(form.quantity) > 0 && (
+                <div style={{
+                  display:'flex', alignItems:'center', gap:4, flexShrink:0,
+                  fontSize:12, color:'var(--text-muted)', background:'var(--bg-accent,#F2EDE4)',
+                  borderRadius:6, padding:'4px 8px',
+                }}>
+                  <span style={{ color:'#B8AFA6' }}>{form.quantity} × {unitPrice} =</span>
+                  <span style={{ fontWeight:700, color:'var(--accent,#C96B3A)' }}>
+                    {(parseFloat(form.quantity) * parseFloat(unitPrice)).toLocaleString()} {currSym}
+                  </span>
+                </div>
+              )}
+            </div>
+          </FormGroup>
 
           <div className="form-grid-2">
             <FormGroup label={t('tasks.assigneeLabel')}>
@@ -245,21 +302,26 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
             </FormGroup>
           </div>
 
-          <FormGroup label="Сумма работы">
-            <div style={{ display:'flex', gap:6 }}>
+          <FormGroup label="Итого за работу">
+            <div style={{ display:'flex', gap:6, alignItems:'center' }}>
               <input
                 className="form-input"
                 type="number"
                 min="0"
                 step="any"
-                placeholder="Например: 15000"
+                placeholder="Считается автоматически или вручную"
                 value={form.cost}
-                onChange={e => setForm(f => ({ ...f, cost: e.target.value }))}
+                onChange={e => {
+                  setForm(f => ({ ...f, cost: e.target.value }))
+                  // Manual override — clear unitPrice to avoid confusion
+                  setUnitPrice('')
+                }}
                 style={{ flex:1, minWidth:0 }}
               />
-              <div style={{ display:'flex', alignItems:'center', paddingLeft:10, fontSize:14, fontWeight:500, color:'var(--text-secondary)', flexShrink:0 }}>
-                {currencySymbol(useStore.getState().profile?.currency)}
-              </div>
+              <span style={{ fontSize:13, color:'var(--text-secondary)', flexShrink:0 }}>{currSym}</span>
+            </div>
+            <div style={{ fontSize:11, color:'#B8AFA6', marginTop:4 }}>
+              Заполни «Цена за единицу» выше — сумма посчитается сама. Или введи итог вручную.
             </div>
           </FormGroup>
 
