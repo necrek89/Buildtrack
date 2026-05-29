@@ -150,6 +150,10 @@ export const useStore = create((set, get) => ({
     `)
     if (projectId) {
       query = query.eq('project_id', projectId)
+    } else if (role === 'foreman') {
+      const ids = projects.map(p => p.id)
+      if (!ids.length) { set({ tasks: [] }); return }
+      query = query.in('project_id', ids)
     } else if (role === 'manager') {
       const ids = projects.map(p => p.id)
       if (!ids.length) { set({ tasks: [] }); return }
@@ -455,6 +459,11 @@ export const useStore = create((set, get) => ({
       query = query.eq('worker_id', profile.id)
     } else if (projectId) {
       query = query.eq('project_id', projectId)
+    } else if (role === 'foreman') {
+      // No specific project — show requests from all foreman's projects
+      const ids = projects.map(p => p.id)
+      if (!ids.length) { set({ materialRequests: [] }); return }
+      query = query.in('project_id', ids)
     }
     const { data } = await query
     set({ materialRequests: data || [] })
@@ -622,7 +631,12 @@ export const useStore = create((set, get) => ({
   fetchActivityLog: async () => {
     const { profile, role, projects } = get()
     let query = supabase.from('activity_log').select('*, project:projects(name)').order('created_at', { ascending: false }).limit(200)
-    if (role === 'worker') {
+    if (role === 'foreman') {
+      // Foreman sees only activity from their own projects
+      const ids = projects.map(p => p.id)
+      if (!ids.length) { set({ activityLog: [] }); return }
+      query = query.in('project_id', ids)
+    } else if (role === 'worker') {
       // Worker sees only activity from their assigned projects
       const { data: pw } = await supabase.from('project_workers').select('project_id').eq('worker_id', profile.id)
       const ids = (pw || []).map(r => r.project_id)

@@ -372,8 +372,8 @@ export default function Projects({ canDelete = true, canEdit = true }) {
   const [addForm,    setAddForm]    = useState({ name:'', stage:'Foundation', deadline:'', address:'', stages:[] })
 
   useEffect(() => {
-    fetchProjects()
-    fetchTasks()
+    // fetchProjects must complete first — fetchTasks filters by foreman's project IDs
+    fetchProjects().then(() => fetchTasks())
     fetchTools()
   }, [])
 
