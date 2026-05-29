@@ -7,6 +7,7 @@ import TaskModal from '../../components/TaskModal'
 import ConfirmModal from '../../components/ConfirmModal'
 import { SortableStageList } from '../tasks/SortableStage'
 import { FileText, UploadSimple, DownloadSimple, Printer, ChatCircle } from '@phosphor-icons/react'
+import * as XLSX from 'xlsx'
 
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
 export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], team = [] }) {
@@ -246,8 +247,9 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
     setImportPreview(null)
   }
 
-  const exportCSV = () => {
+  const exportXLSX = () => {
     const STATUS_RU = { new: 'Новая', pending: 'На проверке', approved: 'Выполнена', rejected: 'Отклонена' }
+
     const allGroups = (() => {
       const map = {}
       pTasks.forEach(tk => {
@@ -257,40 +259,68 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
       })
       const taskStageKeys = Object.keys(map)
       const ordered = projStages.filter(s => taskStageKeys.includes(s))
-      const extra = taskStageKeys.filter(s => s !== '—' && !projStages.includes(s))
-      const all = [...ordered, ...extra, ...(taskStageKeys.includes('—') ? ['—'] : [])]
+      const extra   = taskStageKeys.filter(s => s !== '—' && !projStages.includes(s))
+      const all     = [...ordered, ...extra, ...(taskStageKeys.includes('—') ? ['—'] : [])]
       return all.map((stage, i) => ({ stage, num: i + 1, items: sortTasks(map[stage] || []) }))
     })()
 
-    const escape = (val) => {
-      const s = String(val ?? '')
-      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s
+    const wb = XLSX.utils.book_new()
+
+    // ── Sheet 1: Tasks ────────────────────────────────────────────────────────
+    const rows = [
+      ['№', 'Этап', 'Наименование работы', 'Описание', 'Ед. изм.', 'Кол-во', 'Цена', 'Валюта', 'Статус'],
+    ]
+    let num = 1
+    for (const { stage, items } of allGroups) {
+      for (const tk of items) {
+        rows.push([
+          num++,
+          stage,
+          tk.text,
+          tk.description || '',
+          tk.unit || '',
+          tk.quantity != null ? Number(tk.quantity) : '',
+          tk.cost    != null ? Number(tk.cost)     : '',
+          tk.currency || '',
+          STATUS_RU[tk.status] || tk.status,
+        ])
+      }
     }
 
-    const headers = ['№ п/п', 'Этап', 'Наименование работы', 'Описание', 'Ед. изм.', 'Кол-во', 'Сумма (₽)', 'Статус']
-    let globalRow = 1
-    const dataRows = allGroups.flatMap(({ stage, items }) =>
-      items.map(tk => [
-        globalRow++,
-        stage,
-        tk.text,
-        tk.description || '',
-        tk.unit || '',
-        tk.quantity ?? '',
-        tk.cost != null ? `${tk.cost} ${tk.currency || '₽'}` : '',
-        STATUS_RU[tk.status] || tk.status,
-      ].map(escape).join(','))
-    )
+    const ws = XLSX.utils.aoa_to_sheet(rows)
 
-    const bom = '﻿' // UTF-8 BOM — чтобы Excel/Sheets открывал кириллицу правильно
-    const csv = bom + [headers.join(','), ...dataRows].join('\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
-    a.download = `${proj.name}_задачи_${new Date().toLocaleDateString('ru-RU').replace(/\./g, '-')}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+    // Column widths
+    ws['!cols'] = [
+      { wch: 4 },   // №
+      { wch: 18 },  // Этап
+      { wch: 36 },  // Наименование
+      { wch: 24 },  // Описание
+      { wch: 8 },   // Ед.
+      { wch: 8 },   // Кол-во
+      { wch: 12 },  // Цена
+      { wch: 6 },   // Валюта
+      { wch: 14 },  // Статус
+    ]
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Задачи')
+
+    // ── Sheet 2: Summary by stage ─────────────────────────────────────────────
+    const summaryRows = [
+      ['Этап', 'Всего задач', 'Выполнено', 'На проверке', 'Активных', 'Сумма'],
+    ]
+    for (const { stage, items } of allGroups) {
+      const done    = items.filter(t => t.status === 'approved').length
+      const pending = items.filter(t => t.status === 'pending').length
+      const active  = items.filter(t => ['new','rejected'].includes(t.status)).length
+      const total   = items.reduce((s, t) => s + (t.cost != null ? Number(t.cost) : 0), 0)
+      summaryRows.push([stage, items.length, done, pending, active, total || ''])
+    }
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows)
+    wsSummary['!cols'] = [{ wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 12 }]
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Сводка по этапам')
+
+    const date = new Date().toLocaleDateString('ru-RU').replace(/\./g, '-')
+    XLSX.writeFile(wb, `${proj.name}_задачи_${date}.xlsx`)
   }
 
   const [printWithComments, setPrintWithComments] = useState(true)
@@ -534,7 +564,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
                 {[
                   canEdit && { icon: <FileText size={15} weight="bold" />,    label: t('tasks.menuTemplate'),  action: () => downloadTemplate() },
                   canEdit && { icon: <UploadSimple size={15} weight="bold" />, label: t('tasks.menuImport'),    action: () => importRef.current?.click() },
-                  { icon: <DownloadSimple size={15} weight="bold" />,          label: t('tasks.menuDownload'),  action: () => exportCSV() },
+                  { icon: <DownloadSimple size={15} weight="bold" />,          label: 'Скачать .xlsx',          action: () => exportXLSX() },
                   { icon: <Printer size={15} weight="bold" />,                 label: printing ? '...' : t('tasks.menuPrint'), action: () => !printing && printTasks() },
                   {
                     icon: <ChatCircle size={15} weight="bold" />,

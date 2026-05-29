@@ -5,7 +5,8 @@ import { useStore, currencySymbol } from '../../store/useStore'
 import { supabase } from '../../lib/supabase'
 import AttendanceModal from '../../components/AttendanceModal'
 import { generateMonthlyReport, generateAnnualReport } from './SalaryReportGenerator'
-import { DownloadSimple, FileCsv, CalendarBlank, ChartBar } from '@phosphor-icons/react'
+import { DownloadSimple, FileXls, CalendarBlank, ChartBar } from '@phosphor-icons/react'
+import * as XLSX from 'xlsx'
 import TimesheetModal from './TimesheetModal'
 
 // ─── WORKER STATUS CONFIG ────────────────────────────────────────────────────
@@ -156,54 +157,59 @@ export default function Team() {
     ;(logs || []).forEach(l => { if (byWorker[l.worker_id]) { byWorker[l.worker_id].name = l.worker?.name || l.worker_id; byWorker[l.worker_id].logs.push(l) } })
     ;(pays || []).forEach(p => { if (byWorker[p.worker_id]) { byWorker[p.worker_id].name = p.worker?.name || p.worker_id; byWorker[p.worker_id].pays.push(p) } })
 
-    const rows = []
+    const wb = XLSX.utils.book_new()
 
-    // ── 1. Summary table ──
-    rows.push(['СВОДКА', '', '', ''])
-    rows.push(['Рабочий', `Начислено (${currSym})`, `Выплачено (${currSym})`, `Остаток (${currSym})`])
+    // ── Sheet 1: Summary ─────────────────────────────────────────────────────
+    const summaryRows = [
+      ['Рабочий', `Начислено (${currSym})`, `Выплачено (${currSym})`, `Остаток (${currSym})`],
+    ]
     let totalEarned = 0, totalPaid = 0
     for (const w of Object.values(byWorker)) {
       const earned = w.logs.reduce((s, l) => s + l.value * l.rate, 0)
       const paid   = w.pays.reduce((s, p) => s + Number(p.amount), 0)
       totalEarned += earned; totalPaid += paid
-      if (earned || paid) rows.push([w.name || '—', earned.toFixed(0), paid.toFixed(0), (earned - paid).toFixed(0)])
+      if (earned || paid) summaryRows.push([w.name || '—', earned, paid, earned - paid])
     }
-    rows.push(['ИТОГО', totalEarned.toFixed(0), totalPaid.toFixed(0), (totalEarned - totalPaid).toFixed(0)])
-    rows.push(['', '', '', ''])
+    summaryRows.push(['ИТОГО', totalEarned, totalPaid, totalEarned - totalPaid])
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows)
+    wsSummary['!cols'] = [{ wch: 22 }, { wch: 16 }, { wch: 16 }, { wch: 16 }]
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Сводка')
 
-    // ── 2. Shift logs per worker ──
+    // ── Sheet 2: Shifts / hours ───────────────────────────────────────────────
     if (logs?.length) {
-      rows.push(['СМЕНЫ / ЧАСЫ', '', '', '', '', '', ''])
-      rows.push(['Рабочий', 'Дата', 'Тип', 'Кол-во', 'Ставка', `Сумма (${currSym})`, 'Заметка'])
+      const logRows = [
+        ['Рабочий', 'Дата', 'Тип', 'Кол-во', `Ставка (${currSym})`, `Сумма (${currSym})`, 'Заметка'],
+      ]
       for (const w of Object.values(byWorker)) {
-        w.logs.forEach(l => rows.push([
-          w.name, l.log_date,
+        w.logs.forEach(l => logRows.push([
+          w.name,
+          l.log_date,
           l.log_type === 'hours' ? 'Часы' : 'Смены',
-          l.value, l.rate,
-          (l.value * l.rate).toFixed(0),
+          Number(l.value),
+          Number(l.rate),
+          l.value * l.rate,
           l.notes || '',
         ]))
       }
-      rows.push(['', '', '', '', '', '', ''])
+      const wsLogs = XLSX.utils.aoa_to_sheet(logRows)
+      wsLogs['!cols'] = [{ wch: 20 }, { wch: 12 }, { wch: 8 }, { wch: 8 }, { wch: 14 }, { wch: 12 }, { wch: 24 }]
+      XLSX.utils.book_append_sheet(wb, wsLogs, 'Смены и часы')
     }
 
-    // ── 3. Payments per worker ──
+    // ── Sheet 3: Payments ─────────────────────────────────────────────────────
     if (pays?.length) {
-      rows.push(['ВЫПЛАТЫ', '', '', '', ''])
-      rows.push(['Рабочий', 'Дата', `Сумма (${currSym})`, 'Заметка'])
+      const payRows = [
+        ['Рабочий', 'Дата', `Сумма (${currSym})`, 'Заметка'],
+      ]
       for (const w of Object.values(byWorker)) {
-        w.pays.forEach(p => rows.push([w.name, p.paid_at, Number(p.amount).toFixed(0), p.notes || '']))
+        w.pays.forEach(p => payRows.push([w.name, p.paid_at, Number(p.amount), p.notes || '']))
       }
+      const wsPays = XLSX.utils.aoa_to_sheet(payRows)
+      wsPays['!cols'] = [{ wch: 20 }, { wch: 12 }, { wch: 14 }, { wch: 28 }]
+      XLSX.utils.book_append_sheet(wb, wsPays, 'Выплаты')
     }
 
-    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `зарплата_${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+    XLSX.writeFile(wb, `зарплата_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
 
   const cycleStatus = (workerId, currentStatus) => {
@@ -291,7 +297,7 @@ export default function Team() {
                   borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.10)', minWidth:210, overflow:'hidden',
                 }}>
                   {[
-                    { icon: <FileCsv size={15} weight="bold" />,      label: t('team.downloadCsv'),    action: exportPayroll },
+                    { icon: <FileXls size={15} weight="bold" />,      label: 'Скачать .xlsx',          action: exportPayroll },
                     { icon: <CalendarBlank size={15} weight="bold" />, label: t('team.monthlyReport'),  action: () => generateMonthlyReport(reportMonth, reportYear) },
                     { icon: <ChartBar size={15} weight="bold" />,      label: t('team.annualReport'),   action: () => generateAnnualReport(reportYear) },
                   ].map((item, i, arr) => (
