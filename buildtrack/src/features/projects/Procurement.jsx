@@ -4,16 +4,19 @@ import { useT } from '../../i18n/useLanguage'
 import { useStore } from '../../store/useStore'
 import MaterialModal from '../../components/MaterialModal'
 
-function timeAgo(dateStr) {
+function fmtCreatedAt(dateStr) {
   if (!dateStr) return ''
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins  = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days  = Math.floor(diff / 86400000)
-  if (mins < 2)  return 'just now'
-  if (mins < 60) return `${mins}m`
-  if (hours < 24) return `${hours}h`
-  return `${days}d`
+  const d = new Date(dateStr)
+  const now = new Date()
+  const diffMins = Math.floor((now - d) / 60000)
+  if (diffMins < 2)   return 'только что'
+  if (diffMins < 60)  return `${diffMins} мин`
+  if (diffMins < 120) return '1 час назад'
+  if (d.toDateString() === now.toDateString())
+    return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+  if (d.getFullYear() === now.getFullYear())
+    return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 // ─── PROCUREMENT (unified foreman + worker requests) ─────────────────────────
@@ -297,7 +300,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
                       </span>
                     ) : (
                       <span style={{ fontSize:11, color:'#C8C0B8', marginLeft:'auto' }}>
-                        {timeAgo(item.createdAt)}
+                        {fmtCreatedAt(item.createdAt)}
                       </span>
                     )}
                   </div>
