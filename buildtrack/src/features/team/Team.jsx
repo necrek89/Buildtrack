@@ -112,9 +112,16 @@ export default function Team() {
   }
 
   const exportPayroll = async () => {
-    // Fetch all projects for this foreman, then all work_logs
+    // Fetch all projects for this foreman, then work_logs filtered by selected month/year
     const { profile: p, projects: projs } = useStore.getState()
     if (!p) return
+
+    // Date range for the selected month
+    const monthStart = `${reportYear}-${String(reportMonth).padStart(2, '0')}-01`
+    const lastDay = new Date(reportYear, reportMonth, 0).getDate()
+    const monthEnd = `${reportYear}-${String(reportMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+    const monthLabel = new Date(reportYear, reportMonth - 1, 1)
+      .toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })
 
     let workerIds = []
 
@@ -142,15 +149,19 @@ export default function Team() {
       .from('work_logs')
       .select('*, worker:profiles!worker_id(name)')
       .in('worker_id', workerIds)
+      .gte('log_date', monthStart)
+      .lte('log_date', monthEnd)
       .order('worker_id').order('log_date', { ascending: true })
 
     const { data: pays } = await supabase
       .from('worker_payments')
       .select('*, worker:profiles!worker_id(name)')
       .in('worker_id', workerIds)
+      .gte('paid_at', monthStart)
+      .lte('paid_at', monthEnd)
       .order('paid_at', { ascending: true })
 
-    if (!logs?.length && !pays?.length) { alert('Нет записей для экспорта'); return }
+    if (!logs?.length && !pays?.length) { alert(`Нет записей за ${monthLabel}`); return }
 
     // Group by worker
     const byWorker = {}
@@ -162,6 +173,8 @@ export default function Team() {
 
     // ── Sheet 1: Summary ─────────────────────────────────────────────────────
     const summaryRows = [
+      [`Расчётный лист за ${monthLabel}`],
+      [],
       ['Рабочий', `Начислено (${currSym})`, `Выплачено (${currSym})`, `Остаток (${currSym})`],
     ]
     let totalEarned = 0, totalPaid = 0
@@ -210,7 +223,7 @@ export default function Team() {
       XLSX.utils.book_append_sheet(wb, wsPays, 'Выплаты')
     }
 
-    XLSX.writeFile(wb, `зарплата_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    XLSX.writeFile(wb, `зарплата_${reportYear}-${String(reportMonth).padStart(2, '0')}.xlsx`)
   }
 
   const cycleStatus = (workerId, currentStatus) => {
