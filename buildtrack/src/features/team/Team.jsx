@@ -42,6 +42,7 @@ export default function Team() {
   const [showAttendance, setShowAttendance] = useState(false)
   const [showReportMenu, setShowReportMenu] = useState(false)
   const [expandedLogs, setExpandedLogs] = useState({}) // keyed by workerId
+  const [expandedMonths, setExpandedMonths] = useState({}) // { [workerId]: { [monthKey]: bool } }
   const [showTimesheet, setShowTimesheet] = useState(false)
   const [payForm, setPayForm] = useState({})      // keyed by workerId
   const [showPayForm, setShowPayForm] = useState(null) // workerId
@@ -899,48 +900,96 @@ export default function Team() {
                         )
                       })()}
 
-                      {/* Log entries list */}
+                      {/* Log entries — grouped by month */}
                       {(() => {
                         const logs = workLogs[m.id] || []
-                        const total = logs.reduce((s, l) => s + (l.value * l.rate), 0)
-                        const PREVIEW = 3
-                        const isExpanded = expandedLogs[m.id]
-                        const visible = isExpanded ? logs : logs.slice(0, PREVIEW)
+                        if (logs.length === 0) return (
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', padding: '10px 0' }}>Записей нет</div>
+                        )
+
+                        // Build month groups: { '2026-05': [log, ...], ... }
+                        const monthMap = {}
+                        for (const log of logs) {
+                          const key = log.log_date ? log.log_date.slice(0, 7) : '__unknown__'
+                          if (!monthMap[key]) monthMap[key] = []
+                          monthMap[key].push(log)
+                        }
+                        // Sort months newest first
+                        const monthKeys = Object.keys(monthMap).sort((a, b) => b.localeCompare(a))
+
+                        const fmtMonthLabel = (key) => {
+                          if (key === '__unknown__') return 'Дата неизвестна'
+                          const [yr, mo] = key.split('-')
+                          const d = new Date(Number(yr), Number(mo) - 1, 1)
+                          const label = d.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })
+                          return label.charAt(0).toUpperCase() + label.slice(1)
+                        }
+
+                        const grandTotal = logs.reduce((s, l) => s + (l.value * l.rate), 0)
+
                         return (
                           <>
-                            {logs.length > 0 && (
-                              <div style={{ marginBottom: 6, padding: '6px 10px', background: 'var(--accent-light)', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{logs.length} записей</span>
-                                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--accent)' }}>{total.toLocaleString()} {currSym}</span>
-                              </div>
-                            )}
-                            {logs.length === 0 && (
-                              <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', padding: '10px 0' }}>Записей нет</div>
-                            )}
-                            {visible.map(log => (
-                              <div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '0.5px solid var(--border)' }}>
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div style={{ fontSize: 11, color: 'var(--text-primary)' }}>
-                                    {log.log_date} · {log.log_type === 'hours' ? `${log.value}ч` : `${log.value} смен`}
-                                    <span style={{ color: 'var(--text-secondary)', marginLeft: 4 }}>× {log.rate}</span>
-                                    <span style={{ fontWeight: 500, color: 'var(--accent)', marginLeft: 6 }}>= {(log.value * log.rate).toLocaleString()} {currSym}</span>
+                            {/* Grand total chip */}
+                            <div style={{ marginBottom: 8, padding: '6px 10px', background: 'var(--accent-light)', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{logs.length} записей · {monthKeys.length} мес.</span>
+                              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--accent)' }}>{grandTotal.toLocaleString()} {currSym}</span>
+                            </div>
+
+                            {/* Month groups */}
+                            {monthKeys.map(monthKey => {
+                              const monthLogs = monthMap[monthKey]
+                              const monthTotal = monthLogs.reduce((s, l) => s + (l.value * l.rate), 0)
+                              const isMonthOpen = !!(expandedMonths[m.id]?.[monthKey])
+                              const toggleMonth = () => setExpandedMonths(prev => ({
+                                ...prev,
+                                [m.id]: { ...(prev[m.id] || {}), [monthKey]: !isMonthOpen }
+                              }))
+
+                              return (
+                                <div key={monthKey} style={{ marginBottom: 4, borderRadius: 8, border: '1px solid var(--border)', overflow: 'hidden' }}>
+                                  {/* Month header — always visible */}
+                                  <div
+                                    onClick={toggleMonth}
+                                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', cursor: 'pointer', background: isMonthOpen ? 'var(--surface-2,#FDFBF8)' : 'var(--surface,#fff)', userSelect: 'none' }}
+                                  >
+                                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', flex: 1 }}>
+                                      {fmtMonthLabel(monthKey)}
+                                    </span>
+                                    <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{monthLogs.length} зап.</span>
+                                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)', marginLeft: 6 }}>{monthTotal.toLocaleString()} {currSym}</span>
+                                    <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 4 }}>{isMonthOpen ? '▲' : '▼'}</span>
                                   </div>
-                                  {log.notes && <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{log.notes}</div>}
+
+                                  {/* Daily entries */}
+                                  {isMonthOpen && (
+                                    <div style={{ borderTop: '1px solid var(--border)' }}>
+                                      {[...monthLogs].sort((a, b) => (b.log_date || '').localeCompare(a.log_date || '')).map((log, li) => (
+                                        <div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderTop: li > 0 ? '0.5px solid var(--border)' : 'none', background: 'var(--surface,#fff)' }}>
+                                          <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontSize: 11, color: 'var(--text-primary)' }}>
+                                              {log.log_date
+                                                ? new Date(log.log_date + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+                                                : '—'
+                                              }
+                                              <span style={{ color: 'var(--text-secondary)', marginLeft: 6 }}>
+                                                {log.log_type === 'hours' ? `${log.value}ч` : `${log.value} смен`}
+                                              </span>
+                                              <span style={{ color: 'var(--text-secondary)', marginLeft: 4 }}>× {log.rate}</span>
+                                              <span style={{ fontWeight: 500, color: 'var(--accent)', marginLeft: 6 }}>= {(log.value * log.rate).toLocaleString()} {currSym}</span>
+                                            </div>
+                                            {log.notes && <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{log.notes}</div>}
+                                          </div>
+                                          <button
+                                            onClick={() => deleteWorkLog(log.id, m.id)}
+                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 14, padding: '0 4px', flexShrink: 0 }}
+                                          >🗑</button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
-                                <button
-                                  onClick={() => deleteWorkLog(log.id, m.id)}
-                                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 14, padding: '0 4px', flexShrink: 0 }}
-                                >🗑</button>
-                              </div>
-                            ))}
-                            {logs.length > PREVIEW && (
-                              <button
-                                onClick={() => setExpandedLogs(prev => ({ ...prev, [m.id]: !prev[m.id] }))}
-                                style={{ marginTop: 6, width: '100%', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--accent)', padding: '4px 0', textAlign: 'center' }}
-                              >
-                                {isExpanded ? 'Свернуть' : `Показать все (${logs.length})`}
-                              </button>
-                            )}
+                              )
+                            })}
                           </>
                         )
                       })()}
