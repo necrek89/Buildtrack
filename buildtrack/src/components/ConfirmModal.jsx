@@ -1,14 +1,16 @@
 import { Button } from './UI'
 
-export default function ConfirmModal({ title, subtitle, onConfirm, onClose, confirmLabel = 'Удалить' }) {
+export default function ConfirmModal({ title, subtitle, sub, onConfirm, onClose, onCancel, confirmLabel = 'Удалить' }) {
+  const dismiss = onClose || onCancel || (() => {})
+  const text = subtitle || sub
   return (
-    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && dismiss()}>
       <div className="modal confirm-modal">
         <div className="confirm-icon">⚠</div>
         <div className="confirm-title">{title}</div>
-        {subtitle && <div className="confirm-sub">"{subtitle}"</div>}
+        {text && <div className="confirm-sub">"{text}"</div>}
         <div className="confirm-actions">
-          <Button size="sm" onClick={onClose}>Отмена</Button>
+          <Button size="sm" onClick={dismiss}>Отмена</Button>
           <Button variant="danger" size="sm" onClick={onConfirm}>{confirmLabel}</Button>
         </div>
       </div>
