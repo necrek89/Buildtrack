@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Button, EmptyState } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
-import { useStore } from '../../store/useStore'
+import { useStore, currencySymbol } from '../../store/useStore'
 import { supabase } from '../../lib/supabase'
 import TaskModal from '../../components/TaskModal'
 import ConfirmModal from '../../components/ConfirmModal'
@@ -13,7 +13,7 @@ import * as XLSX from 'xlsx'
 export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], team = [] }) {
   const { t } = useT()
   const { tasks, fetchTasks, addTask, deleteTask, approveTask, rejectTask, updateProject, updateTask,
-          pendingOpenTaskId, setPendingOpenTask } = useStore()
+          pendingOpenTaskId, setPendingOpenTask, profile } = useStore()
   const [filter,       setFilter]       = useState('all')
   const [showAdd,      setShowAdd]      = useState(false)
   const [editTask,     setEditTask]     = useState(null)
@@ -120,7 +120,14 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
 
   // ── Quick inline add ──────────────────────────────────────────────────────
   const quickAdd = async ({ text, stage, qty, unit, cost }) => {
-    const taskData = { text, stage: stage === '—' ? null : stage, project_id: proj.id, status: 'new', priority: 'normal' }
+    const taskData = {
+      text,
+      stage:    stage === '—' ? null : stage,
+      project_id: proj.id,
+      status:   'new',
+      priority: 'normal',
+      currency: currencySymbol(profile?.currency), // always save profile's currency
+    }
     if (qty != null)  taskData.quantity = qty
     if (unit)         taskData.unit     = unit
     if (cost != null) taskData.cost     = cost

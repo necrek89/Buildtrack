@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Badge, Button, IconButton } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
-import { useStore } from '../../store/useStore'
+import { useStore, currencySymbol } from '../../store/useStore'
 import TaskComments from '../../components/TaskComments'
 import MaterialModal from '../../components/MaterialModal'
 import MaterialList from '../../components/MaterialList'
@@ -192,7 +192,7 @@ export default function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApp
             )}
             {t.cost != null && (
               <span style={{ fontSize:10, background:'#EDFAF2', color:'#2E7D52', borderRadius:5, padding:'1px 6px', fontWeight:600 }}>
-                {t.currency || '₽'} {Number(t.cost).toLocaleString('ru-RU')}
+                {t.currency || currencySymbol(profile?.currency)} {Number(t.cost).toLocaleString('ru-RU')}
               </span>
             )}
             {t.deadline && <span style={{ fontSize:10, color:'#B8AFA6' }}>📅 {t.deadline}</span>}
