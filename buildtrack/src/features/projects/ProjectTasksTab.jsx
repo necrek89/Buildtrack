@@ -119,10 +119,11 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
   }
 
   // ── Quick inline add ──────────────────────────────────────────────────────
-  const quickAdd = async ({ text, stage, qty, unit }) => {
+  const quickAdd = async ({ text, stage, qty, unit, cost }) => {
     const taskData = { text, stage: stage === '—' ? null : stage, project_id: proj.id, status: 'new', priority: 'normal' }
     if (qty != null)  taskData.quantity = qty
     if (unit)         taskData.unit     = unit
+    if (cost != null) taskData.cost     = cost
     await addTask(taskData)
     await fetchTasks(proj.id)
   }
@@ -470,11 +471,17 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
     w.document.close()
   }
 
+  // Sync openStages when stages are added/removed, but preserve open/closed state of existing stages.
+  // Do NOT use tasks.length as a dependency — that would collapse all stages on every task add/delete.
+  const stageKeyStr = stageGroups.map(g => g.stage).join('\0')
   useEffect(() => {
-    const initial = {}
-    stageGroups.forEach(({ stage }) => { initial[stage] = false })
-    setOpenStages(initial)
-  }, [filter, proj.id, tasks.length])
+    setOpenStages(prev => {
+      const next = {}
+      stageGroups.forEach(({ stage }) => { next[stage] = prev[stage] ?? false })
+      return next
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, proj.id, stageKeyStr])
 
   // Auto-open a task coming from notification / search
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useT } from '../../i18n/useLanguage'
+import { useStore, currencySymbol } from '../../store/useStore'
 import { Plus, Check, X } from '@phosphor-icons/react'
 
 // Compact labels for the unit select
@@ -21,13 +22,24 @@ const UNIT_OPTIONS = [
 // isOpen / onOpen / onClose are controlled by SortableStageList so only one
 // stage can have the row open at a time.
 export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
-  const { t } = useT()
-  const [name, setName] = useState('')
-  const [qty,  setQty]  = useState('')
-  const [unit, setUnit] = useState('')
-  const [busy, setBusy] = useState(false)
+  const { t }  = useT()
+  const profile = useStore(s => s.profile)
+  const currSym = currencySymbol(profile?.currency)
+
+  const [name,      setName]      = useState('')
+  const [qty,       setQty]       = useState('')
+  const [unit,      setUnit]      = useState('')
+  const [unitPrice, setUnitPrice] = useState('')
+  const [busy,      setBusy]      = useState(false)
   const nameRef = useRef()
   const rowRef  = useRef()
+
+  // Computed total cost
+  const qtyNum   = parseFloat(qty)
+  const priceNum = parseFloat(unitPrice)
+  const totalCost = (!isNaN(qtyNum) && qtyNum > 0 && !isNaN(priceNum) && priceNum > 0)
+    ? Math.round(qtyNum * priceNum * 100) / 100
+    : null
 
   // Auto-focus name input when the row opens
   useEffect(() => {
@@ -36,24 +48,31 @@ export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
 
   // Reset fields when closed from outside
   useEffect(() => {
-    if (!isOpen) { setName(''); setQty(''); setUnit('') }
+    if (!isOpen) { setName(''); setQty(''); setUnit(''); setUnitPrice('') }
   }, [isOpen])
 
   const submit = async () => {
     const text = name.trim()
     if (!text || busy) return
     setBusy(true)
-    await onAdd({ text, stage, qty: qty !== '' ? Number(qty) : null, unit: unit || null })
+    await onAdd({
+      text,
+      stage,
+      qty:  qty !== '' ? Number(qty) : null,
+      unit: unit || null,
+      cost: totalCost,
+    })
     setName('')
     setQty('')
     setUnit('')
+    setUnitPrice('')
     setBusy(false)
     nameRef.current?.focus()
   }
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter')  { e.preventDefault(); submit() }
-    if (e.key === 'Escape') { onClose() }
+    if (e.key === 'Enter')  { e.preventDefault(); e.stopPropagation(); submit() }
+    if (e.key === 'Escape') { e.stopPropagation(); onClose() }
   }
 
   // Click outside → collapse
@@ -77,6 +96,8 @@ export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
     color: 'var(--text-1,#2E2420)',
     transition: 'border-color .15s',
   }
+  const focusStyle = (e) => (e.target.style.borderColor = 'var(--accent,#C96B3A)')
+  const blurStyle  = (e) => (e.target.style.borderColor = 'var(--border,#EAE3D8)')
 
   // ── Trigger button (collapsed state) ────────────────────────────────────────
   if (!isOpen) {
@@ -115,85 +136,113 @@ export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
         padding: '8px 10px',
         background: 'var(--accent-light,#FAECE4)',
         borderTop: '1px solid var(--border,#EAE3D8)',
+        flexWrap: 'wrap',
       }}
     >
-      {/* Task name */}
-      <input
-        ref={nameRef}
-        value={name}
-        onChange={e => setName(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={t('tasks.quickAddPlaceholder')}
-        disabled={busy}
-        style={{ ...inputStyle, flex: 1, minWidth: 0 }}
-        onFocus={e => (e.target.style.borderColor = 'var(--accent,#C96B3A)')}
-        onBlur={e  => (e.target.style.borderColor = 'var(--border,#EAE3D8)')}
-      />
+      {/* Row 1: name + action buttons always on the same line */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
+        {/* Task name */}
+        <input
+          ref={nameRef}
+          value={name}
+          onChange={e => setName(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={t('tasks.quickAddPlaceholder')}
+          disabled={busy}
+          style={{ ...inputStyle, flex: 1, minWidth: 80 }}
+          onFocus={focusStyle}
+          onBlur={blurStyle}
+        />
 
-      {/* Quantity */}
-      <input
-        type="number"
-        value={qty}
-        onChange={e => setQty(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="кол-во"
-        min="0"
-        disabled={busy}
-        style={{ ...inputStyle, width: 62, flexShrink: 0, padding: '6px 8px' }}
-        onFocus={e => (e.target.style.borderColor = 'var(--accent,#C96B3A)')}
-        onBlur={e  => (e.target.style.borderColor = 'var(--border,#EAE3D8)')}
-      />
+        {/* Quantity */}
+        <input
+          type="number"
+          value={qty}
+          onChange={e => setQty(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="кол-во"
+          min="0"
+          disabled={busy}
+          style={{ ...inputStyle, width: 62, flexShrink: 0, padding: '6px 8px' }}
+          onFocus={focusStyle}
+          onBlur={blurStyle}
+        />
 
-      {/* Unit */}
-      <select
-        value={unit}
-        onChange={e => setUnit(e.target.value)}
-        onKeyDown={handleKeyDown}
-        disabled={busy}
-        style={{
-          ...inputStyle, flexShrink: 0,
-          padding: '6px 5px', cursor: 'pointer',
-          fontSize: 12,
-        }}
-        onFocus={e => (e.target.style.borderColor = 'var(--accent,#C96B3A)')}
-        onBlur={e  => (e.target.style.borderColor = 'var(--border,#EAE3D8)')}
-      >
-        {UNIT_OPTIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
-      </select>
+        {/* Unit */}
+        <select
+          value={unit}
+          onChange={e => setUnit(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={busy}
+          style={{ ...inputStyle, flexShrink: 0, padding: '6px 5px', cursor: 'pointer', fontSize: 12 }}
+          onFocus={focusStyle}
+          onBlur={blurStyle}
+        >
+          {UNIT_OPTIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+        </select>
 
-      {/* Confirm */}
-      <button
-        onClick={submit}
-        disabled={busy || !name.trim()}
-        title="Добавить (Enter)"
-        style={{
-          flexShrink: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: name.trim() && !busy ? 'var(--accent,#C96B3A)' : '#D1C8C0',
-          color: '#fff', border: 'none', borderRadius: 6,
-          padding: '6px 10px',
-          cursor: name.trim() && !busy ? 'pointer' : 'default',
-          transition: 'background .15s',
-        }}
-      >
-        <Check size={14} weight="bold" />
-      </button>
+        {/* Unit price */}
+        <input
+          type="number"
+          value={unitPrice}
+          onChange={e => setUnitPrice(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={`цена/${unit || 'ед'}`}
+          min="0"
+          disabled={busy}
+          style={{ ...inputStyle, width: 74, flexShrink: 0, padding: '6px 8px' }}
+          onFocus={focusStyle}
+          onBlur={blurStyle}
+        />
 
-      {/* Cancel */}
-      <button
-        onClick={onClose}
-        title="Отмена (Esc)"
-        style={{
-          flexShrink: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'transparent',
-          border: '0.5px solid var(--border-med,#D1C8C0)',
-          borderRadius: 6, padding: '6px 10px',
-          cursor: 'pointer', color: 'var(--text-2,#7A6E66)',
-        }}
-      >
-        <X size={14} weight="bold" />
-      </button>
+        {/* Calculated total chip */}
+        {totalCost !== null && (
+          <span style={{
+            flexShrink: 0, fontSize: 11, fontWeight: 700,
+            color: 'var(--accent,#C96B3A)',
+            background: '#fff',
+            border: '1px solid var(--accent,#C96B3A)',
+            borderRadius: 7, padding: '3px 8px',
+            whiteSpace: 'nowrap',
+          }}>
+            = {totalCost.toLocaleString()} {currSym}
+          </span>
+        )}
+
+        {/* Confirm */}
+        <button
+          onClick={submit}
+          disabled={busy || !name.trim()}
+          title="Добавить (Enter)"
+          style={{
+            flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: name.trim() && !busy ? 'var(--accent,#C96B3A)' : '#D1C8C0',
+            color: '#fff', border: 'none', borderRadius: 6,
+            padding: '6px 10px',
+            cursor: name.trim() && !busy ? 'pointer' : 'default',
+            transition: 'background .15s',
+          }}
+        >
+          <Check size={14} weight="bold" />
+        </button>
+
+        {/* Cancel */}
+        <button
+          onClick={onClose}
+          title="Отмена (Esc)"
+          style={{
+            flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'transparent',
+            border: '0.5px solid var(--border-med,#D1C8C0)',
+            borderRadius: 6, padding: '6px 10px',
+            cursor: 'pointer', color: 'var(--text-2,#7A6E66)',
+          }}
+        >
+          <X size={14} weight="bold" />
+        </button>
+      </div>
     </div>
   )
 }
