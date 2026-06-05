@@ -3,7 +3,7 @@ import { Button } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore } from '../../store/useStore'
 import MaterialModal from '../../components/MaterialModal'
-import { FileXls } from '@phosphor-icons/react'
+import { FileXls, FilePdf } from '@phosphor-icons/react'
 import * as XLSX from 'xlsx'
 
 function fmtCreatedAt(dateStr) {
@@ -220,6 +220,124 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
     XLSX.writeFile(wb, `закупки_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
 
+  // ── PDF / Print report ────────────────────────────────────────────────────
+  const printPurchased = () => {
+    // Must open window synchronously — mobile Safari blocks popup after async
+    const w = window.open('', '_blank')
+    if (!w) { alert('Разрешите открытие новых вкладок в браузере'); return }
+
+    const purchased = allItems.filter(i => i.isPurchased)
+    const sorted = [...purchased].sort((a, b) => {
+      if (!a.purchasedAt && !b.purchasedAt) return 0
+      if (!a.purchasedAt) return 1
+      if (!b.purchasedAt) return -1
+      return b.purchasedAt.localeCompare(a.purchasedAt)
+    })
+
+    const fmtDate = (iso) => iso
+      ? new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+      : '—'
+
+    // Group by project
+    const projMap = {}
+    for (const item of sorted) {
+      const projName = projects.find(p => String(p.id) === item.projectId)?.name || 'Без объекта'
+      if (!projMap[projName]) projMap[projName] = []
+      projMap[projName].push(item)
+    }
+
+    let rowNum = 1
+    const tableRows = Object.entries(projMap).map(([projName, items]) => {
+      const itemRows = items.map(item => `
+        <tr>
+          <td class="col-num">${rowNum++}</td>
+          <td class="col-date">${fmtDate(item.purchasedAt)}</td>
+          <td>${item.name}</td>
+          <td class="col-qty">${item.qty != null ? item.qty : ''}${item.unit ? ' ' + item.unit : ''}</td>
+          <td class="col-who">${item.reportedBy || '—'}</td>
+          <td class="col-src">${item.type === 'request' ? '👷 Рабочий' : 'Прораб'}</td>
+          <td class="col-notes">${item.notes || ''}</td>
+        </tr>`).join('')
+      return `
+        <tr class="proj-row">
+          <td colspan="7">🏗 ${projName} <span class="proj-count">${items.length} поз.</span></td>
+        </tr>
+        ${itemRows}`
+    }).join('')
+
+    const today = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+    const html = `<!DOCTYPE html><html><head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>Отчёт по закупкам</title>
+      <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; font-size: 12px; color: #1C1917; padding: 24px; }
+        .top-bar { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 20px; }
+        .btn { padding: 8px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; font-family: inherit; font-weight: 500; }
+        .btn-primary { background: #EA580C; color: #fff; }
+        .btn-secondary { background: #F0EEE8; color: #1C1917; }
+        .rpt-header { margin-bottom: 18px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+        .meta { font-size: 11px; color: #666; }
+        .summary { display: flex; gap: 24px; margin-bottom: 18px; }
+        .chip { background: #F5F1EB; border-radius: 6px; padding: 8px 14px; }
+        .chip .cl { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
+        .chip .cv { font-size: 18px; font-weight: 700; color: #1C1917; }
+        table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; }
+        th, td { border: 1px solid #ccc; padding: 6px 8px; vertical-align: top; }
+        thead th { background: #f0f0f0; font-weight: 700; font-size: 11px; text-align: left; }
+        .col-num  { width: 34px; text-align: center; }
+        .col-date { width: 120px; }
+        .col-qty  { width: 80px; text-align: center; }
+        .col-who  { width: 110px; }
+        .col-src  { width: 90px; text-align: center; }
+        .col-notes { width: 140px; color: #666; font-style: italic; }
+        .proj-row td { background: #E8E4DC; font-weight: 700; font-size: 12px; padding: 6px 10px; }
+        .proj-count { font-weight: 400; color: #666; font-size: 11px; margin-left: 8px; }
+        .footer { margin-top: 14px; font-size: 10px; color: #aaa; text-align: right; }
+        @media print {
+          .top-bar { display: none !important; }
+          body { padding: 10px; }
+          @page { margin: 15mm; }
+        }
+      </style>
+    </head><body>
+      <div class="top-bar">
+        <button class="btn btn-primary" onclick="window.print()">Сохранить как PDF</button>
+        <button class="btn btn-secondary" onclick="window.close()">Закрыть</button>
+      </div>
+      <div class="rpt-header">
+        <h1>Отчёт по закупкам</h1>
+        <div class="meta">Сформировано: ${today}</div>
+      </div>
+      <div class="summary">
+        <div class="chip"><div class="cl">Всего куплено</div><div class="cv">${sorted.length}</div></div>
+        <div class="chip"><div class="cl">Объектов</div><div class="cv">${Object.keys(projMap).length}</div></div>
+        <div class="chip"><div class="cl">От рабочих</div><div class="cv">${sorted.filter(i => i.type === 'request').length}</div></div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th class="col-num">№</th>
+            <th class="col-date">Дата покупки</th>
+            <th>Наименование</th>
+            <th class="col-qty">Кол-во / Ед.</th>
+            <th class="col-who">Кто запросил</th>
+            <th class="col-src">Источник</th>
+            <th class="col-notes">Заметки</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+      <div class="footer">tutuu.net · ${today}</div>
+    </body></html>`
+
+    w.document.open()
+    w.document.write(html)
+    w.document.close()
+  }
+
   return (
     <div>
       <div className="page-header">
@@ -237,7 +355,21 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
             title="Скачать отчёт по закупкам (.xlsx)"
           >
             <FileXls size={15} weight="bold" />
-            Отчёт .xlsx
+            .xlsx
+          </button>
+          <button
+            onClick={printPurchased}
+            style={{
+              display:'flex', alignItems:'center', gap:5,
+              padding:'6px 12px', borderRadius:8, cursor:'pointer',
+              background:'var(--bg,#fff)', color:'var(--text-secondary,#7A6E66)',
+              border:'0.5px solid var(--border-medium,#D9D0C7)',
+              fontSize:12, fontWeight:500, fontFamily:'inherit',
+            }}
+            title="Открыть отчёт для печати / PDF"
+          >
+            <FilePdf size={15} weight="bold" />
+            PDF
           </button>
           {canEdit && (
             <Button variant="primary" size="sm" onClick={() => { setModalProj(null); setShowModal(true) }}>
