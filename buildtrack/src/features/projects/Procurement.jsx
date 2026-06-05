@@ -3,6 +3,8 @@ import { Button } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore } from '../../store/useStore'
 import MaterialModal from '../../components/MaterialModal'
+import { FileXls } from '@phosphor-icons/react'
+import * as XLSX from 'xlsx'
 
 function fmtCreatedAt(dateStr) {
   if (!dateStr) return ''
@@ -154,15 +156,95 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
     }
   }
 
+  // ── XLSX export ───────────────────────────────────────────────────────────
+  const exportPurchased = () => {
+    const purchased = allItems.filter(i => i.isPurchased)
+    if (!purchased.length) { alert('Нет купленных материалов для экспорта'); return }
+
+    const sorted = [...purchased].sort((a, b) => {
+      if (!a.purchasedAt && !b.purchasedAt) return 0
+      if (!a.purchasedAt) return 1
+      if (!b.purchasedAt) return -1
+      return b.purchasedAt.localeCompare(a.purchasedAt)
+    })
+
+    const fmtDate = (iso) => iso
+      ? new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '—'
+
+    const wb = XLSX.utils.book_new()
+
+    // ── Sheet 1: all purchases ──────────────────────────────────────────────
+    const rows = [
+      ['Дата покупки', 'Наименование', 'Кол-во', 'Ед. изм.', 'Объект', 'Кто запросил', 'Источник', 'Заметки'],
+    ]
+    for (const item of sorted) {
+      const projName = projects.find(p => String(p.id) === item.projectId)?.name || '—'
+      rows.push([
+        fmtDate(item.purchasedAt),
+        item.name,
+        item.qty ?? '',
+        item.unit ?? '',
+        projName,
+        item.reportedBy || '—',
+        item.type === 'request' ? 'Рабочий' : 'Прораб',
+        item.notes || '',
+      ])
+    }
+    const ws1 = XLSX.utils.aoa_to_sheet(rows)
+    ws1['!cols'] = [{ wch:14 }, { wch:28 }, { wch:8 }, { wch:8 }, { wch:22 }, { wch:18 }, { wch:10 }, { wch:30 }]
+    XLSX.utils.book_append_sheet(wb, ws1, 'Закупки')
+
+    // ── Sheet 2: summary by project ─────────────────────────────────────────
+    const byProj = {}
+    for (const item of sorted) {
+      const projName = projects.find(p => String(p.id) === item.projectId)?.name || 'Без объекта'
+      if (!byProj[projName]) byProj[projName] = { total: 0, foreman: 0, worker: 0 }
+      byProj[projName].total++
+      if (item.type === 'request') byProj[projName].worker++
+      else byProj[projName].foreman++
+    }
+    const sumRows = [
+      ['Объект', 'Всего позиций', 'От прораба', 'От рабочих'],
+      ...Object.entries(byProj).map(([name, d]) => [name, d.total, d.foreman, d.worker]),
+      ['ИТОГО',
+        sorted.length,
+        sorted.filter(i => i.type === 'material').length,
+        sorted.filter(i => i.type === 'request').length,
+      ],
+    ]
+    const ws2 = XLSX.utils.aoa_to_sheet(sumRows)
+    ws2['!cols'] = [{ wch:24 }, { wch:14 }, { wch:12 }, { wch:14 }]
+    XLSX.utils.book_append_sheet(wb, ws2, 'По объектам')
+
+    XLSX.writeFile(wb, `закупки_${new Date().toISOString().slice(0, 10)}.xlsx`)
+  }
+
   return (
     <div>
       <div className="page-header">
         <h1 className="page-title">{t('materials.title')}</h1>
-        {canEdit && (
-          <Button variant="primary" size="sm" onClick={() => { setModalProj(null); setShowModal(true) }}>
-            {t('materials.add')}
-          </Button>
-        )}
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <button
+            onClick={exportPurchased}
+            style={{
+              display:'flex', alignItems:'center', gap:5,
+              padding:'6px 12px', borderRadius:8, cursor:'pointer',
+              background:'var(--bg,#fff)', color:'var(--text-secondary,#7A6E66)',
+              border:'0.5px solid var(--border-medium,#D9D0C7)',
+              fontSize:12, fontWeight:500, fontFamily:'inherit',
+            }}
+            title="Скачать отчёт по закупкам (.xlsx)"
+          >
+            <FileXls size={15} weight="bold" />
+            Отчёт .xlsx
+          </button>
+          {canEdit && (
+            <Button variant="primary" size="sm" onClick={() => { setModalProj(null); setShowModal(true) }}>
+              {t('materials.add')}
+            </Button>
+          )}
+        </div>
       </div>
       <p style={{ fontSize:12, color:'#B8AFA6', marginTop:-8, marginBottom:12 }}>
         {t('materials.desc')}
