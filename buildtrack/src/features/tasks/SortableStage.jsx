@@ -13,7 +13,8 @@ import QuickAddRow from './InlineAdd'
 
 // ─── SORTABLE STAGE ITEM ─────────────────────────────────────────────────────
 export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggleStage, openId, setOpenId,
-  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, color, isDragging, onRename, onDeleteStage, onQuickAdd }) {
+  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, color, isDragging, onRename, onDeleteStage, onQuickAdd,
+  quickAddOpen, onQuickAddOpen, onQuickAddClose }) {
   const { t } = useT()
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: stage })
   const style = {
@@ -160,7 +161,13 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
             </div>
           ))}
           {canEdit && onQuickAdd && (
-            <QuickAddRow stage={stage} onAdd={onQuickAdd} />
+            <QuickAddRow
+              stage={stage}
+              onAdd={onQuickAdd}
+              isOpen={!!quickAddOpen}
+              onOpen={onQuickAddOpen}
+              onClose={onQuickAddClose}
+            />
           )}
         </div>
       )}
@@ -171,7 +178,8 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
 // ─── SORTABLE STAGE LIST ─────────────────────────────────────────────────────
 export function SortableStageList({ stageGroups, projStages, openStages, toggleStage, openId, setOpenId,
   canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, STAGE_COLORS, onReorder, onRename, onDeleteStage, onQuickAdd }) {
-  const [activeId, setActiveId] = useState(null)
+  const [activeId,      setActiveId]      = useState(null)
+  const [quickAddStage, setQuickAddStage] = useState(null) // only one stage open at a time
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor,   { activationConstraint: { delay: 200, tolerance: 8 } }),
@@ -218,6 +226,9 @@ export function SortableStageList({ stageGroups, projStages, openStages, toggleS
               onRename={onRename}
               onDeleteStage={onDeleteStage}
               onQuickAdd={onQuickAdd}
+              quickAddOpen={quickAddStage === stage}
+              onQuickAddOpen={() => setQuickAddStage(stage)}
+              onQuickAddClose={() => setQuickAddStage(null)}
             />
           ))}
         </div>

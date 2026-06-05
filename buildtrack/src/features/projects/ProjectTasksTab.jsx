@@ -119,8 +119,11 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
   }
 
   // ── Quick inline add ──────────────────────────────────────────────────────
-  const quickAdd = async (text, stage) => {
-    await addTask({ text, stage: stage === '—' ? null : stage, project_id: proj.id, status: 'new', priority: 'normal' })
+  const quickAdd = async ({ text, stage, qty, unit }) => {
+    const taskData = { text, stage: stage === '—' ? null : stage, project_id: proj.id, status: 'new', priority: 'normal' }
+    if (qty != null)  taskData.quantity = qty
+    if (unit)         taskData.unit     = unit
+    await addTask(taskData)
     await fetchTasks(proj.id)
   }
 
