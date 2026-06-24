@@ -514,9 +514,9 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, marginBottom:10 }}>
         {[
           { v: pPct+'%',                    l: t('detail.progress'),  c: '#C96B3A' },
-          { v: team.length,                 l: t('detail.workers'),   c: '#2E2420' },
-          { v: daysLeft !== null ? daysLeft+'d' : '—', l: t('detail.daysLeft'), c: daysLeft !== null && daysLeft < 7 ? '#A32D2D' : '#2E2420' },
-          { v: `${pDone}/${pTasks.length}`, l: t('detail.tasksDone'), c: '#2E2420' },
+          { v: team.length,                 l: t('detail.workers'),   c: 'var(--text-1)' },
+          { v: daysLeft !== null ? daysLeft+'d' : '—', l: t('detail.daysLeft'), c: daysLeft !== null && daysLeft < 7 ? '#A32D2D' : 'var(--text-1)' },
+          { v: `${pDone}/${pTasks.length}`, l: t('detail.tasksDone'), c: 'var(--text-1)' },
         ].map(s => (
           <div key={s.l} style={{ background:'var(--bg-accent,#F2EDE4)', borderRadius:10, padding:'8px 6px', textAlign:'center' }}>
             <div style={{ fontSize:15, fontWeight:700, color:s.c }}>{s.v}</div>
