@@ -7,7 +7,7 @@ const t = {
   // ── Navigation ──────────────────────────────────────────────────────────────
   en: {
     nav: {
-      projects: 'Projects', materials: 'Materials', tools: 'Tools',
+      projects: 'Projects', materials: 'Materials', procurement: 'Procurement', tools: 'Tools',
       team: 'Team', alerts: 'Alerts', myTasks: 'My Tasks',
       account: 'Account', progress: 'Progress', photos: 'Photos',
       myProject: 'My Project', signOut: 'Sign Out',
@@ -384,7 +384,7 @@ const t = {
   // ── Русский ─────────────────────────────────────────────────────────────────
   ru: {
     nav: {
-      projects: 'Объекты', materials: 'Материалы', tools: 'Инструменты',
+      projects: 'Объекты', materials: 'Материалы', procurement: 'Закупки', tools: 'Инструменты',
       team: 'Бригада', alerts: 'Уведомления', myTasks: 'Мои задачи',
       account: 'Аккаунт', progress: 'Прогресс', photos: 'Фото',
       myProject: 'Мой объект', signOut: 'Выйти',
@@ -761,7 +761,7 @@ const t = {
   // ── Srpski ──────────────────────────────────────────────────────────────────
   sr: {
     nav: {
-      projects: 'Projekti', materials: 'Materijali', tools: 'Alati',
+      projects: 'Projekti', materials: 'Materijali', procurement: 'Nabavka', tools: 'Alati',
       team: 'Tim', alerts: 'Obavještenja', myTasks: 'Moji zadaci',
       account: 'Nalog', progress: 'Napredak', photos: 'Fotografije',
       myProject: 'Moj projekat', signOut: 'Odjava',
@@ -1125,7 +1125,7 @@ const t = {
   // ── Español ─────────────────────────────────────────────────────────────────
   es: {
     nav: {
-      projects: 'Proyectos', materials: 'Materiales', tools: 'Herramientas',
+      projects: 'Proyectos', materials: 'Materiales', procurement: 'Compras', tools: 'Herramientas',
       team: 'Equipo', alerts: 'Alertas', myTasks: 'Mis tareas',
       account: 'Cuenta', progress: 'Progreso', photos: 'Fotos',
       myProject: 'Mi proyecto', signOut: 'Cerrar sesión',
@@ -1489,7 +1489,7 @@ const t = {
   // ── Português ────────────────────────────────────────────────────────────────
   pt: {
     nav: {
-      projects: 'Projetos', materials: 'Materiais', tools: 'Ferramentas',
+      projects: 'Projetos', materials: 'Materiais', procurement: 'Compras', tools: 'Ferramentas',
       team: 'Equipe', alerts: 'Alertas', myTasks: 'Minhas tarefas',
       account: 'Conta', progress: 'Progresso', photos: 'Fotos',
       myProject: 'Meu projeto', signOut: 'Sair',
@@ -1853,7 +1853,7 @@ const t = {
   // ── Deutsch ──────────────────────────────────────────────────────────────────
   de: {
     nav: {
-      projects: 'Projekte', materials: 'Materialien', tools: 'Werkzeuge',
+      projects: 'Projekte', materials: 'Materialien', procurement: 'Einkauf', tools: 'Werkzeuge',
       team: 'Team', alerts: 'Benachrichtigungen', myTasks: 'Meine Aufgaben',
       account: 'Konto', progress: 'Fortschritt', photos: 'Fotos',
       myProject: 'Mein Projekt', signOut: 'Abmelden',
@@ -2217,7 +2217,7 @@ const t = {
   // ── Français ─────────────────────────────────────────────────────────────────
   fr: {
     nav: {
-      projects: 'Projets', materials: 'Matériaux', tools: 'Outils',
+      projects: 'Projets', materials: 'Matériaux', procurement: 'Achats', tools: 'Outils',
       team: 'Équipe', alerts: 'Alertes', myTasks: 'Mes tâches',
       account: 'Compte', progress: 'Avancement', photos: 'Photos',
       myProject: 'Mon projet', signOut: 'Déconnexion',

@@ -164,14 +164,14 @@ function NavIcon({ name }) { return <TabIcon name={name} size={18} /> }
 const NAV = {
   foreman: [
     { id: 'projects',      icon: 'projects',      labelKey: 'projects'      },
-    { id: 'materials',     icon: 'materials',     labelKey: 'materials'     },
+    { id: 'materials',     icon: 'materials',     labelKey: 'procurement'   },
     { id: 'tools',         icon: 'tools',         labelKey: 'tools'         },
     { id: 'team',          icon: 'team',          labelKey: 'team'          },
     { id: 'notifications', icon: 'notifications', labelKey: 'alerts'        },
   ],
   manager: [
     { id: 'projects',      icon: 'projects',      labelKey: 'projects'      },
-    { id: 'materials',     icon: 'materials',     labelKey: 'materials'     },
+    { id: 'materials',     icon: 'materials',     labelKey: 'procurement'   },
     { id: 'tools',         icon: 'tools',         labelKey: 'tools'         },
     { id: 'team',          icon: 'team',          labelKey: 'team'          },
     { id: 'notifications', icon: 'notifications', labelKey: 'alerts'        },
@@ -220,7 +220,7 @@ function PageContent({ role, page, onNavigate }) {
 }
 
 export default function App() {
-  const { role, profile, checkSession, signOut, setSelectedProject, theme, toggleTheme } = useStore()
+  const { role, profile, checkSession, signOut, setSelectedProject, theme, toggleTheme, activityLog, fetchActivityLog } = useStore()
   const { t } = useT()
   const [page, setPage]               = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -229,6 +229,7 @@ export default function App() {
   const [checking, setChecking]       = useState(true)
   const [recovering, setRecovering]   = useState(false)
   const [onboarding, setOnboarding]   = useState(() => !localStorage.getItem('tutuu_onboarded'))
+  const [lastSeenNotif, setLastSeenNotif] = useState(() => localStorage.getItem('tutuu_notif_seen_at') || '0')
 
   useEffect(() => {
     // Detect PASSWORD_RECOVERY event — fires when user opens reset link from email
@@ -250,6 +251,22 @@ export default function App() {
     })
     return () => subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    if (authed) fetchActivityLog()
+  }, [authed])
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (!authed) return
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        if (role === 'foreman' || role === 'manager' || role === 'worker') setSearchOpen(true)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [authed, role])
 
   const handleLogin = () => {
     const { profile } = useStore.getState()
@@ -284,6 +301,20 @@ export default function App() {
   )
 
   if (!authed) return <LoginPage onLogin={handleLogin} />
+
+  const unreadCount = activityLog.filter(e =>
+    e.created_at && new Date(e.created_at).getTime() > parseInt(lastSeenNotif || '0')
+  ).length
+
+  const handleTabNav = (itemId) => {
+    if (itemId === 'notifications') {
+      const now = Date.now().toString()
+      localStorage.setItem('tutuu_notif_seen_at', now)
+      setLastSeenNotif(now)
+    }
+    setPage(itemId)
+    if (itemId !== 'projects') setSelectedProject(null)
+  }
 
   const navItems = (NAV[role] || NAV.worker).map(item => ({
     ...item,
@@ -327,18 +358,26 @@ export default function App() {
               : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             }
           </button>
-          {/* Search button — only for foreman/manager/worker */}
+          {/* Search pill — foreman/manager/worker */}
           {(role === 'foreman' || role === 'manager' || role === 'worker') && (
             <button
               onClick={() => setSearchOpen(true)}
-              title="Search tasks"
+              title="Search tasks (⌘K)"
               style={{
-                background:'none', border:'none', cursor:'pointer',
-                padding:'4px 6px', borderRadius:8, fontSize:18, lineHeight:1,
-                color:'var(--text-2,#7A6E66)',
-                display:'flex', alignItems:'center',
+                display:'flex', alignItems:'center', gap:5,
+                padding:'5px 10px', borderRadius:20,
+                background:'var(--bg-subtle)', border:'0.5px solid var(--border-medium)',
+                cursor:'pointer', color:'var(--text-2)',
+                fontFamily:'inherit',
               }}
-            >🔍</button>
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <kbd style={{
+                fontSize:10, background:'var(--bg)', padding:'1px 5px',
+                borderRadius:4, border:'0.5px solid var(--border)',
+                color:'var(--text-muted)', fontFamily:'inherit', lineHeight:'1.6',
+              }}>⌘K</kbd>
+            </button>
           )}
           <span style={{ fontSize:12, color:'#888' }}>{profile?.name}</span>
           <div style={avatarStyle} onClick={() => setPage('account')} title="Account">
@@ -378,7 +417,7 @@ export default function App() {
             <div
               key={item.id}
               className={`nav-item ${page === item.id ? 'active' : ''}`}
-              onClick={() => { setPage(item.id); setSidebarOpen(false); if (item.id !== 'projects') setSelectedProject(null); }}
+              onClick={() => { handleTabNav(item.id); setSidebarOpen(false); }}
             >
               <span className="nav-icon"><NavIcon name={item.icon} /></span>
               <span>{item.label}</span>
@@ -413,9 +452,30 @@ export default function App() {
           <button
             key={item.id}
             className={`tab-item ${page === item.id ? 'active' : ''}`}
-            onClick={() => { setPage(item.id); if (item.id !== 'projects') setSelectedProject(null); }}
+            onClick={() => handleTabNav(item.id)}
+            style={{ position:'relative' }}
           >
-            <TabIcon name={item.icon} />
+            {page === item.id && (
+              <span style={{
+                position:'absolute', top:0, left:'50%', transform:'translateX(-50%)',
+                width:28, height:2.5, background:'var(--accent)',
+                borderRadius:'0 0 3px 3px', display:'block',
+              }} />
+            )}
+            <span style={{ position:'relative', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <TabIcon name={item.icon} />
+              {item.id === 'notifications' && unreadCount > 0 && (
+                <span style={{
+                  position:'absolute', top:-5, right:-8,
+                  minWidth:15, height:15, borderRadius:8,
+                  background:'var(--danger)', border:'1.5px solid var(--bg)',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  fontSize:9, fontWeight:700, color:'#fff', padding:'0 3px', lineHeight:1,
+                }}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </span>
             <span className="tab-label">{item.label}</span>
           </button>
         ))}
