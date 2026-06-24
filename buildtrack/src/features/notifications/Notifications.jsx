@@ -7,17 +7,17 @@ import { useStore } from '../../store/useStore'
 // ─── NOTIFICATIONS / ACTIVITY LOG ────────────────────────────────────────────
 
 const ACTIVITY_CFG = {
-  task_created:       { icon: Note,                  color:'#2E6FB5', bg:'#E4EEFA', border:'#A3C2E8', group:'tasks'     },
-  task_submitted:     { icon: Clock,                 color:'#C96B3A', bg:'#FBF3DC', border:'#F0D897', group:'tasks'     },
-  task_approved:      { icon: CheckCircle,           color:'#3D7A52', bg:'#E8F2EB', border:'#A8D4B4', group:'tasks'     },
-  task_rejected:      { icon: ArrowCounterClockwise, color:'#A32D2D', bg:'#FCEBEB', border:'#F0AAAA', group:'tasks'     },
-  material_added:     { icon: Package,               color:'#C96B3A', bg:'#FBF3DC', border:'#F0D897', group:'materials' },
-  material_purchased: { icon: ShoppingCart,          color:'#3D7A52', bg:'#E8F2EB', border:'#A8D4B4', group:'materials' },
-  tool_added:         { icon: Wrench,                color:'#2E6FB5', bg:'#E4EEFA', border:'#A3C2E8', group:'tools'     },
-  worker_joined:      { icon: HardHat,               color:'#6E4AAB', bg:'#F0EAF8', border:'#C4AADF', group:'team'      },
-  comment_added:      { icon: ChatCircle,            color:'#7A6E66', bg:'#F2EDE4', border:'#D9D0C7', group:'tasks'     },
+  task_created:       { icon: Note,                  color:'#2E6FB5', bg:'#E4EEFA', border:'#A3C2E8', darkBg:'#162238', darkBorder:'#1E3A5F', group:'tasks'     },
+  task_submitted:     { icon: Clock,                 color:'#C96B3A', bg:'#FBF3DC', border:'#F0D897', darkBg:'#261A0A', darkBorder:'#3D2A0E', group:'tasks'     },
+  task_approved:      { icon: CheckCircle,           color:'#3D7A52', bg:'#E8F2EB', border:'#A8D4B4', darkBg:'#0F2018', darkBorder:'#1A3525', group:'tasks'     },
+  task_rejected:      { icon: ArrowCounterClockwise, color:'#EF4444', bg:'#FCEBEB', border:'#F0AAAA', darkBg:'#2A1010', darkBorder:'#431515', group:'tasks'     },
+  material_added:     { icon: Package,               color:'#C96B3A', bg:'#FBF3DC', border:'#F0D897', darkBg:'#261A0A', darkBorder:'#3D2A0E', group:'materials' },
+  material_purchased: { icon: ShoppingCart,          color:'#3D7A52', bg:'#E8F2EB', border:'#A8D4B4', darkBg:'#0F2018', darkBorder:'#1A3525', group:'materials' },
+  tool_added:         { icon: Wrench,                color:'#2E6FB5', bg:'#E4EEFA', border:'#A3C2E8', darkBg:'#162238', darkBorder:'#1E3A5F', group:'tools'     },
+  worker_joined:      { icon: HardHat,               color:'#9B6FD4', bg:'#F0EAF8', border:'#C4AADF', darkBg:'#1E1530', darkBorder:'#31245C', group:'team'      },
+  comment_added:      { icon: ChatCircle,            color:'#7A6E66', bg:'#F2EDE4', border:'#D9D0C7', darkBg:'#2A2520', darkBorder:'#3D342B', group:'tasks'     },
 }
-const ACTIVITY_CFG_DEFAULT = { icon: ClipboardText, color:'#7A6E66', bg:'#F2EDE4', border:'#D9D0C7', group:'other' }
+const ACTIVITY_CFG_DEFAULT = { icon: ClipboardText, color:'#7A6E66', bg:'#F2EDE4', border:'#D9D0C7', darkBg:'#2A2520', darkBorder:'#3D342B', group:'other' }
 
 const ACTIVITY_GROUPS = ['all', 'tasks', 'materials', 'tools', 'team']
 
@@ -71,7 +71,8 @@ function formatActivityTime(dateStr, lang) {
 
 export default function Notifications({ onNavigate }) {
   const { lang } = useT()
-  const { activityLog, fetchActivityLog, setSelectedProject, setPendingOpenTask } = useStore()
+  const { activityLog, fetchActivityLog, setSelectedProject, setPendingOpenTask, theme } = useStore()
+  const dark = theme === 'dark'
   const [filter, setFilter] = useState('all')
 
   const TASK_ENTRY_TYPES = new Set(['task_created','task_submitted','task_approved','task_rejected','comment_added'])
@@ -118,13 +119,15 @@ export default function Notifications({ onNavigate }) {
         {filtered.map(entry => {
           const cfg = ACTIVITY_CFG[entry.action_type] || ACTIVITY_CFG_DEFAULT
           const isClickable = TASK_ENTRY_TYPES.has(entry.action_type) && entry.entity_id && entry.project_id
+          const cardBg     = dark ? cfg.darkBg     : cfg.bg
+          const cardBorder = dark ? cfg.darkBorder : cfg.border
           return (
             <div key={entry.id}
               onClick={() => handleEntryClick(entry)}
               style={{
                 display:'flex', alignItems:'flex-start', gap:12,
-                background: cfg.bg,
-                border: `1.5px solid ${cfg.border}`,
+                background: cardBg,
+                border: `1.5px solid ${cardBorder}`,
                 borderRadius: 14, padding:'12px 14px',
                 cursor: isClickable ? 'pointer' : 'default',
                 transition: 'opacity 0.15s',
@@ -135,7 +138,7 @@ export default function Notifications({ onNavigate }) {
               {/* Icon */}
               <div style={{
                 width:40, height:40, borderRadius:'50%', flexShrink:0,
-                background:'var(--surface,#fff)', border:`1.5px solid ${cfg.border}`,
+                background: cardBorder, border:`1.5px solid ${cardBorder}`,
                 display:'flex', alignItems:'center', justifyContent:'center',
               }}>
                 <cfg.icon size={14} weight="bold" color={cfg.color} />
@@ -143,7 +146,7 @@ export default function Notifications({ onNavigate }) {
 
               {/* Content */}
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:13, color:'var(--text-1,#2E2420)', lineHeight:1.5, fontWeight:500 }}>
+                <div style={{ fontSize:13, color:'var(--text-1)', lineHeight:1.5, fontWeight:500 }}>
                   {formatActivityText(entry, lang)}
                 </div>
 
@@ -152,14 +155,15 @@ export default function Notifications({ onNavigate }) {
                   {entry.project?.name && (
                     <span style={{
                       fontSize:11, color:cfg.color, fontWeight:600,
-                      background:'var(--surface,#fff)', border:`1px solid ${cfg.border}`,
+                      background: cardBorder, border:`1px solid ${cardBorder}`,
                       borderRadius:7, padding:'2px 8px',
+                      display:'flex', alignItems:'center', gap:3,
                     }}>
                       <MapPin size={11} weight="bold" /> {entry.project.name}
                     </span>
                   )}
                   {/* Time — pushed to the right */}
-                  <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:4 }}>
+                  <span style={{ marginLeft:'auto', fontSize:11, color:'var(--text-muted)', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:4 }}>
                     {formatActivityTime(entry.created_at, lang)}
                     {isClickable && <CaretRight size={12} weight="bold" color={cfg.color} />}
                   </span>
