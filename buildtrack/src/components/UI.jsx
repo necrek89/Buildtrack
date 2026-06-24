@@ -1,3 +1,5 @@
+import { Check } from '@phosphor-icons/react'
+
 // Badge
 export function Badge({ variant = 'gray', children }) {
   return <span className={`badge badge-${variant}`}>{children}</span>
@@ -42,7 +44,7 @@ export function ProgressBar({ value, label }) {
 export function Checkbox({ checked, onChange }) {
   return (
     <div className={`checkbox ${checked ? 'checked' : ''}`} onClick={onChange}>
-      {checked && <span className="checkbox-check">✓</span>}
+      {checked && <span className="checkbox-check"><Check size={11} weight="bold" /></span>}
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { CalendarBlank, PencilSimple, Trash, CaretUp, CaretDown, X } from '@phosphor-icons/react'
 import { useStore } from '../store/useStore'
 import { useT } from '../i18n/useLanguage'
 import { EmptyState } from './UI'
@@ -78,7 +79,7 @@ function CategoryBreakdown({ expenses, onSelect, selected, t }) {
                 background: c.bg, border: `1px solid ${c.border}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15,
               }}>
-                {CATEGORY_ICONS[g.cat]}
+                {(() => { const IC = CATEGORY_ICONS[g.cat]; return <IC size={15} weight="bold" /> })()}
               </div>
 
               {/* Label + bar */}
@@ -132,7 +133,7 @@ function ExpenseCard({ exp, canEdit, onEdit, onDelete, onLightbox, deleting, t }
           background: colors.bg, border: `1px solid ${colors.border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
         }}>
-          {CATEGORY_ICONS[exp.category] || '📦'}
+          {(() => { const IC = CATEGORY_ICONS[exp.category] || CATEGORY_ICONS.other; return <IC size={18} weight="bold" /> })()}
         </div>
 
         {/* Content */}
@@ -146,7 +147,7 @@ function ExpenseCard({ exp, canEdit, onEdit, onDelete, onLightbox, deleting, t }
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 11, color: '#B8AFA6' }}>📅 {fmtDate(exp.date)}</span>
+            <span style={{ fontSize: 11, color: '#B8AFA6', display:'flex', alignItems:'center', gap:2 }}><CalendarBlank size={11} weight="bold" /> {fmtDate(exp.date)}</span>
           </div>
           {exp.notes && (
             <div style={{ fontSize: 12, color: '#7A6E66', marginTop: 5, lineHeight: 1.5 }}>
@@ -176,11 +177,11 @@ function ExpenseCard({ exp, canEdit, onEdit, onDelete, onLightbox, deleting, t }
             flex: 1, padding: '5px', borderRadius: 7, fontSize: 12, fontWeight: 600,
             border: '1.5px solid var(--border,#EAE3D8)',
             background: 'var(--surface,#fff)', color: '#7A6E66', cursor: 'pointer',
-          }}>✏️ {t('common.edit')}</button>
+          }}><PencilSimple size={12} weight="bold" /> {t('common.edit')}</button>
           <button onClick={() => onDelete(exp)} disabled={deleting === exp.id} style={{
             flex: 1, padding: '5px', borderRadius: 7, fontSize: 12, fontWeight: 600,
             border: '1.5px solid #FECACA', background: '#FEF2F2', color: '#991B1B', cursor: 'pointer',
-          }}>🗑 {t('common.delete')}</button>
+          }}><Trash size={12} weight="bold" /> {t('common.delete')}</button>
         </div>
       )}
     </div>
@@ -304,8 +305,8 @@ export default function ExpensesTab({ proj, canEdit = true }) {
                   <span style={{ fontSize: 14, fontWeight: 800, color: '#A32D2D', flexShrink: 0 }}>
                     {fmtMoney(total, cur)}
                   </span>
-                  <span style={{ fontSize: 11, color: c.color, opacity: .7, marginLeft: 4 }}>
-                    {isOpen ? '▲' : '▼'}
+                  <span style={{ fontSize: 11, color: c.color, opacity: .7, marginLeft: 4, display:'flex', alignItems:'center' }}>
+                    {isOpen ? <CaretUp size={11} weight="bold" /> : <CaretDown size={11} weight="bold" />}
                   </span>
                 </div>
 
@@ -345,7 +346,8 @@ export default function ExpensesTab({ proj, canEdit = true }) {
             position: 'absolute', top: 16, right: 16,
             background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%',
             width: 36, height: 36, color: '#fff', fontSize: 18, cursor: 'pointer',
-          }}>✕</button>
+            display:'flex', alignItems:'center', justifyContent:'center',
+          }}><X size={18} weight="bold" /></button>
           <img src={lightbox} alt="receipt" onClick={e => e.stopPropagation()}
             style={{ maxWidth: '94vw', maxHeight: '88dvh', borderRadius: 10, objectFit: 'contain' }} />
         </div>

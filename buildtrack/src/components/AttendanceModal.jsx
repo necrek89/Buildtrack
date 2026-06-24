@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { CheckCircle, X, FirstAid, Umbrella, Clock, ClipboardText } from '@phosphor-icons/react'
 import { useStore } from '../store/useStore'
 
 const TODAY = new Date().toISOString().slice(0, 10)
@@ -10,7 +11,7 @@ const STATUS_CFG = {
   vacation: { label: 'Отпуск',  color: '#0891B2',  bg: 'var(--bg)',       border: '#A5F3FC',              dot: '#0891B2' },
 }
 const STATUS_ORDER = ['present', 'absent', 'sick', 'vacation']
-const STATUS_EMOJI = { present: '✅', absent: '❌', sick: '🏥', vacation: '🏖' }
+const STATUS_ICON = { present: CheckCircle, absent: X, sick: FirstAid, vacation: Umbrella }
 
 function formatDate(d) {
   return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
@@ -115,7 +116,7 @@ export default function AttendanceModal({ onClose }) {
               border:'none', cursor:'pointer', fontSize:16, fontWeight:500,
               marginBottom:10,
             }}>
-              📋 Как вчера
+              <ClipboardText size={14} weight="bold" /> Как вчера
             </button>
             <div style={{ fontSize:11, color:'var(--text-muted)', marginBottom:28 }}>
               Скопировать вчерашнюю явку — изменить только отличия
@@ -148,7 +149,7 @@ export default function AttendanceModal({ onClose }) {
                   background: s === 'present' ? '#F0FDF4' : s === 'absent' ? '#FEF2F2' : s === 'sick' ? '#F5F3FF' : '#ECFEFF',
                   color: STATUS_CFG[s]?.dot || '#333',
                 }}>
-                  {STATUS_EMOJI[s]} {v}
+                  {(() => { const IC = STATUS_ICON[s]; return <IC size={13} weight="bold" /> })()} {v}
                 </span>
               ))}
             </div>
@@ -188,7 +189,7 @@ export default function AttendanceModal({ onClose }) {
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ fontSize:13, fontWeight:500, color:'var(--text-primary)' }}>{row.name}</div>
                       {row.arrived_at && (
-                        <div style={{ fontSize:10, color:'var(--text-muted)' }}>🕐 {row.arrived_at}</div>
+                        <div style={{ fontSize:10, color:'var(--text-muted)', display:'flex', alignItems:'center', gap:2 }}><Clock size={10} weight="bold" /> {row.arrived_at}</div>
                       )}
                     </div>
 
@@ -206,7 +207,7 @@ export default function AttendanceModal({ onClose }) {
                             display:'flex', alignItems:'center', justifyContent:'center', gap:3,
                             transition:'all .1s',
                           }}>
-                            {STATUS_EMOJI[s]}
+                            {(() => { const IC = STATUS_ICON[s]; return <IC size={14} weight="bold" /> })()}
                           </button>
                         )
                       })}
@@ -217,7 +218,7 @@ export default function AttendanceModal({ onClose }) {
                         color: row.arrived_at ? 'var(--accent)' : 'var(--text-muted)',
                         border: row.arrived_at ? '0.5px solid var(--accent-border)' : '0.5px solid var(--border)',
                         fontSize:14, display:'flex', alignItems:'center', justifyContent:'center',
-                      }}>🕐</button>
+                      }}><Clock size={14} weight="bold" /></button>
                     </div>
                   </div>
 

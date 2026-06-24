@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { MapPin, X } from '@phosphor-icons/react'
 import { useStore } from '../../store/useStore'
 import { useT } from '../../i18n/useLanguage'
 import { Button } from '../../components/UI'
@@ -45,8 +46,8 @@ function RequestCard({ req, t }) {
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
         {req.project?.name && (
-          <span style={{ fontSize: 11, color: '#C96B3A', fontWeight: 600 }}>
-            📍 {req.project.name}
+          <span style={{ fontSize: 11, color: '#C96B3A', fontWeight: 600, display:'flex', alignItems:'center', gap:2 }}>
+            <MapPin size={11} weight="bold" /> {req.project.name}
           </span>
         )}
         {req.task?.text && (
@@ -81,7 +82,7 @@ function RequestCard({ req, t }) {
                 style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.15)',
                   border: 'none', borderRadius: '50%', width: 36, height: 36, color: '#fff',
                   fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                ✕
+                <X size={18} weight="bold" />
               </button>
               <img src={req.photo_url} alt="full" onClick={e => e.stopPropagation()}
                 style={{ maxWidth: '94vw', maxHeight: '80dvh', borderRadius: 10, objectFit: 'contain' }} />

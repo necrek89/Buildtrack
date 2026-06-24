@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { X, Warning } from '@phosphor-icons/react'
 import { useT } from '../i18n/useLanguage'
 import { FormGroup, Button } from './UI'
 import { MATERIAL_UNITS } from '../store/useStore'
@@ -157,7 +158,7 @@ export default function MaterialRequestModal({ projectId, taskId, taskName, task
                     background: '#A32D2D', color: '#fff',
                     border: 'none', fontSize: 11, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>✕</button>
+                  }}><X size={11} weight="bold" /></button>
               </div>
             )}
           </FormGroup>
@@ -167,7 +168,7 @@ export default function MaterialRequestModal({ projectId, taskId, taskName, task
         {saveError && (
           <div style={{ margin: '8px 0 0', padding: '8px 12px', background: '#FEE2E2',
             color: '#991B1B', borderRadius: 8, fontSize: 12 }}>
-            ⚠️ {saveError}
+            <Warning size={13} weight="bold" /> {saveError}
           </div>
         )}
 

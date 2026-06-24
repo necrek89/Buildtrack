@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PencilSimple, X } from '@phosphor-icons/react'
 import { useStore, PRIORITY_BADGE, PRIORITY_LABEL } from '../store/useStore'
 import { Badge, Checkbox, IconButton, EmptyState } from './UI'
 import TaskModal from './TaskModal'
@@ -26,9 +27,9 @@ export default function TaskList({ tasks, canEdit = true }) {
             </div>
             <div className="task-actions">
               {canEdit && (
-                <IconButton onClick={() => setEditTask(t)} title="Редактировать">✎</IconButton>
+                <IconButton onClick={() => setEditTask(t)} title="Редактировать"><PencilSimple size={13} weight="bold" /></IconButton>
               )}
-              <IconButton danger onClick={() => setDeleteId(t.id)} title="Удалить">✕</IconButton>
+              <IconButton danger onClick={() => setDeleteId(t.id)} title="Удалить"><X size={13} weight="bold" /></IconButton>
             </div>
           </div>
         ))}

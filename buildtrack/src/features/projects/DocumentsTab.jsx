@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { Hourglass, Paperclip, ArrowDown, X } from '@phosphor-icons/react'
 import { EmptyState } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore } from '../../store/useStore'
@@ -78,7 +79,7 @@ export default function DocumentsTab({ proj }) {
             width:'100%', justifyContent:'center',
           }}
         >
-          {uploading ? `⏳ ${t('detail.docsUploading')}` : `📎 ${t('detail.docsUpload')}`}
+          {uploading ? <><Hourglass size={13} weight="bold" /> {t('detail.docsUploading')}</> : <><Paperclip size={13} weight="bold" /> {t('detail.docsUpload')}</>}
         </button>
       </div>
 
@@ -140,7 +141,7 @@ export default function DocumentsTab({ proj }) {
                       background:'#F2EDE6', color:'#7A6E66',
                       textDecoration:'none', whiteSpace:'nowrap',
                     }}>
-                    ↓
+                    <ArrowDown size={13} weight="bold" />
                   </a>
                   <button
                     onClick={e => { e.stopPropagation(); if (window.confirm(t('detail.docsDeleteConfirm'))) deleteDocument(doc.id) }}
@@ -148,7 +149,7 @@ export default function DocumentsTab({ proj }) {
                       width:30, height:30, borderRadius:8, border:'none',
                       background:'#FEE2E2', color:'#991B1B', fontSize:14,
                       cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
-                    }}>✕</button>
+                    }}><X size={14} weight="bold" /></button>
                 </div>
               </div>
             )

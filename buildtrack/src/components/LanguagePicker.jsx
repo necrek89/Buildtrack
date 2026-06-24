@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { Check } from '@phosphor-icons/react'
 import { useLang, LANGUAGES } from '../i18n/useLanguage'
 
 export default function LanguagePicker({ compact = false }) {
@@ -90,7 +91,7 @@ export default function LanguagePicker({ compact = false }) {
               <span style={{ fontSize: 18, lineHeight: 1 }}>{l.flag}</span>
               <span style={{ flex: 1 }}>{l.label}</span>
               {lang === l.code && (
-                <span style={{ fontSize: 11, color: '#C96B3A' }}>✓</span>
+                <span style={{ fontSize: 11, color: '#C96B3A', display:'flex', alignItems:'center' }}><Check size={11} weight="bold" /></span>
               )}
             </button>
           ))}

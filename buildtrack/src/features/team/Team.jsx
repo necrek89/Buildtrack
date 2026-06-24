@@ -5,7 +5,7 @@ import { useStore, currencySymbol } from '../../store/useStore'
 import { supabase } from '../../lib/supabase'
 import AttendanceModal from '../../components/AttendanceModal'
 import { generateMonthlyReport, generateAnnualReport } from './SalaryReportGenerator'
-import { DownloadSimple, FileXls, CalendarBlank, ChartBar } from '@phosphor-icons/react'
+import { DownloadSimple, FileXls, CalendarBlank, ChartBar, CheckCircle, ClipboardText, Lightning, Wrench, Clock, Trash, CaretUp, CaretDown, File, X } from '@phosphor-icons/react'
 import * as XLSX from 'xlsx'
 import TimesheetModal from './TimesheetModal'
 
@@ -254,7 +254,7 @@ export default function Team() {
                 border: `0.5px solid ${todayDone ? '#86EFAC' : 'var(--accent-border)'}`,
                 cursor:'pointer', fontSize:12, fontWeight:500,
               }}>
-                {todayDone ? '✅ Проведена' : '📋 Перекличка'}
+                {todayDone ? <><CheckCircle size={12} weight="bold" /> Проведена</> : <><ClipboardText size={12} weight="bold" /> Перекличка</>}
               </button>
               <button onClick={() => setShowTimesheet(true)} style={{
                 display:'flex', alignItems:'center', gap:5,
@@ -263,7 +263,7 @@ export default function Team() {
                 border:'0.5px solid var(--border-medium)',
                 cursor:'pointer', fontSize:12, fontWeight:500,
               }}>
-                📅 Табель
+                <CalendarBlank size={12} weight="bold" /> Табель
               </button>
             </div>
           )
@@ -495,10 +495,10 @@ export default function Team() {
                       {t('team.ws_' + st)}
                     </span>
                     {workerTasks.length > 0 && (
-                      <span style={{ fontSize:10, color:'#C96B3A', fontWeight:600 }}>⚡ {workerTasks.length} tasks</span>
+                      <span style={{ fontSize:10, color:'#C96B3A', fontWeight:600, display:'flex', alignItems:'center', gap:2 }}><Lightning size={10} weight="bold" /> {workerTasks.length} tasks</span>
                     )}
                     {workerTools.length > 0 && (
-                      <span style={{ fontSize:10, color:'#7A6E66' }}>🔧 {workerTools.length}</span>
+                      <span style={{ fontSize:10, color:'#7A6E66', display:'flex', alignItems:'center', gap:2 }}><Wrench size={10} weight="bold" /> {workerTools.length}</span>
                     )}
                     {m.phone && (
                       <a
@@ -528,7 +528,7 @@ export default function Team() {
                   </button>
                 )}
 
-                <span style={{ fontSize:10, color:'#B8AFA6' }}>{isOpen ? '▲' : '▼'}</span>
+                <span style={{ fontSize:10, color:'#B8AFA6', display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
               </div>
 
               {/* ── Expanded detail ── */}
@@ -667,13 +667,13 @@ export default function Team() {
                     <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>{t('team.tasksHeader')}</div>
                     <div style={{ display:'flex', gap:10 }}>
                       {workerTasks.filter(t=>['new','rejected'].includes(t.status)).length > 0 && (
-                        <span style={{ fontSize:11, fontWeight:600, color:'#C96B3A' }}>⚡ {workerTasks.filter(t=>['new','rejected'].includes(t.status)).length} active</span>
+                        <span style={{ fontSize:11, fontWeight:600, color:'#C96B3A', display:'flex', alignItems:'center', gap:2 }}><Lightning size={11} weight="bold" /> {workerTasks.filter(t=>['new','rejected'].includes(t.status)).length} active</span>
                       )}
                       {workerTasks.filter(t=>t.status==='pending').length > 0 && (
-                        <span style={{ fontSize:11, fontWeight:600, color:'#D4A843' }}>🕐 {workerTasks.filter(t=>t.status==='pending').length} in review</span>
+                        <span style={{ fontSize:11, fontWeight:600, color:'#D4A843', display:'flex', alignItems:'center', gap:2 }}><Clock size={11} weight="bold" /> {workerTasks.filter(t=>t.status==='pending').length} in review</span>
                       )}
                       {workerDone > 0 && (
-                        <span style={{ fontSize:11, fontWeight:600, color:'#3D7A52' }}>✅ {workerDone} done</span>
+                        <span style={{ fontSize:11, fontWeight:600, color:'#3D7A52', display:'flex', alignItems:'center', gap:2 }}><CheckCircle size={11} weight="bold" /> {workerDone} done</span>
                       )}
                       {workerTasks.length === 0 && workerDone === 0 && (
                         <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('team.noTasks')}</span>
@@ -758,7 +758,7 @@ export default function Team() {
                               </div>
                               {p.notes && <div style={{ fontSize:10, color:'var(--text-muted)' }}>{p.notes}</div>}
                             </div>
-                            <button onClick={() => deletePayment(p.id, m.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', fontSize:14, padding:'0 4px', flexShrink:0 }}>🗑</button>
+                            <button onClick={() => deletePayment(p.id, m.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', fontSize:14, padding:'0 4px', flexShrink:0, display:'flex', alignItems:'center' }}><Trash size={14} weight="bold" /></button>
                           </div>
                         ))}
                         {pays.length === 0 && !showPayForm && (
@@ -794,14 +794,14 @@ export default function Team() {
                           </div>
                           <button
                             onClick={() => generateMonthlyReport(reportMonth, reportYear, m.id)}
-                            style={{ fontSize: 10, color: 'var(--text-secondary)', background: 'var(--bg)', border: '0.5px solid var(--border)', borderRadius: 5, padding: '2px 7px', cursor: 'pointer' }}
+                            style={{ fontSize: 10, color: 'var(--text-secondary)', background: 'var(--bg)', border: '0.5px solid var(--border)', borderRadius: 5, padding: '2px 7px', cursor: 'pointer', display:'flex', alignItems:'center', gap:3 }}
                             title="Отчёт за месяц"
-                          >📄 месяц</button>
+                          ><File size={10} weight="bold" /> месяц</button>
                           <button
                             onClick={() => generateAnnualReport(reportYear, m.id)}
-                            style={{ fontSize: 10, color: 'var(--text-secondary)', background: 'var(--bg)', border: '0.5px solid var(--border)', borderRadius: 5, padding: '2px 7px', cursor: 'pointer' }}
+                            style={{ fontSize: 10, color: 'var(--text-secondary)', background: 'var(--bg)', border: '0.5px solid var(--border)', borderRadius: 5, padding: '2px 7px', cursor: 'pointer', display:'flex', alignItems:'center', gap:3 }}
                             title="Отчёт за год"
-                          >📊 год</button>
+                          ><ChartBar size={10} weight="bold" /> год</button>
                         </div>
                         <button
                           onClick={() => setShowLogForm(prev => prev === m.id ? null : m.id)}
@@ -838,7 +838,7 @@ export default function Team() {
                           >
                             ОК
                           </button>
-                          <button onClick={() => setRateEditId(null)} style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6, background: 'var(--bg-subtle,#F5F5F5)', border: '0.5px solid var(--border)', cursor: 'pointer', color: 'var(--text-secondary)' }}>✕</button>
+                          <button onClick={() => setRateEditId(null)} style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6, background: 'var(--bg-subtle,#F5F5F5)', border: '0.5px solid var(--border)', cursor: 'pointer', color: 'var(--text-secondary)', display:'flex', alignItems:'center' }}><X size={11} weight="bold" /></button>
                         </div>
                       ) : (
                         <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -970,7 +970,7 @@ export default function Team() {
                                     </span>
                                     <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{monthLogs.length} зап.</span>
                                     <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)', marginLeft: 6 }}>{monthTotal.toLocaleString()} {currSym}</span>
-                                    <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 4 }}>{isMonthOpen ? '▲' : '▼'}</span>
+                                    <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 4, display:'flex', alignItems:'center' }}>{isMonthOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
                                   </div>
 
                                   {/* Daily entries */}
@@ -994,8 +994,8 @@ export default function Team() {
                                           </div>
                                           <button
                                             onClick={() => deleteWorkLog(log.id, m.id)}
-                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 14, padding: '0 4px', flexShrink: 0 }}
-                                          >🗑</button>
+                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 14, padding: '0 4px', flexShrink: 0, display:'flex', alignItems:'center' }}
+                                          ><Trash size={14} weight="bold" /></button>
                                         </div>
                                       ))}
                                     </div>
@@ -1041,7 +1041,7 @@ export default function Team() {
                     {m.phone && (
                       <a href={`tel:${m.phone}`} onClick={e => e.stopPropagation()} style={{ fontSize:10, color:'var(--accent)', textDecoration:'none' }}>📞 {m.phone}</a>
                     )}
-                    <span style={{ fontSize:10, color:'#B8AFA6' }}>{isOpen ? '▲' : '▼'}</span>
+                    <span style={{ fontSize:10, color:'#B8AFA6', display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
                   </div>
                   {isOpen && (
                     <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'#FDFBF8' }}>

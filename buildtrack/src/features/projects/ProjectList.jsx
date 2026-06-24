@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { CheckCircle, PencilSimple, ArrowCounterClockwise, Trash, Warning, Clock, MapPin, CalendarBlank, CaretUp, CaretDown, X } from '@phosphor-icons/react'
 import { Badge, Button, FormGroup, IconButton, EmptyState } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore } from '../../store/useStore'
@@ -172,7 +173,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
           {/* Name + actions */}
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:8 }}>
             <div style={{ fontSize:14, fontWeight:500, color: isCompleted ? '#5A9467' : 'var(--text-1,#1C1917)', lineHeight:1.3, flex:1, minWidth:0 }}>
-              {isCompleted ? '✅ ' : ''}{p.name}
+              <div style={{ display:'flex', alignItems:'center', gap:5 }}>{isCompleted && <CheckCircle size={14} weight="bold" color="#5A9467" />}{p.name}</div>
             </div>
             {(onEdit || onDelete || onComplete || onReopen) && (
               <div style={{ position:'relative', flexShrink:0 }} data-card-menu>
@@ -199,7 +200,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                         style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:9, padding:'10px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--text-1,#2E2420)', fontFamily:'inherit' }}
                         onMouseEnter={e => e.currentTarget.style.background='var(--surface-2,#FDFBF8)'}
                         onMouseLeave={e => e.currentTarget.style.background='none'}
-                      >✏️ {t('common.edit')}</button>
+                      ><PencilSimple size={13} weight="bold" /> {t('common.edit')}</button>
                     )}
                     {!isCompleted && onComplete && (
                       <button
@@ -207,7 +208,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                         style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:9, padding:'10px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#3D7A52', fontFamily:'inherit' }}
                         onMouseEnter={e => e.currentTarget.style.background='#F0FAF2'}
                         onMouseLeave={e => e.currentTarget.style.background='none'}
-                      >✅ {t('projects.completeBtn')}</button>
+                      ><CheckCircle size={13} weight="bold" /> {t('projects.completeBtn')}</button>
                     )}
                     {isCompleted && onReopen && (
                       <button
@@ -215,7 +216,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                         style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:9, padding:'10px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--text-2,#7A6E66)', fontFamily:'inherit' }}
                         onMouseEnter={e => e.currentTarget.style.background='var(--surface-2,#FDFBF8)'}
                         onMouseLeave={e => e.currentTarget.style.background='none'}
-                      >↩ {t('projects.reopenBtn')}</button>
+                      ><ArrowCounterClockwise size={13} weight="bold" /> {t('projects.reopenBtn')}</button>
                     )}
                     {onDelete && (
                       <>
@@ -225,7 +226,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                           style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:9, padding:'10px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#DC2626', fontFamily:'inherit' }}
                           onMouseEnter={e => e.currentTarget.style.background='#FEF2F2'}
                           onMouseLeave={e => e.currentTarget.style.background='none'}
-                        >🗑 {t('common.delete')}</button>
+                        ><Trash size={13} weight="bold" /> {t('common.delete')}</button>
                       </>
                     )}
                   </div>
@@ -261,7 +262,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                     {s}
                     {sAlert > 0 && (
                       <span style={{ background:'#FEE2E2', color:'#991B1B', borderRadius:10, padding:'0 5px', fontSize:10, fontWeight:500 }}>
-                        ⚠️{sAlert}
+                        <Warning size={10} weight="bold" />{sAlert}
                       </span>
                     )}
                   </span>
@@ -275,16 +276,16 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
 
           {/* Meta: deadline + stages count */}
           <div style={{ display:'flex', flexWrap:'wrap', gap:8, fontSize:11, color:'#B8AFA6', marginBottom: (pPending > 0 || pOverdue > 0 || (!isCompleted && onComplete)) ? 8 : 0 }}>
-            {p.address  && <span>📍 {p.address}</span>}
-            {p.deadline && <span>📅 {p.deadline}</span>}
+            {p.address  && <span style={{ display:'flex', alignItems:'center', gap:2 }}><MapPin size={11} weight="bold" /> {p.address}</span>}
+            {p.deadline && <span style={{ display:'flex', alignItems:'center', gap:2 }}><CalendarBlank size={11} weight="bold" /> {p.deadline}</span>}
             {stages.length > 0 && <span>≡ {t('projects.stagesCount', { n: stages.length })}</span>}
           </div>
 
           {/* Alert chips */}
           {(pPending > 0 || pOverdue > 0) && (
             <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-              {pPending > 0 && <span style={{ fontSize:10, background:'#FEF3C7', color:'#92400E', borderRadius:6, padding:'2px 7px', fontWeight:500 }}>🕐 {pPending}</span>}
-              {pOverdue > 0 && <span style={{ fontSize:10, background:'#FEE2E2', color:'#991B1B', borderRadius:6, padding:'2px 7px', fontWeight:500 }}>⚠️ {pOverdue}</span>}
+              {pPending > 0 && <span style={{ fontSize:10, background:'#FEF3C7', color:'#92400E', borderRadius:6, padding:'2px 7px', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}><Clock size={10} weight="bold" /> {pPending}</span>}
+              {pOverdue > 0 && <span style={{ fontSize:10, background:'#FEE2E2', color:'#991B1B', borderRadius:6, padding:'2px 7px', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}><Warning size={10} weight="bold" /> {pOverdue}</span>}
             </div>
           )}
         </div>
@@ -303,10 +304,10 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
               className="summary-chip danger"
               style={{ cursor: 'pointer', background: 'none', border: 'none', font: 'inherit' }}
             >
-              ⚠️ {t('projects.overdue', { n: overdueTasks })}
+              <Warning size={11} weight="bold" /> {t('projects.overdue', { n: overdueTasks })}
             </button>
           )}
-          {pendingReview > 0 && <div className="summary-chip warning">🕐 {t('projects.forReview', { n: pendingReview })}</div>}
+          {pendingReview > 0 && <div className="summary-chip warning" style={{ display:'flex', alignItems:'center', gap:4 }}><Clock size={11} weight="bold" /> {t('projects.forReview', { n: pendingReview })}</div>}
         </div>
       )}
 
@@ -323,8 +324,8 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
             maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
           }}>
             <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 600, fontSize: 15 }}>⚠️ Просроченные задачи ({overdueTasks})</span>
-              <button onClick={() => setShowOverdueModal(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-muted)', lineHeight: 1 }}>×</button>
+              <span style={{ fontWeight: 600, fontSize: 15, display:'flex', alignItems:'center', gap:5 }}><Warning size={15} weight="bold" /> Просроченные задачи ({overdueTasks})</span>
+              <button onClick={() => setShowOverdueModal(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-muted)', lineHeight: 1, display:'flex', alignItems:'center' }}><X size={20} weight="bold" /></button>
             </div>
             <div style={{ overflowY: 'auto', padding: '8px 0' }}>
               {overdueList.map(task => {
@@ -379,9 +380,9 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
               borderTop:'1.5px solid var(--border,#EAE3D8)',
             }}
           >
-            <span style={{ fontSize:13, fontWeight:500, color:'#5A9467' }}>✅ {t('projects.completedSection')}</span>
+            <span style={{ fontSize:13, fontWeight:500, color:'#5A9467', display:'flex', alignItems:'center', gap:5 }}><CheckCircle size={13} weight="bold" color="#5A9467" /> {t('projects.completedSection')}</span>
             <span style={{ fontSize:12, color:'#B8AFA6', background:'#E8F2EB', borderRadius:12, padding:'1px 8px', fontWeight:500 }}>{completed.length}</span>
-            <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6' }}>{showCompleted ? '▲' : '▼'}</span>
+            <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', display:'flex', alignItems:'center' }}>{showCompleted ? <CaretUp size={11} weight="bold" /> : <CaretDown size={11} weight="bold" />}</span>
           </button>
           {showCompleted && (
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:14, marginTop:10 }}>

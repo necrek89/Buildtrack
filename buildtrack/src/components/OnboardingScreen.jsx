@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react'
+import { Buildings, HardHat, Hammer, UserCircle, Rocket, ArrowRight, ArrowLeft } from '@phosphor-icons/react'
 
 const SLIDES = [
   {
-    emoji: '🏗',
+    Icon: Buildings,
     color: '#C96B3A',
     bg: 'linear-gradient(160deg, #FFF5EF 0%, #FAE8D8 100%)',
     circleBg: '#FAECE4',
@@ -10,7 +11,7 @@ const SLIDES = [
     subtitle: 'Всё для управления стройкой\nв одном приложении',
   },
   {
-    emoji: '👷',
+    Icon: HardHat,
     color: '#2E6B4A',
     bg: 'linear-gradient(160deg, #F0F9F4 0%, #D8EFDF 100%)',
     circleBg: '#E0F2E8',
@@ -18,7 +19,7 @@ const SLIDES = [
     subtitle: 'Создавай объекты, назначай задачи\nбригаде и следи за прогрессом',
   },
   {
-    emoji: '🔨',
+    Icon: Hammer,
     color: '#3A5FAB',
     bg: 'linear-gradient(160deg, #EEF3FD 0%, #D8E4FA 100%)',
     circleBg: '#E0E9FA',
@@ -26,7 +27,7 @@ const SLIDES = [
     subtitle: 'Получай задания, отчитывайся\nо выполнении и прикрепляй фото',
   },
   {
-    emoji: '👤',
+    Icon: UserCircle,
     color: '#7A3FAA',
     bg: 'linear-gradient(160deg, #F6EFFE 0%, #E8D8FA 100%)',
     circleBg: '#EEE0FA',
@@ -132,7 +133,7 @@ export default function OnboardingScreen({ onDone }) {
           fontSize: 60, marginBottom: 32,
           boxShadow: `0 8px 32px ${slide.color}22`,
         }}>
-          {slide.emoji}
+          <slide.Icon size={60} weight="bold" color={slide.color} />
         </div>
 
         {/* Title */}
@@ -202,7 +203,7 @@ export default function OnboardingScreen({ onDone }) {
           onTouchStart={e => e.currentTarget.style.transform = 'scale(0.97)'}
           onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
         >
-          {isLast ? '🚀 Начать' : 'Далее →'}
+          {isLast ? <><Rocket size={14} weight="bold" /> Начать</> : <>Далее <ArrowRight size={14} weight="bold" /></>}
         </button>
 
         {/* Prev arrow — not on first slide */}
@@ -215,7 +216,7 @@ export default function OnboardingScreen({ onDone }) {
               cursor: 'pointer', fontWeight: 500,
             }}
           >
-            ← Назад
+            <ArrowLeft size={13} weight="bold" /> Назад
           </button>
         )}
       </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { ChatCircle } from '@phosphor-icons/react'
 import { supabase } from '../lib/supabase'
 import { useStore } from '../store/useStore'
 import { useT } from '../i18n/useLanguage'
@@ -65,7 +66,7 @@ export default function TaskComments({ taskId }) {
         borderTop: '1px solid #EAE3D8',
       }}>
         <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#B8AFA6' }}>
-          💬 {t('comments.title')}
+          <ChatCircle size={13} weight="bold" /> {t('comments.title')}
         </span>
         {comments.length > 0 && (
           <span style={{ fontSize: 10, background: '#F2EDE4', color: '#7A6E66', borderRadius: 8, padding: '1px 7px', fontWeight: 700 }}>

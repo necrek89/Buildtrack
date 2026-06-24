@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Lightning, CalendarBlank, CaretUp, CaretDown, ArrowCounterClockwise } from '@phosphor-icons/react'
 import { Badge, Button, StatCard, EmptyState } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore, PRIORITY_BADGE, PRIORITY_LABEL, STATUS_LABEL, STATUS_BADGE, STAGES } from '../../store/useStore'
@@ -142,7 +143,7 @@ export default function MyTasks() {
                     <span style={{ fontSize:13, fontWeight:700, color:'#2E2420', textTransform:'uppercase', letterSpacing:'.04em' }}>
                       {stage}
                     </span>
-                    {hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600 }}>⚡ требует внимания</span>}
+                    {hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600, display:'flex', alignItems:'center', gap:2 }}><Lightning size={11} weight="bold" /> требует внимания</span>}
                     <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', fontWeight:500, flexShrink:0 }}>
                       {done}/{total}
                     </span>
@@ -158,8 +159,8 @@ export default function MyTasks() {
                   </div>
                 </div>
 
-                <span style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4 }}>
-                  {isOpen ? '▲' : '▼'}
+                <span style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4, display:'flex', alignItems:'center' }}>
+                  {isOpen ? <CaretUp size={11} weight="bold" /> : <CaretDown size={11} weight="bold" />}
                 </span>
               </div>
 
@@ -185,10 +186,10 @@ export default function MyTasks() {
                             <div style={{ display:'flex', flexWrap:'wrap', gap:5, alignItems:'center' }}>
                               <Badge variant={STATUS_BADGE[tk.status]?.replace('badge-','')}>{STATUS_LABEL[tk.status]}</Badge>
                               {tk.priority && tk.priority !== 'normal' && <Badge variant={PRIORITY_BADGE[tk.priority]}>{PRIORITY_LABEL[tk.priority]}</Badge>}
-                              {tk.deadline && <span style={{ fontSize:10, color:'#B8AFA6' }}>📅 {tk.deadline}</span>}
+                              {tk.deadline && <span style={{ fontSize:10, color:'#B8AFA6', display:'flex', alignItems:'center', gap:2 }}><CalendarBlank size={10} weight="bold" /> {tk.deadline}</span>}
                             </div>
                           </div>
-                          <span style={{ fontSize:10, color:'#B8AFA6', flexShrink:0 }}>{isTaskOpen ? '▲' : '▼'}</span>
+                          <span style={{ fontSize:10, color:'#B8AFA6', flexShrink:0, display:'flex', alignItems:'center' }}>{isTaskOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
                         </div>
                         {isTaskOpen && (
                           <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'#FDFBF8' }}>
@@ -199,7 +200,7 @@ export default function MyTasks() {
                             <TaskMedia urls={tk.photo_url} />
                             {tk.status === 'rejected' && tk.reject_comment && (
                               <div style={{ marginTop:10, fontSize:12, color:'#A32D2D', background:'#FCEBEB', padding:'6px 10px', borderRadius:7 }}>
-                                ↩ {tk.reject_comment}
+                                <ArrowCounterClockwise size={12} weight="bold" /> {tk.reject_comment}
                               </div>
                             )}
                             {['new','rejected'].includes(tk.status) && (

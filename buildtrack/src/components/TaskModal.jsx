@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { Hourglass, X, Warning } from '@phosphor-icons/react'
 import { useStore, currencySymbol } from '../store/useStore'
 import { useT } from '../i18n/useLanguage'
 import { Button, FormGroup } from './UI'
@@ -350,7 +351,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
                 display:'flex', alignItems:'center', justifyContent:'center', gap:8,
               }}
             >
-              {uploading ? `⏳ ${t('common.uploading')}` : t('tasks.attachBtn')}
+              {uploading ? <><Hourglass size={13} weight="bold" /> {t('common.uploading')}</> : t('tasks.attachBtn')}
             </button>
 
             {mediaUrls.length > 0 && (
@@ -381,7 +382,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
                         display:'flex', alignItems:'center', justifyContent:'center',
                         lineHeight:1,
                       }}
-                    >✕</button>
+                    ><X size={11} weight="bold" /></button>
                     {isVideo(url) && (
                       <div style={{
                         position:'absolute', inset:0, display:'flex',
@@ -401,7 +402,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
 
         {saveError && (
           <div style={{ margin:'8px 0 0', padding:'8px 12px', background:'#FEE2E2', color:'#991B1B', borderRadius:8, fontSize:12 }}>
-            ⚠️ {saveError}
+            <Warning size={13} weight="bold" /> {saveError}
           </div>
         )}
         <div className="modal-actions" style={{ paddingTop:12, borderTop:'1px solid #EAE3D8', marginTop:4 }}>

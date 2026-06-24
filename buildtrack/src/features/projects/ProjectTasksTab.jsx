@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase'
 import TaskModal from '../../components/TaskModal'
 import ConfirmModal from '../../components/ConfirmModal'
 import { SortableStageList } from '../tasks/SortableStage'
-import { FileText, UploadSimple, DownloadSimple, Printer, ChatCircle } from '@phosphor-icons/react'
+import { FileText, UploadSimple, DownloadSimple, Printer, ChatCircle, MapPin, CalendarBlank, Wrench, X } from '@phosphor-icons/react'
 import * as XLSX from 'xlsx'
 
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
@@ -535,13 +535,13 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
         <div style={{ background:'var(--bg-accent,#F2EDE4)', borderRadius:10, padding:'8px 12px', marginBottom:10, display:'flex', flexWrap:'wrap', gap:8, alignItems:'center' }}>
           {proj.address && (
             <span onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(proj.address)}`, '_blank')}
-              style={{ fontSize:12, fontWeight:600, color:'#C96B3A', cursor:'pointer', textDecoration:'underline' }}>
-              📍 {proj.address}
+              style={{ fontSize:12, fontWeight:600, color:'#C96B3A', cursor:'pointer', textDecoration:'underline', display:'flex', alignItems:'center', gap:2 }}>
+              <MapPin size={12} weight="bold" /> {proj.address}
             </span>
           )}
           {proj.deadline && (
-            <span style={{ fontSize:11, color:'#B8AFA6' }}>
-              📅 {proj.deadline}
+            <span style={{ fontSize:11, color:'#B8AFA6', display:'flex', alignItems:'center', gap:2 }}>
+              <CalendarBlank size={11} weight="bold" /> {proj.deadline}
               {daysLeft !== null && (
                 <span style={{ color: daysLeft < 7 ? '#A32D2D' : '#C96B3A', fontWeight:600, marginLeft:4 }}>
                   · {t('detail.daysLeftText', { n: daysLeft })}
@@ -661,7 +661,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
               />
               <Button variant="primary" size="sm" onClick={addStage}>{t('common.add')}</Button>
               <button onClick={() => { setAddingStage(false); setNewStageName('') }}
-                style={{ background:'none', border:'none', fontSize:18, color:'#B8AFA6', cursor:'pointer', lineHeight:1 }}>✕</button>
+                style={{ background:'none', border:'none', fontSize:18, color:'#B8AFA6', cursor:'pointer', lineHeight:1, display:'flex', alignItems:'center' }}><X size={18} weight="bold" /></button>
             </div>
           ) : (
             <button onClick={() => setAddingStage(true)} style={{
@@ -679,8 +679,8 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
       {/* ── Tools on site ── */}
       {projTools.length > 0 && (
         <div style={{ marginTop:16 }}>
-          <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:8 }}>
-            🔧 {t('detail.toolsOnSite')}
+          <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:8, display:'flex', alignItems:'center', gap:5 }}>
+            <Wrench size={11} weight="bold" /> {t('detail.toolsOnSite')}
           </div>
           <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
             {projTools.map(tk => (

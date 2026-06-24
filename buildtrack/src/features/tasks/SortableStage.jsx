@@ -7,6 +7,7 @@ import {
   SortableContext, useSortable, verticalListSortingStrategy, arrayMove,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { Check, Clock, Lightning, PencilSimple, CaretUp, CaretDown, X } from '@phosphor-icons/react'
 import { useT } from '../../i18n/useLanguage'
 import TaskCard from './TaskCard'
 import QuickAddRow from './InlineAdd'
@@ -74,7 +75,7 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
           color: isDone ? '#3D7A52' : color,
           border: `2px solid ${isDone ? '#A8D4B4' : color}`,
         }}>
-          {isDone ? '✓' : (num ?? '·')}
+          {isDone ? <Check size={11} weight="bold" /> : (num ?? '·')}
         </div>
 
         <div style={{ flex:1, minWidth:0 }}>
@@ -106,8 +107,8 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
                 }}
               >{stage === '—' ? 'Без этапа' : stage}</span>
             )}
-            {!editing && hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600 }}>⚡</span>}
-            {!editing && hasPend  && <span style={{ fontSize:11, color:'#9A6E10', fontWeight:600 }}>🕐</span>}
+            {!editing && hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600, display:'flex', alignItems:'center' }}><Lightning size={11} weight="bold" /></span>}
+            {!editing && hasPend  && <span style={{ fontSize:11, color:'#9A6E10', fontWeight:600, display:'flex', alignItems:'center' }}><Clock size={11} weight="bold" /></span>}
             <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', fontWeight:500, flexShrink:0 }}>{done}/{total}</span>
             {/* ✏️ rename button — visible on hover, always present for "—" stage */}
             {canEdit && !editing && (
@@ -121,14 +122,14 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
                 }}
                 onMouseEnter={e => e.currentTarget.style.color='#C96B3A'}
                 onMouseLeave={e => e.currentTarget.style.color = stage === '—' ? '#C96B3A' : '#C8C0B8'}
-              >✏️</button>
+              ><PencilSimple size={12} weight="bold" /></button>
             )}
           </div>
           <div onClick={() => toggleStage(stage)} style={{ height:5, borderRadius:3, background:'var(--border,#EAE3D8)', overflow:'hidden', cursor:'pointer' }}>
             <div style={{ height:'100%', borderRadius:3, width:`${pct}%`, background: isDone ? '#5A9467' : color, transition:'width .4s ease' }} />
           </div>
         </div>
-        <span onClick={() => toggleStage(stage)} style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4, cursor:'pointer' }}>{isOpen ? '▲' : '▼'}</span>
+        <span onClick={() => toggleStage(stage)} style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4, cursor:'pointer', display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={11} weight="bold" /> : <CaretDown size={11} weight="bold" />}</span>
         {canEdit && onDeleteStage && (
           <button
             onClick={e => { e.stopPropagation(); onDeleteStage(stage) }}
@@ -140,7 +141,7 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
             }}
             onMouseEnter={e => e.currentTarget.style.color='#A32D2D'}
             onMouseLeave={e => e.currentTarget.style.color='#C8C0B8'}
-          >✕</button>
+          ><X size={13} weight="bold" /></button>
         )}
       </div>
 

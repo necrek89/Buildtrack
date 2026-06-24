@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { X } from '@phosphor-icons/react'
 import { useStore, MATERIAL_UNITS } from '../store/useStore'
 import { useT } from '../i18n/useLanguage'
 import { Button } from './UI'
@@ -126,7 +127,7 @@ export default function MaterialModal({ open, onClose, defaultProjectId, default
                   color: rows.length === 1 ? 'var(--border)' : 'var(--text-muted)',
                   fontSize: 16, padding: 0, lineHeight: 1,
                 }}
-              >×</button>
+              ><X size={14} weight="bold" /></button>
             </div>
           ))}
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { PencilSimple } from '@phosphor-icons/react'
 import { IconButton } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore } from '../../store/useStore'
@@ -62,7 +63,7 @@ export default function ProjectDetail({ proj, onBack, onEdit, canDelete = true, 
             {t('invoice.title')}
           </button>
         )}
-        {onEdit && <IconButton onClick={() => onEdit(proj)} title="Edit project">✏️</IconButton>}
+        {onEdit && <IconButton onClick={() => onEdit(proj)} title="Edit project"><PencilSimple size={13} weight="bold" /></IconButton>}
       </div>
 
       {showInvoice && (

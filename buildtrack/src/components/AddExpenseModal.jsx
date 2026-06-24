@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { Wall, HardHat, Wrench, Truck, Package, Camera, X, Warning } from '@phosphor-icons/react'
 import { useT } from '../i18n/useLanguage'
 import { FormGroup, Button } from './UI'
 import { useStore } from '../store/useStore'
@@ -12,11 +13,11 @@ const inp = {
 }
 
 export const CATEGORY_ICONS = {
-  materials:  '🧱',
-  labor:      '👷',
-  equipment:  '🔧',
-  transport:  '🚛',
-  other:      '📦',
+  materials:  Wall,
+  labor:      HardHat,
+  equipment:  Wrench,
+  transport:  Truck,
+  other:      Package,
 }
 
 export default function AddExpenseModal({ projectId, expense, onClose, onSave }) {
@@ -133,7 +134,7 @@ export default function AddExpenseModal({ projectId, expense, onClose, onSave })
                     color:       form.category === cat ? '#C96B3A' : '#7A6E66',
                     fontSize: 12, fontWeight: 600, cursor: 'pointer',
                   }}>
-                  {CATEGORY_ICONS[cat]} {t(`expenses.cat_${cat}`)}
+                  {(() => { const IC = CATEGORY_ICONS[cat]; return <IC size={13} weight="bold" /> })()} {t(`expenses.cat_${cat}`)}
                 </button>
               ))}
             </div>
@@ -166,7 +167,7 @@ export default function AddExpenseModal({ projectId, expense, onClose, onSave })
                 cursor: 'pointer', fontSize: 13, color: '#7A6E66',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}>
-              📷 {t('expenses.receiptBtn')}
+              <Camera size={13} weight="bold" /> {t('expenses.receiptBtn')}
             </button>
             {receiptPreview && (
               <div style={{ marginTop: 10, position: 'relative', width: 'fit-content' }}>
@@ -181,7 +182,7 @@ export default function AddExpenseModal({ projectId, expense, onClose, onSave })
                     background: '#A32D2D', color: '#fff',
                     border: 'none', fontSize: 11, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>✕</button>
+                  }}><X size={11} weight="bold" /></button>
               </div>
             )}
           </FormGroup>
@@ -191,7 +192,7 @@ export default function AddExpenseModal({ projectId, expense, onClose, onSave })
         {saveError && (
           <div style={{ margin: '8px 0 0', padding: '8px 12px', background: '#FEE2E2',
             color: '#991B1B', borderRadius: 8, fontSize: 12 }}>
-            ⚠️ {saveError}
+            <Warning size={13} weight="bold" /> {saveError}
           </div>
         )}
 

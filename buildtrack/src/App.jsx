@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { MagnifyingGlass, X, MapPin, ClipboardText, Clock, Note, CheckCircle, ArrowCounterClockwise } from '@phosphor-icons/react'
 import { useStore } from './store/useStore'
 import { useT } from './i18n/useLanguage'
 import LanguagePicker from './components/LanguagePicker'
@@ -47,7 +48,7 @@ function TaskSearch({ onClose, onNavigate }) {
   }
 
   const STATUS_COLOR = { approved:'#3D7A52', pending:'#C96B3A', rejected:'#A32D2D', new:'#4A7FC1' }
-  const STATUS_LABEL = { approved:'✅', pending:'🕐', rejected:'↩️', new:'📝' }
+  const STATUS_ICON = { approved: CheckCircle, pending: Clock, rejected: ArrowCounterClockwise, new: Note }
 
   return (
     <div
@@ -65,7 +66,7 @@ function TaskSearch({ onClose, onNavigate }) {
       }}>
         {/* Search input */}
         <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', borderBottom:'1.5px solid var(--border,#EAE3D8)' }}>
-          <span style={{ fontSize:18, flexShrink:0 }}>🔍</span>
+          <span style={{ fontSize:18, flexShrink:0, display:'flex', alignItems:'center' }}><MagnifyingGlass size={18} weight="bold" /></span>
           <input
             ref={inputRef}
             value={query}
@@ -78,7 +79,7 @@ function TaskSearch({ onClose, onNavigate }) {
             }}
           />
           {loading && <span style={{ fontSize:12, color:'#B8AFA6' }}>…</span>}
-          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#B8AFA6', padding:0 }}>✕</button>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#B8AFA6', padding:0, display:'flex', alignItems:'center' }}><X size={18} weight="bold" /></button>
         </div>
 
         {/* Results */}
@@ -105,14 +106,14 @@ function TaskSearch({ onClose, onNavigate }) {
                 onMouseEnter={e => e.currentTarget.style.background='var(--bg-accent,#F2EDE4)'}
                 onMouseLeave={e => e.currentTarget.style.background=''}
               >
-                <span style={{ fontSize:16, flexShrink:0 }}>{STATUS_LABEL[task.status] || '📋'}</span>
+                <span style={{ fontSize:16, flexShrink:0, display:'flex', alignItems:'center' }}>{(() => { const IC = STATUS_ICON[task.status] || ClipboardText; return <IC size={16} weight="bold" />; })()}</span>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontSize:13, fontWeight:600, color:'var(--text-1,#2E2420)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                     {task.text}
                   </div>
                   <div style={{ display:'flex', gap:6, marginTop:3, flexWrap:'wrap' }}>
                     {proj && (
-                      <span style={{ fontSize:11, color:'#C96B3A', fontWeight:600 }}>📍 {proj.name}</span>
+                      <span style={{ fontSize:11, color:'#C96B3A', fontWeight:600, display:'flex', alignItems:'center', gap:2 }}><MapPin size={11} weight="bold" /> {proj.name}</span>
                     )}
                     {task.stage && (
                       <span style={{ fontSize:11, color:'#7A6E66', background:'var(--bg-accent,#F2EDE4)', borderRadius:5, padding:'1px 6px' }}>
@@ -338,7 +339,7 @@ export default function App() {
                 color:'var(--text-2,#7A6E66)',
                 display:'flex', alignItems:'center',
               }}
-            >🔍</button>
+            ><MagnifyingGlass size={18} weight="bold" /></button>
           )}
           <span style={{ fontSize:12, color:'#888' }}>{profile?.name}</span>
           <div style={avatarStyle} onClick={() => setPage('account')} title="Account">
@@ -356,7 +357,7 @@ export default function App() {
         )}
 
         <nav className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-          <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>✕</button>
+          <button className="sidebar-close" onClick={() => setSidebarOpen(false)} style={{ display:'flex', alignItems:'center', justifyContent:'center' }}><X size={18} weight="bold" /></button>
 
           <div className="sidebar-user"
             onClick={() => { setPage('account'); setSidebarOpen(false) }}

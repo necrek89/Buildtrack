@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { CalendarBlank, CaretLeft, CaretRight } from '@phosphor-icons/react'
 import { useT } from '../i18n/useLanguage'
 
 // Returns array of cells for a month grid (null = empty, number = day)
@@ -125,7 +126,7 @@ export default function DatePicker({ value, onChange, placeholder }) {
         <span style={{ fontSize: 13 }}>
           {displayValue || (placeholder ?? t('calendar.noDate'))}
         </span>
-        <span style={{ fontSize: 13, color: '#C96B3A' }}>📅</span>
+        <span style={{ fontSize: 13, color: '#C96B3A', display:'flex', alignItems:'center' }}><CalendarBlank size={13} weight="bold" /></span>
       </div>
 
       {/* Dropdown via portal */}
@@ -144,11 +145,11 @@ export default function DatePicker({ value, onChange, placeholder }) {
         >
           {/* Header: prev / month-year / next */}
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-            <button onClick={prevMonth} style={navBtn}>‹</button>
+            <button onClick={prevMonth} style={navBtn}><CaretLeft size={13} weight="bold" /></button>
             <div style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#2E2420', textTransform: 'capitalize' }}>
               {monthLabel}
             </div>
-            <button onClick={nextMonth} style={navBtn}>›</button>
+            <button onClick={nextMonth} style={navBtn}><CaretRight size={13} weight="bold" /></button>
           </div>
 
           {/* Day-of-week headers */}

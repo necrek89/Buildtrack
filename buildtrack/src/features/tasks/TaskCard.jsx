@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { X, CaretLeft, CaretRight, CalendarBlank, HardHat, Buildings, PencilSimple, Trash, CaretUp, CaretDown, ArrowCounterClockwise, Package, Check } from '@phosphor-icons/react'
 import { Badge, Button, IconButton } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore, currencySymbol } from '../../store/useStore'
@@ -28,7 +29,7 @@ function MediaLightbox({ urls, startIndex, onClose }) {
       onClick={onClose}
       style={{ position:'fixed', inset:0, zIndex:500, background:'rgba(0,0,0,0.92)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}
     >
-      <button onClick={onClose} style={{ position:'absolute', top:16, right:16, background:'rgba(255,255,255,0.15)', border:'none', borderRadius:'50%', width:36, height:36, color:'#fff', fontSize:18, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+      <button onClick={onClose} style={{ position:'absolute', top:16, right:16, background:'rgba(255,255,255,0.15)', border:'none', borderRadius:'50%', width:36, height:36, color:'#fff', fontSize:18, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}><X size={18} weight="bold" /></button>
       {urls.length > 1 && (
         <div style={{ position:'absolute', top:20, left:'50%', transform:'translateX(-50%)', color:'rgba(255,255,255,0.6)', fontSize:13 }}>{idx + 1} / {urls.length}</div>
       )}
@@ -42,9 +43,9 @@ function MediaLightbox({ urls, startIndex, onClose }) {
       {urls.length > 1 && (
         <>
           <button onClick={e => { e.stopPropagation(); setIdx(i => Math.max(i - 1, 0)) }} disabled={idx === 0}
-            style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', background:'rgba(255,255,255,0.15)', border:'none', borderRadius:'50%', width:40, height:40, color:'#fff', fontSize:20, cursor:'pointer', opacity: idx === 0 ? 0.3 : 1 }}>‹</button>
+            style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', background:'rgba(255,255,255,0.15)', border:'none', borderRadius:'50%', width:40, height:40, color:'#fff', fontSize:20, cursor:'pointer', opacity: idx === 0 ? 0.3 : 1, display:'flex', alignItems:'center', justifyContent:'center' }}><CaretLeft size={20} weight="bold" /></button>
           <button onClick={e => { e.stopPropagation(); setIdx(i => Math.min(i + 1, urls.length - 1)) }} disabled={idx === urls.length - 1}
-            style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'rgba(255,255,255,0.15)', border:'none', borderRadius:'50%', width:40, height:40, color:'#fff', fontSize:20, cursor:'pointer', opacity: idx === urls.length - 1 ? 0.3 : 1 }}>›</button>
+            style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'rgba(255,255,255,0.15)', border:'none', borderRadius:'50%', width:40, height:40, color:'#fff', fontSize:20, cursor:'pointer', opacity: idx === urls.length - 1 ? 0.3 : 1, display:'flex', alignItems:'center', justifyContent:'center' }}><CaretRight size={20} weight="bold" /></button>
         </>
       )}
       {urls.length > 1 && (
@@ -109,7 +110,7 @@ function TaskMaterialSection({ task }) {
       <div style={{ height:1, background:'#EAE3D8', margin:'10px 0 8px' }} />
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', display:'flex', alignItems:'center', gap:6 }}>
-          📦 {t('materials.title')}
+          <Package size={11} weight="bold" /> {t('materials.title')}
           {openCount > 0 && (
             <span style={{ background:'#FCEBEB', color:'#A32D2D', fontSize:10, fontWeight:700, padding:'1px 6px', borderRadius:8 }}>
               {t('materials.needed', { n: openCount })}
@@ -195,15 +196,15 @@ export default function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApp
                 {t.currency || currencySymbol(profile?.currency)} {Number(t.cost).toLocaleString('ru-RU')}
               </span>
             )}
-            {t.deadline && <span style={{ fontSize:10, color:'#B8AFA6' }}>📅 {t.deadline}</span>}
-            {t.worker   && <span style={{ fontSize:10, color:'#B8AFA6' }}>👷 {t.worker.name}</span>}
-            {projName   && <span style={{ fontSize:10, color:'#B8AFA6' }}>🏗 {projName}</span>}
+            {t.deadline && <span style={{ fontSize:10, color:'#B8AFA6', display:'flex', alignItems:'center', gap:2 }}><CalendarBlank size={10} weight="bold" /> {t.deadline}</span>}
+            {t.worker   && <span style={{ fontSize:10, color:'#B8AFA6', display:'flex', alignItems:'center', gap:2 }}><HardHat size={10} weight="bold" /> {t.worker.name}</span>}
+            {projName   && <span style={{ fontSize:10, color:'#B8AFA6', display:'flex', alignItems:'center', gap:2 }}><Buildings size={10} weight="bold" /> {projName}</span>}
           </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:3, flexShrink:0 }}>
-          {onEdit   && <IconButton onClick={e => { e.stopPropagation(); onEdit(t) }}>✏️</IconButton>}
-          {onDelete && <IconButton className="danger" onClick={e => { e.stopPropagation(); onDelete(t.id) }}>🗑</IconButton>}
-          <span style={{ fontSize:10, color:'#B8AFA6', marginLeft:2 }}>{isOpen ? '▲' : '▼'}</span>
+          {onEdit   && <IconButton onClick={e => { e.stopPropagation(); onEdit(t) }}><PencilSimple size={13} weight="bold" /></IconButton>}
+          {onDelete && <IconButton className="danger" onClick={e => { e.stopPropagation(); onDelete(t.id) }}><Trash size={13} weight="bold" /></IconButton>}
+          <span style={{ fontSize:10, color:'#B8AFA6', marginLeft:2, display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
         </div>
       </div>
       {isOpen && (
@@ -214,7 +215,7 @@ export default function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApp
           }
           <TaskMedia urls={t.photo_url} />
           {t.status === 'rejected' && t.reject_comment && (
-            <div style={{ marginTop:10, fontSize:12, color:'#A32D2D', background:'#FCEBEB', padding:'6px 10px', borderRadius:7 }}>↩ {t.reject_comment}</div>
+            <div style={{ marginTop:10, fontSize:12, color:'#A32D2D', background:'#FCEBEB', padding:'6px 10px', borderRadius:7, display:'flex', alignItems:'center', gap:4 }}><ArrowCounterClockwise size={12} weight="bold" /> {t.reject_comment}</div>
           )}
           {/* Foreman actions */}
           <div style={{ marginTop:12, display:'flex', gap:8, flexWrap:'wrap' }}>
@@ -252,7 +253,7 @@ export default function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApp
                   cursor: 'pointer', transition: 'all .15s',
                 }}
               >
-                {reqSent ? '✓ Sent' : '📦 Request material'}
+                {reqSent ? <><Check size={12} weight="bold" /> Sent</> : <><Package size={12} weight="bold" /> Request material</>}
               </button>
             </div>
           )}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Check, X, Warning, Receipt, File, ClipboardText, ArrowLeft, ArrowRight } from '@phosphor-icons/react'
 import { useT } from '../i18n/useLanguage'
 
 // ── LocalStorage helpers ───────────────────────────────────────────────────────
@@ -377,7 +378,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
               }} />
             ))}
           </div>
-          <button onClick={onClose} style={{ background:'none', border:'none', fontSize:18, cursor:'pointer', color:'#B8AFA6', lineHeight:1 }}>✕</button>
+          <button onClick={onClose} style={{ background:'none', border:'none', fontSize:18, cursor:'pointer', color:'#B8AFA6', lineHeight:1, display:'flex', alignItems:'center' }}><X size={18} weight="bold" /></button>
         </div>
 
         {/* ── Scrollable body ── */}
@@ -390,7 +391,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
               {billableTasks.length === 0 ? (
                 <div style={{ margin:'16px 0', padding:'14px', background:'#FEF3C7',
                   color:'#92400E', borderRadius:10, fontSize:13, fontWeight:500, textAlign:'center' }}>
-                  ⚠️ {t('invoice.noBillable')}
+                  <Warning size={13} weight="bold" /> {t('invoice.noBillable')}
                 </div>
               ) : (
                 <>
@@ -437,7 +438,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                             background: checked ? '#2563EB' : '#fff',
                             display:'flex', alignItems:'center', justifyContent:'center',
                           }}>
-                            {checked && <span style={{ color:'#fff', fontSize:12, fontWeight:800 }}>✓</span>}
+                            {checked && <Check size={12} weight="bold" color="#fff" />}
                           </div>
 
                           {/* Stage info */}
@@ -475,7 +476,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                       borderRadius:12, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                       <div>
                         <div style={{ fontSize:11, color:'#93C5FD', fontWeight:600, marginBottom:2 }}>
-                          {isPartial ? '📄 Промежуточный счёт' : '📋 Полный счёт'}
+                          {isPartial ? <><File size={11} weight="bold" /> Промежуточный счёт</> : <><ClipboardText size={11} weight="bold" /> Полный счёт</>}
                         </div>
                         <div style={{ fontSize:12, color:'#CBD5E1' }}>
                           {selectedTasks.length} позиций · {selectedStages.size} из {stageList.length} этапов
@@ -497,7 +498,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                           <div key={i} style={{ display:'flex', alignItems:'center', gap:10,
                             padding:'8px 12px', background:'#F8FAFF', borderRadius:8,
                             border:'1px solid #DBEAFE', fontSize:12 }}>
-                            <span style={{ fontSize:14 }}>🧾</span>
+                            <Receipt size={14} weight="bold" color="#2563EB" />
                             <div style={{ flex:1, minWidth:0 }}>
                               <div style={{ fontWeight:600, color:'#1E40AF' }}>{h.invoiceNumber}</div>
                               <div style={{ color:'#6B7280', fontSize:11 }}>
@@ -525,7 +526,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
               <div style={{ margin:'8px 0 4px', padding:'10px 14px', background:'#EFF6FF',
                 borderRadius:10, border:'1px solid #BFDBFE', fontSize:12 }}>
                 <div style={{ fontWeight:700, color:'#1E40AF', marginBottom:4 }}>
-                  {isPartial ? '📄 Промежуточный счёт' : '📋 Полный счёт'} · {fmtMoney(subtotal, currency)}
+                  <span style={{ display:'flex', alignItems:'center', gap:5 }}>{isPartial ? <><File size={11} weight="bold" /> Промежуточный счёт</> : <><ClipboardText size={11} weight="bold" /> Полный счёт</>}</span> · {fmtMoney(subtotal, currency)}
                 </div>
                 <div style={{ color:'#374151' }}>
                   Этапы: {selectedStageNames.map(s => s === '—' ? 'Без этапа' : s).join(', ')}
@@ -704,7 +705,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                   color: (noneSelected || selectedTasks.length === 0) ? '#B8AFA6' : '#fff',
                   fontSize:13, fontWeight:700,
                   cursor: (noneSelected || selectedTasks.length === 0) ? 'default' : 'pointer' }}>
-                Далее → Реквизиты
+                Далее <ArrowRight size={13} weight="bold" /> Реквизиты
               </button>
             </>
           )}
@@ -713,12 +714,12 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
               <button onClick={() => setStep('stages')} style={{ padding:'8px 16px', borderRadius:8,
                 border:'1.5px solid #EAE3D8', background:'#FDFBF8', color:'#7A6E66',
                 fontSize:13, fontWeight:600, cursor:'pointer' }}>
-                ← Этапы
+                <ArrowLeft size={13} weight="bold" /> Этапы
               </button>
               <button onClick={handlePreview} style={{ flex:1, padding:'8px 16px', borderRadius:8,
                 border:'none', background:'#2563EB', color:'#fff',
                 fontSize:13, fontWeight:700, cursor:'pointer' }}>
-                {t('invoice.previewBtn')} →
+                {t('invoice.previewBtn')} <ArrowRight size={13} weight="bold" />
               </button>
             </>
           )}
@@ -727,13 +728,13 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
               <button onClick={() => setStep('form')} style={{ padding:'8px 16px', borderRadius:8,
                 border:'1.5px solid #EAE3D8', background:'#FDFBF8', color:'#7A6E66',
                 fontSize:13, fontWeight:600, cursor:'pointer' }}>
-                ← {t('invoice.backBtn')}
+                <ArrowLeft size={13} weight="bold" /> {t('invoice.backBtn')}
               </button>
               <button onClick={handlePrint} style={{ flex:1, padding:'8px 16px', borderRadius:8,
                 border:'none', background:'#2563EB', color:'#fff',
                 fontSize:13, fontWeight:700, cursor:'pointer', display:'flex',
                 alignItems:'center', justifyContent:'center', gap:6 }}>
-                📄 {t('invoice.downloadBtn')}
+                <File size={13} weight="bold" /> {t('invoice.downloadBtn')}
               </button>
             </>
           )}

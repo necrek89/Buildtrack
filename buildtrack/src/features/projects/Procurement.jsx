@@ -3,7 +3,7 @@ import { Button } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore } from '../../store/useStore'
 import MaterialModal from '../../components/MaterialModal'
-import { FileXls, FilePdf } from '@phosphor-icons/react'
+import { FileXls, FilePdf, Check, Trash, X, CheckCircle, CalendarBlank, ClipboardText, Buildings, HardHat } from '@phosphor-icons/react'
 import * as XLSX from 'xlsx'
 
 function fmtCreatedAt(dateStr) {
@@ -395,7 +395,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
         </div>
         {openRequests > 0 && (
           <div className="summary-chip" style={{ background:'#FEF3C7', color:'#92400E', border:'1px solid #FDE68A' }}>
-            👷 {openRequests} {t('matReq.statusOpen').toLowerCase()}
+            <HardHat size={11} weight="bold" /> {openRequests} {t('matReq.statusOpen').toLowerCase()}
           </div>
         )}
       </div>
@@ -416,7 +416,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
       {/* Empty state */}
       {filtered.length === 0 && (
         <div style={{ textAlign:'center', padding:'48px 0', color:'#B8AFA6' }}>
-          <div style={{ fontSize:40, marginBottom:10 }}>✅</div>
+          <div style={{ fontSize:40, marginBottom:10, display:'flex', justifyContent:'center' }}><CheckCircle size={40} weight="bold" color="#5A9467" /></div>
           <div style={{ fontSize:15, fontWeight:700, color:'#5A9467' }}>{t('materials.allCaughtUp')}</div>
           <div style={{ fontSize:12, marginTop:6 }}>{t('materials.noOpen')}</div>
         </div>
@@ -426,7 +426,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
       {groups.map(g => (
         <div key={g.key} className="procurement-group">
           <div className="procurement-group-header">
-            <span>{groupByDate ? '📅' : g.key === '__none__' ? '📋' : '🏗'}</span>
+            <span style={{ display:'flex', alignItems:'center' }}>{groupByDate ? <CalendarBlank size={13} weight="bold" /> : g.key === '__none__' ? <ClipboardText size={13} weight="bold" /> : <Buildings size={13} weight="bold" />}</span>
             <h3>{g.label}</h3>
             {groupByDate && (
               <span style={{ fontSize:11, color:'#B8AFA6', marginLeft:4 }}>
@@ -470,7 +470,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
                     cursor:'pointer', transition:'all .15s',
                   }}
                 >
-                  {item.isPurchased && <span style={{ color:'#fff', fontSize:11, fontWeight:800 }}>✓</span>}
+                  {item.isPurchased && <Check size={11} weight="bold" color="#fff" />}
                 </div>
 
                 {/* Content */}
@@ -489,7 +489,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
                     {item.type === 'request' && (
                       <span style={{ marginLeft:8, fontSize:10, background:'#FEF3C7',
                         color:'#92400E', borderRadius:5, padding:'1px 6px', fontWeight:700 }}>
-                        👷 {item.reportedBy}
+                        <HardHat size={10} weight="bold" /> {item.reportedBy}
                       </span>
                     )}
                   </div>
@@ -509,8 +509,8 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
                       </span>
                     )}
                     {item.isPurchased && item.purchasedAt ? (
-                      <span style={{ fontSize:11, color:'#3D7A52', marginLeft:'auto', fontWeight:500 }}>
-                        ✓ {new Date(item.purchasedAt).toLocaleDateString('ru-RU', { day:'numeric', month:'short' })}
+                      <span style={{ fontSize:11, color:'#3D7A52', marginLeft:'auto', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}>
+                        <Check size={11} weight="bold" /> {new Date(item.purchasedAt).toLocaleDateString('ru-RU', { day:'numeric', month:'short' })}
                       </span>
                     ) : (
                       <span style={{ fontSize:11, color:'#C8C0B8', marginLeft:'auto' }}>
@@ -536,7 +536,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
                       color:'#D1C8C0', fontSize:15, padding:'2px 4px', flexShrink:0,
                       lineHeight:1 }}
                     title={t('common.delete')}
-                  >🗑</button>
+                  ><Trash size={15} weight="bold" /></button>
                 )}
               </div>
             ))}
@@ -576,7 +576,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
             style={{ position:'absolute', top:16, right:16, background:'rgba(255,255,255,0.15)',
               border:'none', borderRadius:'50%', width:36, height:36, color:'#fff',
               fontSize:18, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-            ✕
+            <X size={18} weight="bold" />
           </button>
           <img src={lightbox} alt="full" onClick={e => e.stopPropagation()}
             style={{ maxWidth:'94vw', maxHeight:'80dvh', borderRadius:10, objectFit:'contain' }} />

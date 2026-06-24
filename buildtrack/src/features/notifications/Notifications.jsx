@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Note, Clock, CheckCircle, ArrowCounterClockwise, Package, ShoppingCart, Wrench, HardHat, ChatCircle, ClipboardText, MapPin, CaretRight } from '@phosphor-icons/react'
 import { EmptyState } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore } from '../../store/useStore'
@@ -6,17 +7,17 @@ import { useStore } from '../../store/useStore'
 // ─── NOTIFICATIONS / ACTIVITY LOG ────────────────────────────────────────────
 
 const ACTIVITY_CFG = {
-  task_created:       { icon:'📝', color:'#2E6FB5', bg:'#E4EEFA', border:'#A3C2E8', group:'tasks'     },
-  task_submitted:     { icon:'🕐', color:'#C96B3A', bg:'#FBF3DC', border:'#F0D897', group:'tasks'     },
-  task_approved:      { icon:'✅', color:'#3D7A52', bg:'#E8F2EB', border:'#A8D4B4', group:'tasks'     },
-  task_rejected:      { icon:'↩️', color:'#A32D2D', bg:'#FCEBEB', border:'#F0AAAA', group:'tasks'     },
-  material_added:     { icon:'📦', color:'#C96B3A', bg:'#FBF3DC', border:'#F0D897', group:'materials' },
-  material_purchased: { icon:'🛒', color:'#3D7A52', bg:'#E8F2EB', border:'#A8D4B4', group:'materials' },
-  tool_added:         { icon:'🔧', color:'#2E6FB5', bg:'#E4EEFA', border:'#A3C2E8', group:'tools'     },
-  worker_joined:      { icon:'👷', color:'#6E4AAB', bg:'#F0EAF8', border:'#C4AADF', group:'team'      },
-  comment_added:      { icon:'💬', color:'#7A6E66', bg:'#F2EDE4', border:'#D9D0C7', group:'tasks'     },
+  task_created:       { icon: Note,                  color:'#2E6FB5', bg:'#E4EEFA', border:'#A3C2E8', group:'tasks'     },
+  task_submitted:     { icon: Clock,                 color:'#C96B3A', bg:'#FBF3DC', border:'#F0D897', group:'tasks'     },
+  task_approved:      { icon: CheckCircle,           color:'#3D7A52', bg:'#E8F2EB', border:'#A8D4B4', group:'tasks'     },
+  task_rejected:      { icon: ArrowCounterClockwise, color:'#A32D2D', bg:'#FCEBEB', border:'#F0AAAA', group:'tasks'     },
+  material_added:     { icon: Package,               color:'#C96B3A', bg:'#FBF3DC', border:'#F0D897', group:'materials' },
+  material_purchased: { icon: ShoppingCart,          color:'#3D7A52', bg:'#E8F2EB', border:'#A8D4B4', group:'materials' },
+  tool_added:         { icon: Wrench,                color:'#2E6FB5', bg:'#E4EEFA', border:'#A3C2E8', group:'tools'     },
+  worker_joined:      { icon: HardHat,               color:'#6E4AAB', bg:'#F0EAF8', border:'#C4AADF', group:'team'      },
+  comment_added:      { icon: ChatCircle,            color:'#7A6E66', bg:'#F2EDE4', border:'#D9D0C7', group:'tasks'     },
 }
-const ACTIVITY_CFG_DEFAULT = { icon:'📋', color:'#7A6E66', bg:'#F2EDE4', border:'#D9D0C7', group:'other' }
+const ACTIVITY_CFG_DEFAULT = { icon: ClipboardText, color:'#7A6E66', bg:'#F2EDE4', border:'#D9D0C7', group:'other' }
 
 const ACTIVITY_GROUPS = ['all', 'tasks', 'materials', 'tools', 'team']
 
@@ -135,9 +136,9 @@ export default function Notifications({ onNavigate }) {
               <div style={{
                 width:40, height:40, borderRadius:'50%', flexShrink:0,
                 background:'#fff', border:`1.5px solid ${cfg.border}`,
-                display:'flex', alignItems:'center', justifyContent:'center', fontSize:19,
+                display:'flex', alignItems:'center', justifyContent:'center',
               }}>
-                {cfg.icon}
+                <cfg.icon size={14} weight="bold" color={cfg.color} />
               </div>
 
               {/* Content */}
@@ -154,13 +155,13 @@ export default function Notifications({ onNavigate }) {
                       background:'#fff', border:`1px solid ${cfg.border}`,
                       borderRadius:7, padding:'2px 8px',
                     }}>
-                      📍 {entry.project.name}
+                      <MapPin size={11} weight="bold" /> {entry.project.name}
                     </span>
                   )}
                   {/* Time — pushed to the right */}
                   <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:4 }}>
                     {formatActivityTime(entry.created_at, lang)}
-                    {isClickable && <span style={{ fontSize:12, color: cfg.color }}>›</span>}
+                    {isClickable && <CaretRight size={12} weight="bold" color={cfg.color} />}
                   </span>
                 </div>
               </div>

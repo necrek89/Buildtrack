@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { HardHat, X } from '@phosphor-icons/react'
 import { Button } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore } from '../../store/useStore'
@@ -140,7 +141,7 @@ export default function MaterialsTab({ proj, canEdit = true }) {
                   )}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
-                  <span style={{ fontSize: 11, color: '#7A6E66' }}>👷 {req.worker_name}</span>
+                  <span style={{ fontSize: 11, color: '#7A6E66', display:'flex', alignItems:'center', gap:2 }}><HardHat size={11} weight="bold" /> {req.worker_name}</span>
                   {req.task?.text && (
                     <span style={{ fontSize: 11, background: 'var(--bg-accent,#F2EDE4)', color: '#7A6E66', borderRadius: 5, padding: '1px 6px' }}>
                       {req.task.text}
@@ -208,7 +209,7 @@ export default function MaterialsTab({ proj, canEdit = true }) {
             style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.15)',
               border: 'none', borderRadius: '50%', width: 36, height: 36, color: '#fff',
               fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            ✕
+            <X size={18} weight="bold" />
           </button>
           <img src={reqLightbox} alt="full" onClick={e => e.stopPropagation()}
             style={{ maxWidth: '94vw', maxHeight: '80dvh', borderRadius: 10, objectFit: 'contain' }} />

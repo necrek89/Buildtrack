@@ -1,3 +1,4 @@
+import { Package, Buildings, Check, Trash } from '@phosphor-icons/react'
 import { useT } from '../i18n/useLanguage'
 
 function timeAgo(dateStr) {
@@ -25,7 +26,7 @@ export default function MaterialList({
   if (materials.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '28px 0', color: '#B8AFA6' }}>
-        <div style={{ fontSize: 30, marginBottom: 6 }}>📦</div>
+        <div style={{ fontSize: 30, marginBottom: 6, display:'flex', justifyContent:'center' }}><Package size={30} weight="bold" /></div>
         <div style={{ fontSize: 12 }}>{t('materials.none')}</div>
       </div>
     )
@@ -54,7 +55,7 @@ export default function MaterialList({
                 transition: 'background .15s, border-color .15s',
               }}
             >
-              {isPurchased && <span style={{ color: '#fff', fontSize: 11, lineHeight: 1 }}>✓</span>}
+              {isPurchased && <Check size={11} weight="bold" color="#fff" />}
             </div>
 
             {/* Content */}
@@ -79,7 +80,7 @@ export default function MaterialList({
                     border: '1px solid #E8C9B4',
                     borderRadius: 6, padding: '2px 8px',
                   }}>
-                    🏗 {projName}
+                    <Buildings size={10} weight="bold" /> {projName}
                   </span>
                 </div>
               )}
@@ -109,7 +110,7 @@ export default function MaterialList({
                   lineHeight: 1,
                 }}
               >
-                🗑
+                <Trash size={14} weight="bold" />
               </button>
             )}
           </div>
