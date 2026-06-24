@@ -116,6 +116,13 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
   const completed = projects.filter(p => p.status === 'completed')
 
   const [showOverdueModal, setShowOverdueModal] = useState(false)
+  const [menuOpenId, setMenuOpenId] = useState(null)
+
+  useEffect(() => {
+    const handler = (e) => { if (!e.target.closest('[data-card-menu]')) setMenuOpenId(null) }
+    document.addEventListener('click', handler)
+    return () => document.removeEventListener('click', handler)
+  }, [])
 
   const overdueList   = tasks.filter(t => t.deadline && new Date(t.deadline) < new Date() && t.status !== 'approved')
   const overdueTasks  = overdueList.length
@@ -167,14 +174,64 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
             <div style={{ fontSize:14, fontWeight:500, color: isCompleted ? '#5A9467' : 'var(--text-1,#1C1917)', lineHeight:1.3, flex:1, minWidth:0 }}>
               {isCompleted ? '✅ ' : ''}{p.name}
             </div>
-            <div style={{ display:'flex', gap:4, alignItems:'center', flexShrink:0 }}>
-              {onEdit && !isCompleted && (
-                <IconButton onClick={e => { e.stopPropagation(); onEdit(p) }} title={t('common.edit')}>✏️</IconButton>
-              )}
-              {onDelete && (
-                <IconButton danger onClick={e => { e.stopPropagation(); onDelete(p.id) }} title={t('common.delete')}>🗑</IconButton>
-              )}
-            </div>
+            {(onEdit || onDelete || onComplete || onReopen) && (
+              <div style={{ position:'relative', flexShrink:0 }} data-card-menu>
+                <button
+                  onClick={e => { e.stopPropagation(); setMenuOpenId(menuOpenId === p.id ? null : p.id) }}
+                  style={{
+                    width:28, height:28, border:'0.5px solid var(--border,#EAE3D8)',
+                    borderRadius:8, background:'transparent', cursor:'pointer',
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    color:'#4A4440', fontSize:16, letterSpacing:2,
+                    lineHeight:1, fontFamily:'inherit',
+                  }}
+                >···</button>
+                {menuOpenId === p.id && (
+                  <div style={{
+                    position:'absolute', top:'calc(100% + 4px)', right:0,
+                    background:'var(--bg,#fff)', border:'0.5px solid var(--border,#EAE3D8)',
+                    borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,0.12)',
+                    minWidth:172, zIndex:50, overflow:'hidden',
+                  }}>
+                    {onEdit && !isCompleted && (
+                      <button
+                        onClick={e => { e.stopPropagation(); setMenuOpenId(null); onEdit(p) }}
+                        style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:9, padding:'10px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--text-1,#2E2420)', fontFamily:'inherit' }}
+                        onMouseEnter={e => e.currentTarget.style.background='var(--surface-2,#FDFBF8)'}
+                        onMouseLeave={e => e.currentTarget.style.background='none'}
+                      >✏️ {t('common.edit')}</button>
+                    )}
+                    {!isCompleted && onComplete && (
+                      <button
+                        onClick={e => { e.stopPropagation(); setMenuOpenId(null); onComplete(p.id) }}
+                        style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:9, padding:'10px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#3D7A52', fontFamily:'inherit' }}
+                        onMouseEnter={e => e.currentTarget.style.background='#F0FAF2'}
+                        onMouseLeave={e => e.currentTarget.style.background='none'}
+                      >✅ {t('projects.completeBtn')}</button>
+                    )}
+                    {isCompleted && onReopen && (
+                      <button
+                        onClick={e => { e.stopPropagation(); setMenuOpenId(null); onReopen(p.id) }}
+                        style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:9, padding:'10px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--text-2,#7A6E66)', fontFamily:'inherit' }}
+                        onMouseEnter={e => e.currentTarget.style.background='var(--surface-2,#FDFBF8)'}
+                        onMouseLeave={e => e.currentTarget.style.background='none'}
+                      >↩ {t('projects.reopenBtn')}</button>
+                    )}
+                    {onDelete && (
+                      <>
+                        <div style={{ height:1, background:'var(--border,#EAE3D8)', margin:'2px 0' }} />
+                        <button
+                          onClick={e => { e.stopPropagation(); setMenuOpenId(null); onDelete(p.id) }}
+                          style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:9, padding:'10px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#DC2626', fontFamily:'inherit' }}
+                          onMouseEnter={e => e.currentTarget.style.background='#FEF2F2'}
+                          onMouseLeave={e => e.currentTarget.style.background='none'}
+                        >🗑 {t('common.delete')}</button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Percentage + subtitle */}
@@ -225,34 +282,11 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
 
           {/* Alert chips */}
           {(pPending > 0 || pOverdue > 0) && (
-            <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom: !isCompleted && onComplete ? 8 : 0 }}>
+            <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
               {pPending > 0 && <span style={{ fontSize:10, background:'#FEF3C7', color:'#92400E', borderRadius:6, padding:'2px 7px', fontWeight:500 }}>🕐 {pPending}</span>}
               {pOverdue > 0 && <span style={{ fontSize:10, background:'#FEE2E2', color:'#991B1B', borderRadius:6, padding:'2px 7px', fontWeight:500 }}>⚠️ {pOverdue}</span>}
             </div>
           )}
-
-          {/* Complete / Reopen button */}
-          <div style={{ marginTop:'auto', paddingTop:10 }}>
-            {!isCompleted && onComplete && (
-              <button onClick={e => { e.stopPropagation(); onComplete(p.id) }} style={{
-                width:'100%', padding:'7px', borderRadius:8,
-                border:'1.5px solid #C5DEC9', background:'#F0FAF2',
-                color:'#3D7A52', fontSize:12, fontWeight:500, cursor:'pointer',
-              }}>
-                {t('projects.completeBtn')}
-              </button>
-            )}
-            {isCompleted && onReopen && (
-              <button onClick={e => { e.stopPropagation(); onReopen(p.id) }} style={{
-                width:'100%', padding:'7px', borderRadius:8,
-                border:'1.5px solid var(--border,#EAE3D8)',
-                background:'var(--surface-2,#FDFBF8)',
-                color:'#7A6E66', fontSize:12, fontWeight:500, cursor:'pointer',
-              }}>
-                {t('projects.reopenBtn')}
-              </button>
-            )}
-          </div>
         </div>
       </div>
     )
