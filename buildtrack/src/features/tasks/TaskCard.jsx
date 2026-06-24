@@ -147,8 +147,6 @@ function TaskMaterialSection({ task }) {
 }
 
 // ─── TASK ACCORDION CARD ─────────────────────────────────────────────────────
-const STATUS_LEFT_BORDER = { new:'#4A7FC1', pending:'#D97706', approved:'#16A34A', rejected:'#DC2626' }
-
 export default function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApprove, onReject, onMarkDone, showProject, projects }) {
   const { t: tr } = useT()
   const { role, addMaterialRequest, tasks: storeTasks } = useStore()
@@ -174,8 +172,7 @@ export default function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApp
   return (
     <div id={`task-card-${t.id}`} style={{
       background: 'var(--surface, #fff)',
-      border: `1px solid ${isOpen ? '#C96B3A' : 'var(--border, #EAE3D8)'}`,
-      borderLeft: `3px solid ${STATUS_LEFT_BORDER[t.status] || 'var(--border, #EAE3D8)'}`,
+      border: `1.5px solid ${isOpen ? '#C96B3A' : 'var(--border, #EAE3D8)'}`,
       borderRadius: 10, overflow: 'hidden',
       boxShadow: isOpen ? '0 3px 10px rgba(201,107,58,0.10)' : 'none',
       transition: 'border-color .15s, box-shadow .15s',

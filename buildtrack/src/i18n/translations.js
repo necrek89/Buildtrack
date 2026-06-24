@@ -7,7 +7,7 @@ const t = {
   // ── Navigation ──────────────────────────────────────────────────────────────
   en: {
     nav: {
-      projects: 'Projects', materials: 'Materials', procurement: 'Procurement', tools: 'Tools',
+      projects: 'Projects', materials: 'Materials', tools: 'Tools',
       team: 'Team', alerts: 'Alerts', myTasks: 'My Tasks',
       account: 'Account', progress: 'Progress', photos: 'Photos',
       myProject: 'My Project', signOut: 'Sign Out',
@@ -77,7 +77,7 @@ const t = {
     },
     detail: {
       overview: 'Overview', tasks: 'Tasks', materials: 'Materials',
-      stages: 'Stages', photos: 'Photos', team: 'Team', docs: 'Documents', finance: 'Finance', files: 'Files',
+      stages: 'Stages', photos: 'Photos', team: 'Team', docs: 'Documents',
       progress: 'Progress', active: 'Active', daysLeft: 'Days left',
       deadlineLabel: 'Deadline:', daysLeftText: '{n} days left',
       editProject: 'Edit Project',
@@ -384,7 +384,7 @@ const t = {
   // ── Русский ─────────────────────────────────────────────────────────────────
   ru: {
     nav: {
-      projects: 'Объекты', materials: 'Материалы', procurement: 'Закупки', tools: 'Инструменты',
+      projects: 'Объекты', materials: 'Материалы', tools: 'Инструменты',
       team: 'Бригада', alerts: 'Уведомления', myTasks: 'Мои задачи',
       account: 'Аккаунт', progress: 'Прогресс', photos: 'Фото',
       myProject: 'Мой объект', signOut: 'Выйти',
@@ -454,7 +454,7 @@ const t = {
     },
     detail: {
       overview: 'Обзор', tasks: 'Задачи', materials: 'Материалы',
-      stages: 'Этапы', photos: 'Фото', team: 'Бригада', docs: 'Документы', finance: 'Финансы', files: 'Файлы',
+      stages: 'Этапы', photos: 'Фото', team: 'Бригада', docs: 'Документы',
       progress: 'Прогресс', active: 'Активные', daysLeft: 'Дней осталось',
       deadlineLabel: 'Срок:', daysLeftText: 'осталось {n} дн.',
       editProject: 'Редактировать',
@@ -761,7 +761,7 @@ const t = {
   // ── Srpski ──────────────────────────────────────────────────────────────────
   sr: {
     nav: {
-      projects: 'Projekti', materials: 'Materijali', procurement: 'Nabavka', tools: 'Alati',
+      projects: 'Projekti', materials: 'Materijali', tools: 'Alati',
       team: 'Tim', alerts: 'Obavještenja', myTasks: 'Moji zadaci',
       account: 'Nalog', progress: 'Napredak', photos: 'Fotografije',
       myProject: 'Moj projekat', signOut: 'Odjava',
@@ -835,7 +835,7 @@ const t = {
       toolsOnSite: 'Alati na gradilištu', noTools: 'Nema dodijeljenih alata',
       noTeam: 'Nema članova tima na ovom projektu',
       workers: 'Radnika', tasksDone: 'Završenih zadataka', noStages: 'Dodajte faze za organizaciju zadataka',
-      docs: 'Dokumenti', finance: 'Finansije', files: 'Fajlovi', docsEmpty: 'Još nema dokumenata', docsUpload: 'Otpremi fajl',
+      docs: 'Dokumenti', docsEmpty: 'Još nema dokumenata', docsUpload: 'Otpremi fajl',
       docsUploading: 'Otpremanje…', docsOpen: 'Otvori', docsDownload: 'Preuzmi',
       docsDeleteConfirm: 'Obrisati dokument?',
     },
@@ -1125,7 +1125,7 @@ const t = {
   // ── Español ─────────────────────────────────────────────────────────────────
   es: {
     nav: {
-      projects: 'Proyectos', materials: 'Materiales', procurement: 'Compras', tools: 'Herramientas',
+      projects: 'Proyectos', materials: 'Materiales', tools: 'Herramientas',
       team: 'Equipo', alerts: 'Alertas', myTasks: 'Mis tareas',
       account: 'Cuenta', progress: 'Progreso', photos: 'Fotos',
       myProject: 'Mi proyecto', signOut: 'Cerrar sesión',
@@ -1199,7 +1199,7 @@ const t = {
       toolsOnSite: 'Herramientas en obra', noTools: 'Sin herramientas asignadas',
       noTeam: 'No hay miembros en este proyecto',
       workers: 'Trabajadores', tasksDone: 'Tareas completadas', noStages: 'Agrega etapas para organizar tareas',
-      docs: 'Documentos', finance: 'Finanzas', files: 'Archivos', docsEmpty: 'Sin documentos aún', docsUpload: 'Subir archivo',
+      docs: 'Documentos', docsEmpty: 'Sin documentos aún', docsUpload: 'Subir archivo',
       docsUploading: 'Subiendo…', docsOpen: 'Abrir', docsDownload: 'Descargar',
       docsDeleteConfirm: '¿Eliminar documento?',
     },
@@ -1489,7 +1489,7 @@ const t = {
   // ── Português ────────────────────────────────────────────────────────────────
   pt: {
     nav: {
-      projects: 'Projetos', materials: 'Materiais', procurement: 'Compras', tools: 'Ferramentas',
+      projects: 'Projetos', materials: 'Materiais', tools: 'Ferramentas',
       team: 'Equipe', alerts: 'Alertas', myTasks: 'Minhas tarefas',
       account: 'Conta', progress: 'Progresso', photos: 'Fotos',
       myProject: 'Meu projeto', signOut: 'Sair',
@@ -1563,7 +1563,7 @@ const t = {
       toolsOnSite: 'Ferramentas no canteiro', noTools: 'Sem ferramentas atribuídas',
       noTeam: 'Sem membros neste projeto',
       workers: 'Trabalhadores', tasksDone: 'Tarefas concluídas', noStages: 'Adicione etapas para organizar tarefas',
-      docs: 'Documentos', finance: 'Finanças', files: 'Arquivos', docsEmpty: 'Sem documentos ainda', docsUpload: 'Enviar arquivo',
+      docs: 'Documentos', docsEmpty: 'Sem documentos ainda', docsUpload: 'Enviar arquivo',
       docsUploading: 'Enviando…', docsOpen: 'Abrir', docsDownload: 'Baixar',
       docsDeleteConfirm: 'Excluir documento?',
     },
@@ -1853,7 +1853,7 @@ const t = {
   // ── Deutsch ──────────────────────────────────────────────────────────────────
   de: {
     nav: {
-      projects: 'Projekte', materials: 'Materialien', procurement: 'Einkauf', tools: 'Werkzeuge',
+      projects: 'Projekte', materials: 'Materialien', tools: 'Werkzeuge',
       team: 'Team', alerts: 'Benachrichtigungen', myTasks: 'Meine Aufgaben',
       account: 'Konto', progress: 'Fortschritt', photos: 'Fotos',
       myProject: 'Mein Projekt', signOut: 'Abmelden',
@@ -1927,7 +1927,7 @@ const t = {
       toolsOnSite: 'Werkzeuge vor Ort', noTools: 'Keine Werkzeuge zugewiesen',
       noTeam: 'Keine Teammitglieder in diesem Projekt',
       workers: 'Mitarbeiter', tasksDone: 'Aufgaben erledigt', noStages: 'Fügen Sie Phasen hinzu',
-      docs: 'Dokumente', finance: 'Finanzen', files: 'Dateien', docsEmpty: 'Noch keine Dokumente', docsUpload: 'Datei hochladen',
+      docs: 'Dokumente', docsEmpty: 'Noch keine Dokumente', docsUpload: 'Datei hochladen',
       docsUploading: 'Hochladen…', docsOpen: 'Öffnen', docsDownload: 'Herunterladen',
       docsDeleteConfirm: 'Dokument löschen?',
     },
@@ -2217,7 +2217,7 @@ const t = {
   // ── Français ─────────────────────────────────────────────────────────────────
   fr: {
     nav: {
-      projects: 'Projets', materials: 'Matériaux', procurement: 'Achats', tools: 'Outils',
+      projects: 'Projets', materials: 'Matériaux', tools: 'Outils',
       team: 'Équipe', alerts: 'Alertes', myTasks: 'Mes tâches',
       account: 'Compte', progress: 'Avancement', photos: 'Photos',
       myProject: 'Mon projet', signOut: 'Déconnexion',
@@ -2291,7 +2291,7 @@ const t = {
       toolsOnSite: 'Outils sur chantier', noTools: 'Aucun outil assigné',
       noTeam: 'Aucun membre dans ce projet',
       workers: 'Ouvriers', tasksDone: 'Tâches accomplies', noStages: 'Ajoutez des phases pour organiser',
-      docs: 'Documents', finance: 'Finances', files: 'Fichiers', docsEmpty: 'Aucun document pour l\'instant', docsUpload: 'Téléverser un fichier',
+      docs: 'Documents', docsEmpty: 'Aucun document pour l\'instant', docsUpload: 'Téléverser un fichier',
       docsUploading: 'Téléversement…', docsOpen: 'Ouvrir', docsDownload: 'Télécharger',
       docsDeleteConfirm: 'Supprimer ce document ?',
     },

@@ -116,13 +116,6 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
   const completed = projects.filter(p => p.status === 'completed')
 
   const [showOverdueModal, setShowOverdueModal] = useState(false)
-  const [menuOpenId, setMenuOpenId] = useState(null)
-
-  useEffect(() => {
-    const handler = (e) => { if (!e.target.closest('[data-card-menu]')) setMenuOpenId(null) }
-    document.addEventListener('click', handler)
-    return () => document.removeEventListener('click', handler)
-  }, [])
 
   const overdueList   = tasks.filter(t => t.deadline && new Date(t.deadline) < new Date() && t.status !== 'approved')
   const overdueTasks  = overdueList.length
@@ -164,86 +157,24 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
         onMouseLeave={e => { e.currentTarget.style.opacity='1' }}
       >
         {/* Top progress line */}
-        <div style={{ height: 5, background: 'var(--border,#EAE3D8)', position: 'relative' }}>
+        <div style={{ height: 4, background: 'var(--border,#EAE3D8)', position: 'relative' }}>
           <div style={{ position:'absolute', inset:0, width:`${pPct}%`, background: accent, transition:'width .4s', borderRadius:'0 2px 2px 0' }} />
         </div>
 
         <div style={{ padding: '14px 14px 12px', display:'flex', flexDirection:'column', flex:1 }}>
-          {/* Name + ··· menu */}
+          {/* Name + actions */}
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:8 }}>
             <div style={{ fontSize:14, fontWeight:500, color: isCompleted ? '#5A9467' : 'var(--text-1,#1C1917)', lineHeight:1.3, flex:1, minWidth:0 }}>
               {isCompleted ? '✅ ' : ''}{p.name}
             </div>
-            {(onEdit || onDelete || onComplete || onReopen) && (
-              <div style={{ position:'relative', flexShrink:0 }} data-card-menu>
-                <button
-                  onClick={e => { e.stopPropagation(); setMenuOpenId(menuOpenId === p.id ? null : p.id) }}
-                  style={{
-                    width:28, height:28, border:'0.5px solid var(--border)',
-                    borderRadius:8, background:'transparent', cursor:'pointer',
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                    color:'var(--text-muted)', fontSize:13, letterSpacing:2,
-                    lineHeight:1, fontFamily:'inherit',
-                  }}
-                >···</button>
-                {menuOpenId === p.id && (
-                  <div style={{
-                    position:'absolute', top:'calc(100% + 4px)', right:0,
-                    background:'var(--bg)', border:'0.5px solid var(--border-medium)',
-                    borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,0.12)',
-                    minWidth:172, zIndex:50, overflow:'hidden',
-                  }}>
-                    {onEdit && !isCompleted && (
-                      <button
-                        onClick={e => { e.stopPropagation(); setMenuOpenId(null); onEdit(p) }}
-                        style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:9, padding:'10px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--text-1)', fontFamily:'inherit' }}
-                        onMouseEnter={e => e.currentTarget.style.background='var(--bg-subtle)'}
-                        onMouseLeave={e => e.currentTarget.style.background='none'}
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        {t('common.edit')}
-                      </button>
-                    )}
-                    {!isCompleted && onComplete && (
-                      <button
-                        onClick={e => { e.stopPropagation(); setMenuOpenId(null); onComplete(p.id) }}
-                        style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:9, padding:'10px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--success)', fontFamily:'inherit' }}
-                        onMouseEnter={e => e.currentTarget.style.background='var(--success-bg)'}
-                        onMouseLeave={e => e.currentTarget.style.background='none'}
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        {t('projects.completeBtn')}
-                      </button>
-                    )}
-                    {isCompleted && onReopen && (
-                      <button
-                        onClick={e => { e.stopPropagation(); setMenuOpenId(null); onReopen(p.id) }}
-                        style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:9, padding:'10px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--text-2)', fontFamily:'inherit' }}
-                        onMouseEnter={e => e.currentTarget.style.background='var(--bg-subtle)'}
-                        onMouseLeave={e => e.currentTarget.style.background='none'}
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
-                        {t('projects.reopenBtn')}
-                      </button>
-                    )}
-                    {onDelete && (
-                      <>
-                        <div style={{ height:1, background:'var(--border)', margin:'2px 0' }} />
-                        <button
-                          onClick={e => { e.stopPropagation(); setMenuOpenId(null); onDelete(p.id) }}
-                          style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:9, padding:'10px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--danger)', fontFamily:'inherit' }}
-                          onMouseEnter={e => e.currentTarget.style.background='var(--danger-bg)'}
-                          onMouseLeave={e => e.currentTarget.style.background='none'}
-                        >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-                          {t('common.delete')}
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+            <div style={{ display:'flex', gap:4, alignItems:'center', flexShrink:0 }}>
+              {onEdit && !isCompleted && (
+                <IconButton onClick={e => { e.stopPropagation(); onEdit(p) }} title={t('common.edit')}>✏️</IconButton>
+              )}
+              {onDelete && (
+                <IconButton danger onClick={e => { e.stopPropagation(); onDelete(p.id) }} title={t('common.delete')}>🗑</IconButton>
+              )}
+            </div>
           </div>
 
           {/* Percentage + subtitle */}
@@ -286,7 +217,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
           )}
 
           {/* Meta: deadline + stages count */}
-          <div style={{ display:'flex', flexWrap:'wrap', gap:8, fontSize:11, color:'#B8AFA6', marginBottom: (pPending > 0 || pOverdue > 0) ? 8 : 0 }}>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:8, fontSize:11, color:'#B8AFA6', marginBottom: (pPending > 0 || pOverdue > 0 || (!isCompleted && onComplete)) ? 8 : 0 }}>
             {p.address  && <span>📍 {p.address}</span>}
             {p.deadline && <span>📅 {p.deadline}</span>}
             {stages.length > 0 && <span>≡ {t('projects.stagesCount', { n: stages.length })}</span>}
@@ -294,13 +225,34 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
 
           {/* Alert chips */}
           {(pPending > 0 || pOverdue > 0) && (
-            <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+            <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom: !isCompleted && onComplete ? 8 : 0 }}>
               {pPending > 0 && <span style={{ fontSize:10, background:'#FEF3C7', color:'#92400E', borderRadius:6, padding:'2px 7px', fontWeight:500 }}>🕐 {pPending}</span>}
               {pOverdue > 0 && <span style={{ fontSize:10, background:'#FEE2E2', color:'#991B1B', borderRadius:6, padding:'2px 7px', fontWeight:500 }}>⚠️ {pOverdue}</span>}
             </div>
           )}
 
-
+          {/* Complete / Reopen button */}
+          <div style={{ marginTop:'auto', paddingTop:10 }}>
+            {!isCompleted && onComplete && (
+              <button onClick={e => { e.stopPropagation(); onComplete(p.id) }} style={{
+                width:'100%', padding:'7px', borderRadius:8,
+                border:'1.5px solid #C5DEC9', background:'#F0FAF2',
+                color:'#3D7A52', fontSize:12, fontWeight:500, cursor:'pointer',
+              }}>
+                {t('projects.completeBtn')}
+              </button>
+            )}
+            {isCompleted && onReopen && (
+              <button onClick={e => { e.stopPropagation(); onReopen(p.id) }} style={{
+                width:'100%', padding:'7px', borderRadius:8,
+                border:'1.5px solid var(--border,#EAE3D8)',
+                background:'var(--surface-2,#FDFBF8)',
+                color:'#7A6E66', fontSize:12, fontWeight:500, cursor:'pointer',
+              }}>
+                {t('projects.reopenBtn')}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     )
@@ -420,8 +372,8 @@ export default function Projects({ canDelete = true, canEdit = true }) {
   const [addForm,    setAddForm]    = useState({ name:'', stage:'Foundation', deadline:'', address:'', stages:[] })
 
   useEffect(() => {
-    fetchProjects()
-    fetchTasks()
+    // fetchProjects must complete first — fetchTasks filters by foreman's project IDs
+    fetchProjects().then(() => fetchTasks())
     fetchTools()
   }, [])
 
