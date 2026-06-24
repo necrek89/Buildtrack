@@ -212,8 +212,8 @@ function Field({ label, children, half }) {
 
 const inp = {
   width:'100%', padding:'8px 10px', borderRadius:8,
-  border:'1.5px solid #EAE3D8', background:'#FDFBF8',
-  fontSize:13, color:'#2E2420', fontFamily:'inherit', outline:'none',
+  border:'1.5px solid #EAE3D8', background:'var(--surface-2,#FDFBF8)',
+  fontSize:13, color:'var(--text-1,#2E2420)', fontFamily:'inherit', outline:'none',
 }
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
@@ -409,7 +409,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                     </button>
                     <button onClick={() => setSelectedStages(new Set())}
                       style={{ padding:'4px 12px', borderRadius:6, border:'1.5px solid #EAE3D8',
-                        background:'#FDFBF8', color:'#7A6E66', fontSize:12, fontWeight:600, cursor:'pointer' }}>
+                        background:'var(--surface-2,#FDFBF8)', color:'#7A6E66', fontSize:12, fontWeight:600, cursor:'pointer' }}>
                       Снять всё
                     </button>
                   </div>
@@ -694,7 +694,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
           {step === 'stages' && (
             <>
               <button onClick={onClose} style={{ padding:'8px 16px', borderRadius:8, border:'1.5px solid #EAE3D8',
-                background:'#FDFBF8', color:'#7A6E66', fontSize:13, fontWeight:600, cursor:'pointer' }}>
+                background:'var(--surface-2,#FDFBF8)', color:'#7A6E66', fontSize:13, fontWeight:600, cursor:'pointer' }}>
                 {t('common.cancel')}
               </button>
               <button
@@ -712,7 +712,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
           {step === 'form' && (
             <>
               <button onClick={() => setStep('stages')} style={{ padding:'8px 16px', borderRadius:8,
-                border:'1.5px solid #EAE3D8', background:'#FDFBF8', color:'#7A6E66',
+                border:'1.5px solid #EAE3D8', background:'var(--surface-2,#FDFBF8)', color:'#7A6E66',
                 fontSize:13, fontWeight:600, cursor:'pointer' }}>
                 <ArrowLeft size={13} weight="bold" /> Этапы
               </button>
@@ -726,7 +726,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
           {step === 'preview' && (
             <>
               <button onClick={() => setStep('form')} style={{ padding:'8px 16px', borderRadius:8,
-                border:'1.5px solid #EAE3D8', background:'#FDFBF8', color:'#7A6E66',
+                border:'1.5px solid #EAE3D8', background:'var(--surface-2,#FDFBF8)', color:'#7A6E66',
                 fontSize:13, fontWeight:600, cursor:'pointer' }}>
                 <ArrowLeft size={13} weight="bold" /> {t('invoice.backBtn')}
               </button>

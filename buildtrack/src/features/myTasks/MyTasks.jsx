@@ -127,12 +127,12 @@ export default function MyTasks() {
           const hasAlert = items.some(tk => tk.status === 'rejected')
 
           return (
-            <div key={stage} style={{ borderRadius:14, overflow:'hidden', border:'1.5px solid #EAE3D8', background:'#fff' }}>
+            <div key={stage} style={{ borderRadius:14, overflow:'hidden', border:'1.5px solid #EAE3D8', background:'var(--surface,#fff)' }}>
               {/* Stage header */}
               <div onClick={() => toggleStage(stage)} style={{
                 display:'flex', alignItems:'center', gap:10,
                 padding:'12px 14px', cursor:'pointer',
-                background: isOpen ? '#FDFBF8' : '#fff',
+                background: isOpen ? 'var(--surface-2,#FDFBF8)' : 'var(--surface,#fff)',
                 borderBottom: isOpen ? '1px solid #EAE3D8' : 'none',
               }}>
                 {/* Color dot */}
@@ -140,7 +140,7 @@ export default function MyTasks() {
 
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
-                    <span style={{ fontSize:13, fontWeight:700, color:'#2E2420', textTransform:'uppercase', letterSpacing:'.04em' }}>
+                    <span style={{ fontSize:13, fontWeight:700, color:'var(--text-1,#2E2420)', textTransform:'uppercase', letterSpacing:'.04em' }}>
                       {stage}
                     </span>
                     {hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600, display:'flex', alignItems:'center', gap:2 }}><Lightning size={11} weight="bold" /> требует внимания</span>}
@@ -149,7 +149,7 @@ export default function MyTasks() {
                     </span>
                   </div>
                   {/* Progress bar */}
-                  <div style={{ height:5, borderRadius:3, background:'#EAE3D8', overflow:'hidden' }}>
+                  <div style={{ height:5, borderRadius:3, background:'var(--border,#EAE3D8)', overflow:'hidden' }}>
                     <div style={{
                       height:'100%', borderRadius:3,
                       width: `${pct}%`,
@@ -172,7 +172,7 @@ export default function MyTasks() {
                     return (
                       <div key={tk.id} style={{
                         borderTop: ti > 0 ? '1px solid #F2EDE6' : 'none',
-                        background: isTaskOpen ? '#FAECE4' : '#fff',
+                        background: isTaskOpen ? 'var(--accent-light,#FAECE4)' : 'var(--surface,#fff)',
                         transition: 'background .15s',
                       }}>
                         <div onClick={() => setOpenId(prev => prev === tk.id ? null : tk.id)}
@@ -180,7 +180,7 @@ export default function MyTasks() {
                           {/* Left accent line */}
                           <div style={{ width:3, height:36, borderRadius:2, background: color, flexShrink:0, opacity: isTaskOpen ? 1 : 0.35 }} />
                           <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ fontSize:13, fontWeight:600, color: isTaskOpen ? '#C96B3A' : '#2E2420', marginBottom:4, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                            <div style={{ fontSize:13, fontWeight:600, color: isTaskOpen ? '#C96B3A' : 'var(--text-1,#2E2420)', marginBottom:4, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                               {tk.text}
                             </div>
                             <div style={{ display:'flex', flexWrap:'wrap', gap:5, alignItems:'center' }}>
@@ -192,9 +192,9 @@ export default function MyTasks() {
                           <span style={{ fontSize:10, color:'#B8AFA6', flexShrink:0, display:'flex', alignItems:'center' }}>{isTaskOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
                         </div>
                         {isTaskOpen && (
-                          <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'#FDFBF8' }}>
+                          <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'var(--surface-2,#FDFBF8)' }}>
                             {tk.description
-                              ? <div style={{ fontSize:13, color:'#2E2420', lineHeight:1.65, whiteSpace:'pre-wrap', marginBottom:10 }}>{tk.description}</div>
+                              ? <div style={{ fontSize:13, color:'var(--text-1,#2E2420)', lineHeight:1.65, whiteSpace:'pre-wrap', marginBottom:10 }}>{tk.description}</div>
                               : <div style={{ fontSize:12, color:'#B8AFA6', marginBottom:10 }}>{t('tasks.noDesc')}</div>
                             }
                             <TaskMedia urls={tk.photo_url} />

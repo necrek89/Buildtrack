@@ -64,7 +64,7 @@ export default function LanguagePicker({ compact = false }) {
             position: 'fixed',
             top: pos.top,
             left: pos.left,
-            background: '#fff',
+            background: 'var(--surface,#fff)',
             border: '1px solid #E0D8CF',
             borderRadius: 12,
             boxShadow: '0 6px 24px rgba(0,0,0,0.15)',
@@ -83,7 +83,7 @@ export default function LanguagePicker({ compact = false }) {
                 width: '100%',
                 background: lang === l.code ? '#FAECE4' : 'transparent',
                 border: 'none', padding: '10px 14px', cursor: 'pointer',
-                fontSize: 13, color: lang === l.code ? '#C96B3A' : '#2E2420',
+                fontSize: 13, color: lang === l.code ? '#C96B3A' : 'var(--text-1,#2E2420)',
                 fontWeight: lang === l.code ? 600 : 400,
                 textAlign: 'left', transition: 'background .1s',
               }}

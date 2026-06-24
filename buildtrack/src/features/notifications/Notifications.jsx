@@ -135,7 +135,7 @@ export default function Notifications({ onNavigate }) {
               {/* Icon */}
               <div style={{
                 width:40, height:40, borderRadius:'50%', flexShrink:0,
-                background:'#fff', border:`1.5px solid ${cfg.border}`,
+                background:'var(--surface,#fff)', border:`1.5px solid ${cfg.border}`,
                 display:'flex', alignItems:'center', justifyContent:'center',
               }}>
                 <cfg.icon size={14} weight="bold" color={cfg.color} />
@@ -152,7 +152,7 @@ export default function Notifications({ onNavigate }) {
                   {entry.project?.name && (
                     <span style={{
                       fontSize:11, color:cfg.color, fontWeight:600,
-                      background:'#fff', border:`1px solid ${cfg.border}`,
+                      background:'var(--surface,#fff)', border:`1px solid ${cfg.border}`,
                       borderRadius:7, padding:'2px 8px',
                     }}>
                       <MapPin size={11} weight="bold" /> {entry.project.name}

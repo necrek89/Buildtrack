@@ -15,7 +15,7 @@ export default function ClientPhotos() {
       </div>
       <SectionTitle>Electrical — in progress</SectionTitle>
       <div className="photo-grid">
-        <div className="photo-cell" style={{ background:'#FAECE4', color:'#A04B22' }}>Marking</div>
+        <div className="photo-cell" style={{ background:'var(--accent-light,#FAECE4)', color:'#A04B22' }}>Marking</div>
         <div className="photo-cell" style={{ color:'#B8AFA6' }}>pending</div>
         <div className="photo-cell" style={{ color:'#B8AFA6' }}>pending</div>
       </div>

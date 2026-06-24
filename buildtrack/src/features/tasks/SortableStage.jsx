@@ -241,7 +241,7 @@ export function SortableStageList({ stageGroups, projStages, openStages, toggleS
           return (
             <div style={{
               borderRadius:14, border:'2px solid #C96B3A',
-              background:'#FAECE4', padding:'12px 14px',
+              background:'var(--accent-light,#FAECE4)', padding:'12px 14px',
               boxShadow:'0 8px 24px rgba(201,107,58,0.25)',
               fontSize:13, fontWeight:700, color:'#C96B3A',
             }}>

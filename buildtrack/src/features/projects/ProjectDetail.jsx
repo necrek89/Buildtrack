@@ -41,7 +41,7 @@ export default function ProjectDetail({ proj, onBack, onEdit, canDelete = true, 
     <div>
       {/* ── Header ── */}
       <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4, paddingTop:4 }}>
-        <button onClick={onBack} style={{ background:'#F2EDE4', border:'none', borderRadius:8, padding:'5px 10px', fontSize:12, color:'#7A6E66', cursor:'pointer', flexShrink:0 }}>
+        <button onClick={onBack} style={{ background:'var(--bg-accent,#F2EDE4)', border:'none', borderRadius:8, padding:'5px 10px', fontSize:12, color:'#7A6E66', cursor:'pointer', flexShrink:0 }}>
           {t('common.back')}
         </button>
         <div style={{ flex:1, minWidth:0 }}>

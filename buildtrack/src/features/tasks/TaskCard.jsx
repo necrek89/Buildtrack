@@ -107,7 +107,7 @@ function TaskMaterialSection({ task }) {
 
   return (
     <>
-      <div style={{ height:1, background:'#EAE3D8', margin:'10px 0 8px' }} />
+      <div style={{ height:1, background:'var(--border,#EAE3D8)', margin:'10px 0 8px' }} />
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', display:'flex', alignItems:'center', gap:6 }}>
           <Package size={11} weight="bold" /> {t('materials.title')}
@@ -119,7 +119,7 @@ function TaskMaterialSection({ task }) {
         </div>
         <button
           onClick={e => { e.stopPropagation(); setShowModal(true) }}
-          style={{ fontSize:11, fontWeight:600, color:'#C96B3A', background:'#FAECE4', border:'none', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
+          style={{ fontSize:11, fontWeight:600, color:'#C96B3A', background:'var(--accent-light,#FAECE4)', border:'none', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
         >
           {t('materials.reportShortage')}
         </button>

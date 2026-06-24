@@ -119,7 +119,7 @@ export default function DatePicker({ value, onChange, placeholder }) {
         style={{
           cursor: 'pointer', display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', userSelect: 'none',
-          color: displayValue ? '#2E2420' : '#B8AFA6',
+          color: displayValue ? 'var(--text-1,#2E2420)' : '#B8AFA6',
           minHeight: 38,
         }}
       >
@@ -136,7 +136,7 @@ export default function DatePicker({ value, onChange, placeholder }) {
           style={{
             position: 'fixed', top: pos.top, left: pos.left,
             width: pos.width, minWidth: 276,
-            background: '#fff', borderRadius: 14,
+            background: 'var(--surface,#fff)', borderRadius: 14,
             border: '1.5px solid #EAE3D8',
             boxShadow: '0 8px 32px rgba(46,36,32,0.13)',
             zIndex: 9999, padding: '12px 12px 8px',
@@ -146,7 +146,7 @@ export default function DatePicker({ value, onChange, placeholder }) {
           {/* Header: prev / month-year / next */}
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
             <button onClick={prevMonth} style={navBtn}><CaretLeft size={13} weight="bold" /></button>
-            <div style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#2E2420', textTransform: 'capitalize' }}>
+            <div style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 700, color: 'var(--text-1,#2E2420)', textTransform: 'capitalize' }}>
               {monthLabel}
             </div>
             <button onClick={nextMonth} style={navBtn}><CaretRight size={13} weight="bold" /></button>
@@ -176,7 +176,7 @@ export default function DatePicker({ value, onChange, placeholder }) {
                     border: 'none', borderRadius: 8, cursor: 'pointer',
                     padding: '6px 0', fontSize: 12, fontWeight: isSel || isToday ? 700 : 400,
                     background: isSel ? '#C96B3A' : isToday ? '#FAECE4' : 'transparent',
-                    color: isSel ? '#fff' : isToday ? '#C96B3A' : '#2E2420',
+                    color: isSel ? '#fff' : isToday ? '#C96B3A' : 'var(--text-1,#2E2420)',
                     transition: 'background .1s',
                   }}
                   onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = '#F2EDE4' }}

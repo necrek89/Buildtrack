@@ -396,15 +396,15 @@ export default function Team() {
         <div className="card" style={{ marginBottom:12, padding:0 }}>
           <div style={{ padding:'10px 14px', borderBottom:'1px solid #EAE3D8', display:'flex', alignItems:'center', gap:8 }}>
             <div style={{ fontSize:11, fontWeight:700, color:'#C96B3A', letterSpacing:'.08em', textTransform:'uppercase' }}>{t('team.joinRequests')}</div>
-            <div style={{ background:'#FAECE4', color:'#C96B3A', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:10 }}>{joinRequests.length}</div>
+            <div style={{ background:'var(--accent-light,#FAECE4)', color:'#C96B3A', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:10 }}>{joinRequests.length}</div>
           </div>
           {joinRequests.map(r => (
             <div key={r.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', borderBottom:'1px solid #EAE3D8' }}>
-              <div style={{ width:36, height:36, borderRadius:'50%', background:'#FAECE4', color:'#C96B3A', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, flexShrink:0 }}>
+              <div style={{ width:36, height:36, borderRadius:'50%', background:'var(--accent-light,#FAECE4)', color:'#C96B3A', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, flexShrink:0 }}>
                 {r.worker?.name?.charAt(0)?.toUpperCase()}
               </div>
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:13, fontWeight:600, color:'#2E2420' }}>{r.worker?.name}</div>
+                <div style={{ fontSize:13, fontWeight:600, color:'var(--text-1,#2E2420)' }}>{r.worker?.name}</div>
                 <div style={{ fontSize:11, color:'#B8AFA6' }}>{t('team.wantsToJoin')}</div>
               </div>
               <div style={{ display:'flex', gap:6 }}>
@@ -440,7 +440,7 @@ export default function Team() {
 
           return (
             <div key={m.id} style={{
-              background: '#fff',
+              background: 'var(--surface,#fff)',
               border: `1.5px solid ${isOpen ? '#C96B3A' : '#EAE3D8'}`,
               borderRadius: 14, overflow: 'hidden',
               boxShadow: isOpen ? '0 3px 10px rgba(201,107,58,0.10)' : 'none',
@@ -454,7 +454,7 @@ export default function Team() {
                   if (newId && !workLogs[newId]) fetchWorkLogs(newId)
                   if (newId && !payments[newId]) fetchPayments(newId)
                 }}
-                style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', cursor:'pointer', background: isOpen ? '#FAECE4' : '#fff' }}
+                style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', cursor:'pointer', background: isOpen ? 'var(--accent-light,#FAECE4)' : 'var(--surface,#fff)' }}
               >
                 {/* Avatar with status dot */}
                 <div style={{ position:'relative', flexShrink:0 }}>
@@ -489,7 +489,7 @@ export default function Team() {
 
                 {/* Name + quick info */}
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : '#2E2420', marginBottom:3 }}>{m.name}</div>
+                  <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : 'var(--text-1,#2E2420)', marginBottom:3 }}>{m.name}</div>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:5, alignItems:'center' }}>
                     <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:10, background: stCfg.bg, color: stCfg.color, border:`1px solid ${stCfg.border}` }}>
                       {t('team.ws_' + st)}
@@ -533,7 +533,7 @@ export default function Team() {
 
               {/* ── Expanded detail ── */}
               {isOpen && (
-                <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'#FDFBF8' }}>
+                <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'var(--surface-2,#FDFBF8)' }}>
 
                   {/* Status picker row */}
                   {profile?.role === 'foreman' && (
@@ -643,7 +643,7 @@ export default function Team() {
                       ? <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('common.none')}</span>
                       : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
                           {workerProjects.map(p => (
-                            <span key={p.id} style={{ fontSize:11, fontWeight:600, background:'#FAECE4', color:'#C96B3A', borderRadius:8, padding:'3px 10px' }}>{p.name}</span>
+                            <span key={p.id} style={{ fontSize:11, fontWeight:600, background:'var(--accent-light,#FAECE4)', color:'#C96B3A', borderRadius:8, padding:'3px 10px' }}>{p.name}</span>
                           ))}
                         </div>
                     }
@@ -656,7 +656,7 @@ export default function Team() {
                       ? <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('team.noTools')}</span>
                       : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
                           {workerTools.map(t => (
-                            <span key={t.id} style={{ fontSize:11, fontWeight:500, background:'#F2EDE4', color:'#7A6E66', borderRadius:8, padding:'3px 10px', border:'1px solid #EAE3D8' }}>{t.name}</span>
+                            <span key={t.id} style={{ fontSize:11, fontWeight:500, background:'var(--bg-accent,#F2EDE4)', color:'#7A6E66', borderRadius:8, padding:'3px 10px', border:'1px solid #EAE3D8' }}>{t.name}</span>
                           ))}
                         </div>
                     }
@@ -710,7 +710,7 @@ export default function Team() {
                             <div style={{ fontSize:11, fontWeight:600, color:'#16A34A' }}>{paid.toLocaleString()} {currSym}</div>
                             <div style={{ fontSize:9, color:'var(--text-muted)' }}>Выплачено</div>
                           </div>
-                          <div style={{ flex:1, background: balance > 0 ? '#FFF7ED' : '#F0FDF4', borderRadius:8, padding:'7px 10px', textAlign:'center', border:`0.5px solid ${balance > 0 ? '#FED7AA' : '#BBF7D0'}` }}>
+                          <div style={{ flex:1, background: balance > 0 ? 'var(--accent-light,#FFF7ED)' : '#F0FDF4', borderRadius:8, padding:'7px 10px', textAlign:'center', border:`0.5px solid ${balance > 0 ? '#FED7AA' : '#BBF7D0'}` }}>
                             <div style={{ fontSize:11, fontWeight:600, color: balance > 0 ? 'var(--accent)' : '#16A34A' }}>{balance.toLocaleString()} {currSym}</div>
                             <div style={{ fontSize:9, color:'var(--text-muted)' }}>Остаток</div>
                           </div>
@@ -1029,13 +1029,13 @@ export default function Team() {
               const isOpen = openId === m.id
               const workerProjects = (m.project_ids || []).map(pid => projects.find(p => p.id === pid)).filter(Boolean)
               return (
-                <div key={m.id} style={{ background:'#fff', border:`1.5px solid ${isOpen ? '#C96B3A' : '#EAE3D8'}`, borderRadius:14, overflow:'hidden' }}>
-                  <div onClick={() => setOpenId(isOpen ? null : m.id)} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', cursor:'pointer', background: isOpen ? '#FAECE4' : '#fff' }}>
+                <div key={m.id} style={{ background:'var(--surface,#fff)', border:`1.5px solid ${isOpen ? '#C96B3A' : '#EAE3D8'}`, borderRadius:14, overflow:'hidden' }}>
+                  <div onClick={() => setOpenId(isOpen ? null : m.id)} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', cursor:'pointer', background: isOpen ? 'var(--accent-light,#FAECE4)' : 'var(--surface,#fff)' }}>
                     <div style={{ width:40, height:40, borderRadius:'50%', background: isOpen ? '#C96B3A' : '#F2EDE4', color: isOpen ? '#fff' : '#C96B3A', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:700, flexShrink:0 }}>
                       {m.name?.charAt(0)?.toUpperCase()}
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : '#2E2420' }}>{m.name}</div>
+                      <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : 'var(--text-1,#2E2420)' }}>{m.name}</div>
                       <div style={{ fontSize:10, color:'var(--text-muted)' }}>Заказчик</div>
                     </div>
                     {m.phone && (
@@ -1044,7 +1044,7 @@ export default function Team() {
                     <span style={{ fontSize:10, color:'#B8AFA6', display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
                   </div>
                   {isOpen && (
-                    <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'#FDFBF8' }}>
+                    <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'var(--surface-2,#FDFBF8)' }}>
                       {/* Contacts */}
                       <div style={{ marginBottom:10 }}>
                         <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>Контакты</div>
@@ -1060,7 +1060,7 @@ export default function Team() {
                         {workerProjects.length === 0
                           ? <span style={{ fontSize:11, color:'#B8AFA6' }}>Нет</span>
                           : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
-                              {workerProjects.map(p => <span key={p.id} style={{ fontSize:11, fontWeight:600, background:'#FAECE4', color:'#C96B3A', borderRadius:8, padding:'3px 10px' }}>{p.name}</span>)}
+                              {workerProjects.map(p => <span key={p.id} style={{ fontSize:11, fontWeight:600, background:'var(--accent-light,#FAECE4)', color:'#C96B3A', borderRadius:8, padding:'3px 10px' }}>{p.name}</span>)}
                             </div>
                         }
                       </div>

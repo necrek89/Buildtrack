@@ -74,7 +74,7 @@ export default function DocumentsTab({ proj }) {
           disabled={uploading}
           style={{
             display:'flex', alignItems:'center', gap:8, padding:'9px 16px',
-            borderRadius:10, border:'1.5px dashed #D9D0C7', background:'#FDFBF8',
+            borderRadius:10, border:'1.5px dashed #D9D0C7', background:'var(--surface-2,#FDFBF8)',
             cursor: uploading ? 'default' : 'pointer', fontSize:13, color:'#7A6E66',
             width:'100%', justifyContent:'center',
           }}
@@ -102,7 +102,7 @@ export default function DocumentsTab({ proj }) {
                 {/* Icon */}
                 <div style={{
                   width:40, height:40, borderRadius:10, flexShrink:0,
-                  background:'#F2EDE6', display:'flex', alignItems:'center',
+                  background:'var(--surface-2,#F2EDE6)', display:'flex', alignItems:'center',
                   justifyContent:'center', fontSize:20,
                 }}>{icon}</div>
 
@@ -138,7 +138,7 @@ export default function DocumentsTab({ proj }) {
                     onClick={e => e.stopPropagation()}
                     style={{
                       padding:'5px 10px', borderRadius:8, fontSize:12, fontWeight:600,
-                      background:'#F2EDE6', color:'#7A6E66',
+                      background:'var(--surface-2,#F2EDE6)', color:'#7A6E66',
                       textDecoration:'none', whiteSpace:'nowrap',
                     }}>
                     <ArrowDown size={13} weight="bold" />

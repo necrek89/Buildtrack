@@ -77,7 +77,7 @@ export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
     border: '1px solid var(--border,#EAE3D8)',
     borderRadius: 8, padding: '6px 8px',
     fontSize: 13, outline: 'none',
-    fontFamily: 'inherit', background: '#fff',
+    fontFamily: 'inherit', background: 'var(--surface,#fff)',
     color: 'var(--text-1,#2E2420)', transition: 'border-color .15s',
   }
   const focus = (e) => (e.target.style.borderColor = 'var(--accent,#C96B3A)')
@@ -168,7 +168,7 @@ export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
           <span style={{
             flexShrink:0, fontSize:11, fontWeight:700,
             color:'var(--accent,#C96B3A)',
-            background:'#fff',
+            background:'var(--surface,#fff)',
             border:'1px solid var(--accent,#C96B3A)',
             borderRadius:7, padding:'3px 8px', whiteSpace:'nowrap',
           }}>

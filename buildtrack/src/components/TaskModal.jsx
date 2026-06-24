@@ -346,7 +346,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
               disabled={uploading}
               style={{
                 width:'100%', padding:'10px', borderRadius:10,
-                border:'1.5px dashed #D9D0C7', background:'#FDFBF8',
+                border:'1.5px dashed #D9D0C7', background:'var(--surface-2,#FDFBF8)',
                 cursor:'pointer', fontSize:13, color:'#7A6E66',
                 display:'flex', alignItems:'center', justifyContent:'center', gap:8,
               }}

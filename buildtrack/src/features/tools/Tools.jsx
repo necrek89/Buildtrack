@@ -110,7 +110,7 @@ export default function Tools({ canAdd, canDelete = true }) {
                 <div className="tool-name">{tool.name}</div>
                 {tool.location && <div className="tool-loc">{tool.location}</div>}
                 <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginTop:5 }}>
-                  {pName && <span style={{ fontSize:10, background:'#FAECE4', color:'#C96B3A', borderRadius:6, padding:'2px 8px', fontWeight:600 }}>🏗 {pName}</span>}
+                  {pName && <span style={{ fontSize:10, background:'var(--accent-light,#FAECE4)', color:'#C96B3A', borderRadius:6, padding:'2px 8px', fontWeight:600 }}>🏗 {pName}</span>}
                   {wName && <span style={{ fontSize:10, background:'#E8F2EB', color:'#3D7A52', borderRadius:6, padding:'2px 8px', fontWeight:600 }}>👷 {wName}</span>}
                   {!pName && !wName && <span style={{ fontSize:10, color:'#B8AFA6' }}>{t('tools.notAssigned')}</span>}
                 </div>

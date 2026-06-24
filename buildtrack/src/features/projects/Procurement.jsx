@@ -442,7 +442,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
               <button
                 onClick={() => { setModalProj(g.proj?.id || null); setShowModal(true) }}
                 style={{ marginLeft:'auto', fontSize:11, fontWeight:600, color:'#C96B3A',
-                  background:'#FAECE4', border:'none', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
+                  background:'var(--accent-light,#FAECE4)', border:'none', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
               >
                 + {t('common.add')}
               </button>
@@ -549,7 +549,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
         <div style={{ textAlign:'center', paddingTop:8 }}>
           <button
             onClick={() => { setModalProj(null); setShowModal(true) }}
-            style={{ fontSize:13, fontWeight:600, color:'#C96B3A', background:'#FAECE4',
+            style={{ fontSize:13, fontWeight:600, color:'#C96B3A', background:'var(--accent-light,#FAECE4)',
               border:'1.5px dashed #E8C9B4', borderRadius:12, padding:'12px 24px',
               cursor:'pointer', width:'100%' }}
           >
