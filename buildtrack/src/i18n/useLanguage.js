@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import translations from './translations'
 
-const SUPPORTED = ['en', 'ru', 'sr', 'es', 'pt', 'de', 'fr']
+const SUPPORTED = ['en', 'ru', 'sr', 'es', 'pt', 'de', 'fr', 'sk', 'cs']
 const LS_KEY    = 'tutuu_lang'
 
 function detect() {
@@ -19,6 +19,8 @@ export const LANGUAGES = [
   { code: 'pt', label: 'Português',  flag: '🇧🇷' },
   { code: 'de', label: 'Deutsch',    flag: '🇩🇪' },
   { code: 'fr', label: 'Français',   flag: '🇫🇷' },
+  { code: 'sk', label: 'Slovenčina', flag: '🇸🇰' },
+  { code: 'cs', label: 'Čeština',    flag: '🇨🇿' },
 ]
 
 export const useLang = create((set, get) => ({
