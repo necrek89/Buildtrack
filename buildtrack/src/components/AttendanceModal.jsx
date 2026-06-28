@@ -1,31 +1,34 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle, X, FirstAid, Umbrella, Clock, ClipboardText } from '@phosphor-icons/react'
 import { useStore } from '../store/useStore'
+import { useT } from '../i18n/useLanguage'
 
 const TODAY = new Date().toISOString().slice(0, 10)
 
-const STATUS_CFG = {
-  present:  { label: 'Пришёл',  color: '#fff',     bg: 'var(--accent)',   border: 'var(--accent)',        dot: '#16A34A' },
-  absent:   { label: 'Нет',     color: '#DC2626',  bg: 'var(--bg)',       border: '#FCA5A5',              dot: '#DC2626' },
-  sick:     { label: 'Больной', color: '#7C3AED',  bg: 'var(--bg)',       border: '#C4B5FD',              dot: '#7C3AED' },
-  vacation: { label: 'Отпуск',  color: '#0891B2',  bg: 'var(--bg)',       border: '#A5F3FC',              dot: '#0891B2' },
-}
 const STATUS_ORDER = ['present', 'absent', 'sick', 'vacation']
 const STATUS_ICON = { present: CheckCircle, absent: X, sick: FirstAid, vacation: Umbrella }
 
-function formatDate(d) {
-  return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
+const STATUS_COLORS = {
+  present:  { color: '#fff',     bg: 'var(--accent)',   border: 'var(--accent)',        dot: '#16A34A', chipBg: '#F0FDF4' },
+  absent:   { color: '#DC2626',  bg: 'var(--bg)',       border: '#FCA5A5',              dot: '#DC2626', chipBg: '#FEF2F2' },
+  sick:     { color: '#7C3AED',  bg: 'var(--bg)',       border: '#C4B5FD',              dot: '#7C3AED', chipBg: '#F5F3FF' },
+  vacation: { color: '#0891B2',  bg: 'var(--bg)',       border: '#A5F3FC',              dot: '#0891B2', chipBg: '#ECFEFF' },
+}
+
+function formatDate(d, lang) {
+  return new Date(d + 'T00:00:00').toLocaleDateString(lang, { day: 'numeric', month: 'long' })
 }
 
 export default function AttendanceModal({ onClose }) {
   const { team, attendance, fetchAttendance, saveAttendance, copyYesterdayAttendance } = useStore()
+  const { t, lang } = useT()
   const workers = team.filter(m => m.role === 'worker')
 
   const [step, setStep]         = useState('loading')
   const [rows, setRows]         = useState([])
   const [saving, setSaving]     = useState(false)
   const [saved, setSaved]       = useState(false)
-  const [timeFor, setTimeFor]   = useState(null) // workerId whose time picker is open
+  const [timeFor, setTimeFor]   = useState(null)
 
   useEffect(() => {
     fetchAttendance(TODAY).then(() => {
@@ -84,8 +87,9 @@ export default function AttendanceModal({ onClose }) {
     if (!error) { setSaved(true); setTimeout(onClose, 700) }
   }
 
-  // Summary counts
   const counts = rows.reduce((acc, r) => { acc[r.status] = (acc[r.status] || 0) + 1; return acc }, {})
+
+  const statusLabel = { present: t('team.statusPresent'), absent: t('team.statusAbsent'), sick: t('team.statusSick'), vacation: t('team.statusVacation') }
 
   if (step === 'loading') return null
 
@@ -105,9 +109,9 @@ export default function AttendanceModal({ onClose }) {
         {/* ── SCREEN A: CHOOSE ── */}
         {step === 'choose' && (
           <div style={{ padding:'28px 24px 48px', textAlign:'center' }}>
-            <div style={{ fontSize:15, fontWeight:500, color:'var(--text-primary)', marginBottom:4 }}>Перекличка</div>
+            <div style={{ fontSize:15, fontWeight:500, color:'var(--text-primary)', marginBottom:4 }}>{t('team.attendanceBtn')}</div>
             <div style={{ fontSize:12, color:'var(--text-secondary)', marginBottom:36 }}>
-              {formatDate(TODAY)} · {workers.length} чел.
+              {formatDate(TODAY, lang)} · {workers.length} {t('team.people')}
             </div>
 
             <button onClick={handleCopyYesterday} style={{
@@ -116,17 +120,17 @@ export default function AttendanceModal({ onClose }) {
               border:'none', cursor:'pointer', fontSize:16, fontWeight:500,
               marginBottom:10,
             }}>
-              <ClipboardText size={14} weight="bold" /> Как вчера
+              <ClipboardText size={14} weight="bold" /> {t('team.copyYesterday')}
             </button>
             <div style={{ fontSize:11, color:'var(--text-muted)', marginBottom:28 }}>
-              Скопировать вчерашнюю явку — изменить только отличия
+              {t('team.copyYesterdayHint')}
             </div>
 
             <button onClick={startFresh} style={{
               background:'none', border:'none', cursor:'pointer',
               fontSize:13, color:'var(--text-secondary)', textDecoration:'underline',
             }}>
-              Начать с нуля
+              {t('team.startFresh')}
             </button>
           </div>
         )}
@@ -139,15 +143,15 @@ export default function AttendanceModal({ onClose }) {
             padding:'14px 16px 12px', borderBottom:'0.5px solid var(--border)', flexShrink:0,
           }}>
             <div>
-              <div style={{ fontSize:14, fontWeight:500, color:'var(--text-primary)' }}>Перекличка</div>
-              <div style={{ fontSize:11, color:'var(--text-secondary)' }}>{formatDate(TODAY)}</div>
+              <div style={{ fontSize:14, fontWeight:500, color:'var(--text-primary)' }}>{t('team.attendanceBtn')}</div>
+              <div style={{ fontSize:11, color:'var(--text-secondary)' }}>{formatDate(TODAY, lang)}</div>
             </div>
             <div style={{ display:'flex', gap:5, alignItems:'center', flexWrap:'wrap', flex:1, justifyContent:'center', padding:'0 8px' }}>
               {Object.entries(counts).map(([s, v]) => (
                 <span key={s} style={{
                   fontSize:11, fontWeight:500, padding:'3px 8px', borderRadius:20,
-                  background: s === 'present' ? '#F0FDF4' : s === 'absent' ? '#FEF2F2' : s === 'sick' ? '#F5F3FF' : '#ECFEFF',
-                  color: STATUS_CFG[s]?.dot || '#333',
+                  background: STATUS_COLORS[s]?.chipBg || '#f5f5f5',
+                  color: STATUS_COLORS[s]?.dot || '#333',
                 }}>
                   {(() => { const IC = STATUS_ICON[s]; return <IC size={13} weight="bold" /> })()} {v}
                 </span>
@@ -158,14 +162,14 @@ export default function AttendanceModal({ onClose }) {
               background: saved ? '#16A34A' : 'var(--accent)', color:'#fff',
               border:'none', cursor:'pointer', fontSize:13, fontWeight:500,
             }}>
-              {saving ? '...' : saved ? '✓' : 'Сохранить'}
+              {saving ? '...' : saved ? '✓' : t('common.save')}
             </button>
           </div>
 
           {/* Worker list */}
           <div style={{ overflowY:'auto', flex:1, paddingBottom:32 }}>
             {rows.map((row, idx) => {
-              const cfg = STATUS_CFG[row.status]
+              const cfg = STATUS_COLORS[row.status]
               return (
                 <div key={row.worker_id} style={{
                   padding:'12px 14px',
@@ -198,7 +202,7 @@ export default function AttendanceModal({ onClose }) {
                       {STATUS_ORDER.map(s => {
                         const isActive = row.status === s
                         return (
-                          <button key={s} onClick={() => setStatus(row.worker_id, s)} title={STATUS_CFG[s].label} style={{
+                          <button key={s} onClick={() => setStatus(row.worker_id, s)} title={statusLabel[s]} style={{
                             minWidth:60, height:34, borderRadius:8, cursor:'pointer',
                             background: isActive ? 'var(--accent)' : 'var(--bg)',
                             color: isActive ? '#fff' : 'var(--text-muted)',
@@ -228,7 +232,7 @@ export default function AttendanceModal({ onClose }) {
                       <input type="time" value={row.arrived_at || ''} onChange={e => setArrived(row.worker_id, e.target.value)}
                         style={{ fontSize:13, padding:'5px 8px', borderRadius:7, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)' }}
                       />
-                      <button onClick={() => setTimeFor(null)} style={{ fontSize:11, color:'var(--text-muted)', background:'none', border:'none', cursor:'pointer' }}>готово</button>
+                      <button onClick={() => setTimeFor(null)} style={{ fontSize:11, color:'var(--text-muted)', background:'none', border:'none', cursor:'pointer' }}>{t('team.attendDone')}</button>
                     </div>
                   )}
                 </div>
@@ -238,11 +242,11 @@ export default function AttendanceModal({ onClose }) {
             {/* Summary row */}
             {rows.length > 0 && (
               <div style={{ margin:'16px 14px 0', padding:'10px 14px', background:'var(--bg-subtle,#FAFAF9)', borderRadius:10, border:'0.5px solid var(--border)', fontSize:12, color:'var(--text-secondary)' }}>
-                Сегодня: {' '}
-                <strong style={{ color:'#16A34A' }}>{counts.present || 0} на месте</strong>
-                {(counts.absent || 0) > 0 && <> · <strong style={{ color:'#DC2626' }}>{counts.absent} нет</strong></>}
-                {(counts.sick || 0) > 0 && <> · <strong style={{ color:'#7C3AED' }}>{counts.sick} больн.</strong></>}
-                {(counts.vacation || 0) > 0 && <> · <strong style={{ color:'#0891B2' }}>{counts.vacation} отпуск</strong></>}
+                {t('team.attendToday')}{' '}
+                <strong style={{ color:'#16A34A' }}>{counts.present || 0} {t('team.attendPresent')}</strong>
+                {(counts.absent || 0) > 0 && <> · <strong style={{ color:'#DC2626' }}>{counts.absent} {t('team.attendAbsent')}</strong></>}
+                {(counts.sick || 0) > 0 && <> · <strong style={{ color:'#7C3AED' }}>{counts.sick} {t('team.attendSick')}</strong></>}
+                {(counts.vacation || 0) > 0 && <> · <strong style={{ color:'#0891B2' }}>{counts.vacation} {t('team.attendVacation')}</strong></>}
               </div>
             )}
           </div>

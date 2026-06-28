@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useStore, currencySymbol } from '../../store/useStore'
+import { useT } from '../../i18n/useLanguage'
 
 export default function TimesheetModal({ onClose }) {
   const { team, projects, profile, fetchWorkLogsByDate, addWorkLog, updateWorkLog, deleteWorkLog } = useStore()
+  const { t } = useT()
   const currSym = currencySymbol(profile?.currency)
 
   const today = new Date().toISOString().slice(0, 10)
@@ -55,7 +57,7 @@ export default function TimesheetModal({ onClose }) {
       const val  = parseFloat(row.value)
       const rate = parseFloat(row.rate) || 0
 
-      if (!row.value || isNaN(val) || val <= 0) continue  // пусто — пропускаем
+      if (!row.value || isNaN(val) || val <= 0) continue
 
       if (row.existingId) {
         await updateWorkLog(row.existingId, w.id, {
@@ -91,7 +93,7 @@ export default function TimesheetModal({ onClose }) {
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexShrink: 0 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>Табель</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>{t('team.timesheetBtn')}</div>
           <input
             type="date"
             value={date}
@@ -102,7 +104,7 @@ export default function TimesheetModal({ onClose }) {
 
         {/* Column labels */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 72px 72px 60px', gap: 6, padding: '0 0 6px 0', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-          {['Рабочий', 'Тип', 'Кол-во', 'Ставка', 'Итого'].map(h => (
+          {[t('team.workerLabel'), t('team.typeLabel'), t('team.qtyLabel'), t('team.rateLabel'), t('common.total')].map(h => (
             <span key={h} style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>{h}</span>
           ))}
         </div>
@@ -110,9 +112,9 @@ export default function TimesheetModal({ onClose }) {
         {/* Rows */}
         <div style={{ overflowY: 'auto', flex: 1, paddingTop: 6 }}>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: 'var(--text-muted)' }}>Загрузка...</div>
+            <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: 'var(--text-muted)' }}>{t('common.loading')}</div>
           ) : workers.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: 'var(--text-muted)' }}>Нет рабочих</div>
+            <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: 'var(--text-muted)' }}>{t('team.noWorkers')}</div>
           ) : workers.map(w => {
             const row   = rows[w.id] || { value: '', type: 'shift', rate: '', notes: '', existingId: null }
             const val   = parseFloat(row.value)
@@ -144,8 +146,8 @@ export default function TimesheetModal({ onClose }) {
                   onChange={e => setCell(w.id, 'type', e.target.value)}
                   style={{ fontSize: 11, padding: '5px 4px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)' }}
                 >
-                  <option value="shift">смены</option>
-                  <option value="hours">часы</option>
+                  <option value="shift">{t('team.shiftsWord')}</option>
+                  <option value="hours">{t('team.hoursLabel')}</option>
                 </select>
 
                 {/* Value */}
@@ -178,18 +180,18 @@ export default function TimesheetModal({ onClose }) {
         {/* Footer */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: 12, marginTop: 8, flexShrink: 0 }}>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-            {filledCount > 0 ? `${filledCount} из ${workers.length} рабочих` : 'Нет записей'}
+            {filledCount > 0 ? t('team.filledCount', { n: filledCount, total: workers.length }) : t('team.noEntries')}
           </span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={onClose} style={{ fontSize: 12, padding: '6px 14px', borderRadius: 7, border: '0.5px solid var(--border)', background: 'var(--bg)', cursor: 'pointer', color: 'var(--text-secondary)' }}>
-              Отмена
+              {t('common.cancel')}
             </button>
             <button
               onClick={save}
               disabled={saving}
               style={{ fontSize: 12, padding: '6px 16px', borderRadius: 7, background: 'var(--accent,#EA580C)', color: '#fff', border: 'none', cursor: saving ? 'default' : 'pointer', fontWeight: 600, opacity: saving ? 0.7 : 1 }}
             >
-              {saving ? 'Сохраняю...' : 'Сохранить'}
+              {saving ? t('common.saving') : t('common.save')}
             </button>
           </div>
         </div>
