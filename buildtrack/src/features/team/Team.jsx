@@ -21,7 +21,7 @@ const STATUS_CYCLE = ['on_site', 'day_off', 'sick', 'vacation', 'other']
 
 // ─── TEAM ────────────────────────────────────────────────────────────────────
 export default function Team() {
-  const { t } = useT()
+  const { t, lang } = useT()
   const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, updateWorkerContact, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam, workLogs, fetchWorkLogs, addWorkLog, deleteWorkLog, updateMemberRate, attendance, payments, fetchPayments, addPayment, deletePayment } = useStore()
   const [showInvite, setShowInvite] = useState(false)
   const [email, setEmail]           = useState('')
@@ -101,7 +101,7 @@ export default function Team() {
   }
 
   const removeWorker = async (workerId, workerName) => {
-    if (!window.confirm(`Удалить ${workerName} из бригады?`)) return
+    if (!window.confirm(`${t('team.removeFromTeam')} ${workerName}?`)) return
     const allProjects = useStore.getState().projects
     await supabase.from('project_workers')
       .delete()
@@ -143,7 +143,7 @@ export default function Team() {
       workerIds = [...new Set((jrRows || []).map(r => r.worker_id))]
     }
 
-    if (!workerIds.length) { alert('В бригаде нет рабочих'); return }
+    if (!workerIds.length) { alert(t('team.workersSection') + ' — ' + t('team.noEntries')); return }
 
     const { data: logs } = await supabase
       .from('work_logs')
@@ -161,7 +161,7 @@ export default function Team() {
       .lte('paid_at', monthEnd)
       .order('paid_at', { ascending: true })
 
-    if (!logs?.length && !pays?.length) { alert(`Нет записей за ${monthLabel}`); return }
+    if (!logs?.length && !pays?.length) { alert(`${t('team.noEntries')} — ${monthLabel}`); return }
 
     // Group by worker
     const byWorker = {}
@@ -254,7 +254,7 @@ export default function Team() {
                 border: `0.5px solid ${todayDone ? '#86EFAC' : 'var(--accent-border)'}`,
                 cursor:'pointer', fontSize:12, fontWeight:500,
               }}>
-                {todayDone ? <><CheckCircle size={12} weight="bold" /> Проведена</> : <><ClipboardText size={12} weight="bold" /> Перекличка</>}
+                {todayDone ? <><CheckCircle size={12} weight="bold" /> {t('team.attendanceDone')}</> : <><ClipboardText size={12} weight="bold" /> {t('team.attendanceBtn')}</>}
               </button>
               <button onClick={() => setShowTimesheet(true)} style={{
                 display:'flex', alignItems:'center', gap:5,
@@ -263,7 +263,7 @@ export default function Team() {
                 border:'0.5px solid var(--border-medium)',
                 cursor:'pointer', fontSize:12, fontWeight:500,
               }}>
-                <CalendarBlank size={12} weight="bold" /> Табель
+                <CalendarBlank size={12} weight="bold" /> {t('team.timesheetBtn')}
               </button>
             </div>
           )
@@ -275,7 +275,7 @@ export default function Team() {
               onChange={e => setReportMonth(Number(e.target.value))}
               style={{ fontSize:11, padding:'6px 6px', borderRadius:7, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)', cursor:'pointer', outline:'none' }}
             >
-              {['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'].map((m, i) => (
+              {Array.from({length:12}, (_, i) => new Intl.DateTimeFormat(lang, {month:'short'}).format(new Date(2000, i, 1))).map((m, i) => (
                 <option key={i} value={i + 1}>{m}</option>
               ))}
             </select>
@@ -311,7 +311,7 @@ export default function Team() {
                   borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.10)', minWidth:210, overflow:'hidden',
                 }}>
                   {[
-                    { icon: <FileXls size={15} weight="bold" />,      label: 'Скачать .xlsx',          action: exportPayroll },
+                    { icon: <FileXls size={15} weight="bold" />,      label: t('team.downloadXlsx'),   action: exportPayroll },
                     { icon: <CalendarBlank size={15} weight="bold" />, label: t('team.monthlyReport'),  action: () => generateMonthlyReport(reportMonth, reportYear) },
                     { icon: <ChartBar size={15} weight="bold" />,      label: t('team.annualReport'),   action: () => generateAnnualReport(reportYear) },
                   ].map((item, i, arr) => (
@@ -423,7 +423,7 @@ export default function Team() {
       {team.filter(m => m.role !== 'client').length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:8, paddingLeft:2 }}>
-            Рабочие ({team.filter(m => m.role !== 'client').length})
+            {t('team.workersSection')} ({team.filter(m => m.role !== 'client').length})
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
             {team.filter(m => m.role !== 'client').map(m => {
@@ -565,7 +565,7 @@ export default function Team() {
                   {/* Contacts */}
                   <div style={{ marginBottom:12 }}>
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
-                      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6' }}>Контакты</div>
+                      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6' }}>{t('team.contacts')}</div>
                       {(profile?.role === 'foreman' || profile?.id === m.id) && (
                         <button
                           onClick={() => {
@@ -574,7 +574,7 @@ export default function Team() {
                           }}
                           style={{ fontSize:11, fontWeight:500, color:'var(--accent)', background:'var(--accent-light)', border:'none', borderRadius:6, padding:'3px 10px', cursor:'pointer' }}
                         >
-                          {contactEditId === m.id ? 'Отмена' : 'Изменить'}
+                          {contactEditId === m.id ? t('common.cancel') : t('common.edit')}
                         </button>
                       )}
                     </div>
@@ -582,7 +582,7 @@ export default function Team() {
                     {contactEditId === m.id ? (
                       <div style={{ background:'var(--bg-subtle,#FAFAF9)', border:'0.5px solid var(--border)', borderRadius:8, padding:'10px 12px' }}>
                         <div style={{ marginBottom:8 }}>
-                          <div style={{ fontSize:10, color:'var(--text-muted)', marginBottom:3 }}>Телефон</div>
+                          <div style={{ fontSize:10, color:'var(--text-muted)', marginBottom:3 }}>{t('account.phoneLabel')}</div>
                           <input
                             type="tel"
                             placeholder="+7 999 123 45 67"
@@ -609,7 +609,7 @@ export default function Team() {
                               setContactEditId(null)
                             }}
                             style={{ fontSize:11, padding:'5px 14px', borderRadius:6, background:'var(--accent)', color:'#fff', border:'none', cursor:'pointer', fontWeight:500 }}
-                          >Сохранить</button>
+                          >{t('common.save')}</button>
                         </div>
                       </div>
                     ) : (
@@ -630,7 +630,7 @@ export default function Team() {
                           </a>
                         ) : null}
                         {!m.phone && !m.telegram && (
-                          <span style={{ fontSize:11, color:'#B8AFA6' }}>Не указаны</span>
+                          <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('team.notSpecified')}</span>
                         )}
                       </div>
                     )}
@@ -693,26 +693,26 @@ export default function Team() {
                     return (
                       <div style={{ marginTop:12, borderTop:'0.5px solid var(--border)', paddingTop:12 }}>
                         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
-                          <div style={{ fontSize:10, fontWeight:500, letterSpacing:'.06em', textTransform:'uppercase', color:'var(--text-muted)' }}>Выплаты</div>
+                          <div style={{ fontSize:10, fontWeight:500, letterSpacing:'.06em', textTransform:'uppercase', color:'var(--text-muted)' }}>{t('team.paySection')}</div>
                           <button
                             onClick={() => { setShowPayForm(prev => prev === m.id ? null : m.id); if (!payments[m.id]) fetchPayments(m.id) }}
                             style={{ fontSize:11, fontWeight:500, color:'var(--accent)', background:'var(--accent-light)', border:'none', borderRadius:6, padding:'3px 10px', cursor:'pointer' }}
-                          >+ Выплата</button>
+                          >{t('team.addPayment')}</button>
                         </div>
 
                         {/* Balance summary */}
                         <div style={{ display:'flex', gap:8, marginBottom:8 }}>
                           <div style={{ flex:1, background:'var(--bg-subtle,#F9F8F6)', borderRadius:8, padding:'7px 10px', textAlign:'center' }}>
                             <div style={{ fontSize:11, fontWeight:600, color:'var(--text-primary)' }}>{earned.toLocaleString()} {currSym}</div>
-                            <div style={{ fontSize:9, color:'var(--text-muted)' }}>Начислено</div>
+                            <div style={{ fontSize:9, color:'var(--text-muted)' }}>{t('team.earned')}</div>
                           </div>
                           <div style={{ flex:1, background:'var(--bg-subtle,#F9F8F6)', borderRadius:8, padding:'7px 10px', textAlign:'center' }}>
                             <div style={{ fontSize:11, fontWeight:600, color:'#16A34A' }}>{paid.toLocaleString()} {currSym}</div>
-                            <div style={{ fontSize:9, color:'var(--text-muted)' }}>Выплачено</div>
+                            <div style={{ fontSize:9, color:'var(--text-muted)' }}>{t('team.paidOut')}</div>
                           </div>
                           <div style={{ flex:1, background: balance > 0 ? 'var(--accent-light,#FFF7ED)' : '#F0FDF4', borderRadius:8, padding:'7px 10px', textAlign:'center', border:`0.5px solid ${balance > 0 ? '#FED7AA' : '#BBF7D0'}` }}>
                             <div style={{ fontSize:11, fontWeight:600, color: balance > 0 ? 'var(--accent)' : '#16A34A' }}>{balance.toLocaleString()} {currSym}</div>
-                            <div style={{ fontSize:9, color:'var(--text-muted)' }}>Остаток</div>
+                            <div style={{ fontSize:9, color:'var(--text-muted)' }}>{t('team.balance')}</div>
                           </div>
                         </div>
 
@@ -721,20 +721,20 @@ export default function Team() {
                           <div style={{ background:'var(--bg-subtle,#FAFAF9)', border:'0.5px solid var(--border)', borderRadius:8, padding:'10px 12px', marginBottom:10 }}>
                             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, marginBottom:6 }}>
                               <div>
-                                <div style={{ fontSize:10, color:'var(--text-muted)', marginBottom:3 }}>Дата</div>
+                                <div style={{ fontSize:10, color:'var(--text-muted)', marginBottom:3 }}>{t('team.dateLabel')}</div>
                                 <input type="date" value={pf.date} onChange={e => setPf({ date: e.target.value })}
                                   style={{ width:'100%', fontSize:11, padding:'5px 8px', borderRadius:6, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)' }} />
                               </div>
                               <div>
-                                <div style={{ fontSize:10, color:'var(--text-muted)', marginBottom:3 }}>Сумма ({currSym})</div>
+                                <div style={{ fontSize:10, color:'var(--text-muted)', marginBottom:3 }}>{t('invoice.subtotalLabel')} ({currSym})</div>
                                 <input type="number" min="0" step="any" placeholder="0" value={pf.amount} onChange={e => setPf({ amount: e.target.value })}
                                   style={{ width:'100%', fontSize:11, padding:'5px 8px', borderRadius:6, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)' }} />
                               </div>
                             </div>
-                            <input placeholder="Заметка (напр: аванс, за 2 недели...)" value={pf.notes} onChange={e => setPf({ notes: e.target.value })}
+                            <input placeholder={t('expenses.notesPlaceholder')} value={pf.notes} onChange={e => setPf({ notes: e.target.value })}
                               style={{ width:'100%', fontSize:11, padding:'5px 8px', borderRadius:6, border:'0.5px solid var(--border-medium)', background:'var(--bg)', color:'var(--text-primary)', marginBottom:8 }} />
                             <div style={{ display:'flex', gap:6, justifyContent:'flex-end' }}>
-                              <button onClick={() => setShowPayForm(null)} style={{ fontSize:11, padding:'5px 12px', borderRadius:6, border:'0.5px solid var(--border)', background:'var(--bg)', cursor:'pointer', color:'var(--text-secondary)' }}>Отмена</button>
+                              <button onClick={() => setShowPayForm(null)} style={{ fontSize:11, padding:'5px 12px', borderRadius:6, border:'0.5px solid var(--border)', background:'var(--bg)', cursor:'pointer', color:'var(--text-secondary)' }}>{t('common.cancel')}</button>
                               <button
                                 onClick={async () => {
                                   if (!pf.amount) return
@@ -743,7 +743,7 @@ export default function Team() {
                                   setPayForm(f => { const n = { ...f }; delete n[m.id]; return n })
                                 }}
                                 style={{ fontSize:11, padding:'5px 14px', borderRadius:6, background:'var(--accent)', color:'#fff', border:'none', cursor:'pointer', fontWeight:500 }}
-                              >Сохранить</button>
+                              >{t('common.save')}</button>
                             </div>
                           </div>
                         )}
@@ -762,7 +762,7 @@ export default function Team() {
                           </div>
                         ))}
                         {pays.length === 0 && !showPayForm && (
-                          <div style={{ fontSize:11, color:'var(--text-muted)', textAlign:'center', padding:'6px 0' }}>Выплат нет</div>
+                          <div style={{ fontSize:11, color:'var(--text-muted)', textAlign:'center', padding:'6px 0' }}>{t('team.noPayments')}</div>
                         )}
                       </div>
                     )
@@ -779,7 +779,7 @@ export default function Team() {
                           padding:'5px 14px', cursor:'pointer', fontWeight:500,
                         }}
                       >
-                        Удалить из бригады
+                        {t('team.removeFromTeam')}
                       </button>
                     </div>
                   )}
@@ -790,24 +790,22 @@ export default function Team() {
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                            Зарплата
+                            {t('team.salarySection')}
                           </div>
                           <button
                             onClick={() => generateMonthlyReport(reportMonth, reportYear, m.id)}
                             style={{ fontSize: 10, color: 'var(--text-secondary)', background: 'var(--bg)', border: '0.5px solid var(--border)', borderRadius: 5, padding: '2px 7px', cursor: 'pointer', display:'flex', alignItems:'center', gap:3 }}
-                            title="Отчёт за месяц"
-                          ><File size={10} weight="bold" /> месяц</button>
+                          ><File size={10} weight="bold" /> {t('team.monthlyReport')}</button>
                           <button
                             onClick={() => generateAnnualReport(reportYear, m.id)}
                             style={{ fontSize: 10, color: 'var(--text-secondary)', background: 'var(--bg)', border: '0.5px solid var(--border)', borderRadius: 5, padding: '2px 7px', cursor: 'pointer', display:'flex', alignItems:'center', gap:3 }}
-                            title="Отчёт за год"
-                          ><ChartBar size={10} weight="bold" /> год</button>
+                          ><ChartBar size={10} weight="bold" /> {t('team.annualReport')}</button>
                         </div>
                         <button
                           onClick={() => setShowLogForm(prev => prev === m.id ? null : m.id)}
                           style={{ fontSize: 11, fontWeight: 500, color: 'var(--accent)', background: 'var(--accent-light)', border: 'none', borderRadius: 6, padding: '3px 10px', cursor: 'pointer' }}
                         >
-                          + Добавить
+                          {t('team.addEntry')}
                         </button>
                       </div>
 
@@ -819,12 +817,12 @@ export default function Team() {
                             onChange={e => setRateInput(r => ({ ...r, type: e.target.value }))}
                             style={{ fontSize: 11, padding: '4px 6px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)', flex: 1 }}
                           >
-                            <option value="shift">За смену</option>
-                            <option value="hours">За час</option>
+                            <option value="shift">{t('team.perShift')}</option>
+                            <option value="hours">{t('team.perHour')}</option>
                           </select>
                           <input
                             type="number" min="0" step="any"
-                            placeholder="Ставка"
+                            placeholder={t('team.rateLabel')}
                             value={rateInput.rate}
                             onChange={e => setRateInput(r => ({ ...r, rate: e.target.value }))}
                             style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)', width: 90 }}
@@ -836,18 +834,18 @@ export default function Team() {
                             }}
                             style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
                           >
-                            ОК
+                            OK
                           </button>
                           <button onClick={() => setRateEditId(null)} style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6, background: 'var(--bg-subtle,#F5F5F5)', border: '0.5px solid var(--border)', cursor: 'pointer', color: 'var(--text-secondary)', display:'flex', alignItems:'center' }}><X size={11} weight="bold" /></button>
                         </div>
                       ) : (
                         <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span>Ставка: <strong style={{ color: 'var(--text-primary)' }}>{m.default_rate || 0} / {m.rate_type === 'hours' ? 'час' : 'смена'}</strong></span>
+                          <span>{t('team.rateLabel')}: <strong style={{ color: 'var(--text-primary)' }}>{m.default_rate || 0} / {m.rate_type === 'hours' ? t('team.hoursLabel') : t('team.shiftLabel')}</strong></span>
                           <button
                             onClick={() => { setRateEditId(m.id); setRateInput({ rate: m.default_rate || '', type: m.rate_type || 'shift' }) }}
                             style={{ fontSize: 10, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}
                           >
-                            изменить
+                            {t('team.changeRate')}
                           </button>
                         </div>
                       )}
@@ -860,33 +858,33 @@ export default function Team() {
                           <div style={{ background: 'var(--bg-subtle,#FAFAF9)', border: '0.5px solid var(--border)', borderRadius: 8, padding: '10px 12px', marginBottom: 10 }}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 6 }}>
                               <div>
-                                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>Дата</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>{t('team.dateLabel')}</div>
                                 <input type="date" value={lf.date} onChange={e => setLf({ date: e.target.value })}
                                   style={{ width: '100%', fontSize: 11, padding: '5px 8px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)' }} />
                               </div>
                               <div>
-                                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>Тип</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>{t('team.typeLabel')}</div>
                                 <select value={lf.type} onChange={e => setLf({ type: e.target.value })}
                                   style={{ width: '100%', fontSize: 11, padding: '5px 8px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)' }}>
-                                  <option value="shift">Смена</option>
-                                  <option value="hours">Часы</option>
+                                  <option value="shift">{t('team.shiftLabel')}</option>
+                                  <option value="hours">{t('team.hoursLabel')}</option>
                                 </select>
                               </div>
                               <div>
-                                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>{lf.type === 'hours' ? 'Часов' : 'Смен'}</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>{lf.type === 'hours' ? t('team.hoursLabel') : t('team.shiftsWord')}</div>
                                 <input type="number" min="0" step="any" placeholder={lf.type === 'hours' ? '8' : '1'} value={lf.value} onChange={e => setLf({ value: e.target.value })}
                                   style={{ width: '100%', fontSize: 11, padding: '5px 8px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)' }} />
                               </div>
                               <div>
-                                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>Ставка</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>{t('team.rateLabel')}</div>
                                 <input type="number" min="0" step="any" placeholder="0" value={lf.rate} onChange={e => setLf({ rate: e.target.value })}
                                   style={{ width: '100%', fontSize: 11, padding: '5px 8px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)' }} />
                               </div>
                             </div>
-                            <input placeholder="Заметка (необязательно)" value={lf.notes} onChange={e => setLf({ notes: e.target.value })}
+                            <input placeholder={t('common.none')} value={lf.notes} onChange={e => setLf({ notes: e.target.value })}
                               style={{ width: '100%', fontSize: 11, padding: '5px 8px', borderRadius: 6, border: '0.5px solid var(--border-medium)', background: 'var(--bg)', color: 'var(--text-primary)', marginBottom: 8 }} />
                             <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                              <button onClick={() => setShowLogForm(null)} style={{ fontSize: 11, padding: '5px 12px', borderRadius: 6, border: '0.5px solid var(--border)', background: 'var(--bg)', cursor: 'pointer', color: 'var(--text-secondary)' }}>Отмена</button>
+                              <button onClick={() => setShowLogForm(null)} style={{ fontSize: 11, padding: '5px 12px', borderRadius: 6, border: '0.5px solid var(--border)', background: 'var(--bg)', cursor: 'pointer', color: 'var(--text-secondary)' }}>{t('common.cancel')}</button>
                               <button
                                 onClick={async () => {
                                   if (!lf.value) return
@@ -906,7 +904,7 @@ export default function Team() {
                                 }}
                                 style={{ fontSize: 11, padding: '5px 14px', borderRadius: 6, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 500 }}
                               >
-                                Сохранить
+                                {t('common.save')}
                               </button>
                             </div>
                           </div>
@@ -917,7 +915,7 @@ export default function Team() {
                       {(() => {
                         const logs = workLogs[m.id] || []
                         if (logs.length === 0) return (
-                          <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', padding: '10px 0' }}>Записей нет</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', padding: '10px 0' }}>{t('team.noEntries')}</div>
                         )
 
                         // Build month groups: { '2026-05': [log, ...], ... }
@@ -931,10 +929,10 @@ export default function Team() {
                         const monthKeys = Object.keys(monthMap).sort((a, b) => b.localeCompare(a))
 
                         const fmtMonthLabel = (key) => {
-                          if (key === '__unknown__') return 'Дата неизвестна'
+                          if (key === '__unknown__') return t('team.unknownDate')
                           const [yr, mo] = key.split('-')
                           const d = new Date(Number(yr), Number(mo) - 1, 1)
-                          const label = d.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })
+                          const label = d.toLocaleDateString(lang, { month: 'long', year: 'numeric' })
                           return label.charAt(0).toUpperCase() + label.slice(1)
                         }
 
@@ -944,7 +942,7 @@ export default function Team() {
                           <>
                             {/* Grand total chip */}
                             <div style={{ marginBottom: 8, padding: '6px 10px', background: 'var(--accent-light)', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{logs.length} записей · {monthKeys.length} мес.</span>
+                              <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{logs.length} {t('team.entriesLabel')} · {monthKeys.length}</span>
                               <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--accent)' }}>{grandTotal.toLocaleString()} {currSym}</span>
                             </div>
 
@@ -968,7 +966,7 @@ export default function Team() {
                                     <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', flex: 1 }}>
                                       {fmtMonthLabel(monthKey)}
                                     </span>
-                                    <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{monthLogs.length} зап.</span>
+                                    <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{monthLogs.length} {t('team.entriesLabel')}</span>
                                     <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)', marginLeft: 6 }}>{monthTotal.toLocaleString()} {currSym}</span>
                                     <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 4, display:'flex', alignItems:'center' }}>{isMonthOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
                                   </div>
@@ -981,11 +979,11 @@ export default function Team() {
                                           <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{ fontSize: 11, color: 'var(--text-primary)' }}>
                                               {log.log_date
-                                                ? new Date(log.log_date + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+                                                ? new Date(log.log_date + 'T00:00:00').toLocaleDateString(lang, { day: 'numeric', month: 'short' })
                                                 : '—'
                                               }
                                               <span style={{ color: 'var(--text-secondary)', marginLeft: 6 }}>
-                                                {log.log_type === 'hours' ? `${log.value}ч` : `${log.value} смен`}
+                                                {log.log_type === 'hours' ? `${log.value}${t('team.hoursShort')}` : `${log.value} ${t('team.shiftsWord')}`}
                                               </span>
                                               <span style={{ color: 'var(--text-secondary)', marginLeft: 4 }}>× {log.rate}</span>
                                               <span style={{ fontWeight: 500, color: 'var(--accent)', marginLeft: 6 }}>= {(log.value * log.rate).toLocaleString()} {currSym}</span>
@@ -1022,7 +1020,7 @@ export default function Team() {
       {team.filter(m => m.role === 'client').length > 0 && (
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:8, paddingLeft:2 }}>
-            Заказчики ({team.filter(m => m.role === 'client').length})
+            {t('team.clientsSection')} ({team.filter(m => m.role === 'client').length})
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
             {team.filter(m => m.role === 'client').map(m => {
@@ -1036,7 +1034,7 @@ export default function Team() {
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : 'var(--text-1,#2E2420)' }}>{m.name}</div>
-                      <div style={{ fontSize:10, color:'var(--text-muted)' }}>Заказчик</div>
+                      <div style={{ fontSize:10, color:'var(--text-muted)' }}>{t('team.clientRole')}</div>
                     </div>
                     {m.phone && (
                       <a href={`tel:${m.phone}`} onClick={e => e.stopPropagation()} style={{ fontSize:10, color:'var(--accent)', textDecoration:'none' }}>📞 {m.phone}</a>
@@ -1047,25 +1045,25 @@ export default function Team() {
                     <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'var(--surface-2,#FDFBF8)' }}>
                       {/* Contacts */}
                       <div style={{ marginBottom:10 }}>
-                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>Контакты</div>
+                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>{t('team.contacts')}</div>
                         <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
                           {m.phone ? <a href={`tel:${m.phone}`} style={{ fontSize:12, color:'var(--accent)', textDecoration:'none' }}>📞 {m.phone}</a> : null}
                           {m.telegram ? <a href={`https://t.me/${m.telegram.replace(/^@/,'')}`} target="_blank" rel="noopener noreferrer" style={{ fontSize:12, color:'#229ED9', textDecoration:'none' }}>✈️ {m.telegram.startsWith('@') ? m.telegram : `@${m.telegram}`}</a> : null}
-                          {!m.phone && !m.telegram && <span style={{ fontSize:11, color:'#B8AFA6' }}>Не указаны</span>}
+                          {!m.phone && !m.telegram && <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('team.notSpecified')}</span>}
                         </div>
                       </div>
                       {/* Projects */}
                       <div style={{ marginBottom:10 }}>
-                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>Объекты</div>
+                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>{t('team.projectsHeader')}</div>
                         {workerProjects.length === 0
-                          ? <span style={{ fontSize:11, color:'#B8AFA6' }}>Нет</span>
+                          ? <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('common.none')}</span>
                           : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
                               {workerProjects.map(p => <span key={p.id} style={{ fontSize:11, fontWeight:600, background:'var(--accent-light,#FAECE4)', color:'#C96B3A', borderRadius:8, padding:'3px 10px' }}>{p.name}</span>)}
                             </div>
                         }
                       </div>
                       <button onClick={() => removeWorker(m.id, m.name)} style={{ fontSize:11, color:'#A32D2D', background:'#FCEBEB', border:'none', borderRadius:8, padding:'6px 14px', cursor:'pointer', fontWeight:500 }}>
-                        Удалить из бригады
+                        {t('team.removeFromTeam')}
                       </button>
                     </div>
                   )}
