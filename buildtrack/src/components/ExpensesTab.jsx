@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { CalendarBlank, PencilSimple, Trash, CaretUp, CaretDown, X } from '@phosphor-icons/react'
-import { useStore } from '../store/useStore'
+import { useStore, currencySymbol } from '../store/useStore'
 import { useT } from '../i18n/useLanguage'
 import { EmptyState } from './UI'
 import AddExpenseModal, { CATEGORY_ICONS } from './AddExpenseModal'
 
 function fmtMoney(amount, currency = 'USD') {
-  const sym = currency === 'EUR' ? '€' : '$'
+  const sym = currencySymbol(currency)
   return `${sym}${Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
@@ -191,7 +191,7 @@ function ExpenseCard({ exp, canEdit, onEdit, onDelete, onLightbox, deleting, t }
 // ── Main component ──────────────────────────────────────────────────────────
 export default function ExpensesTab({ proj, canEdit = true }) {
   const { t } = useT()
-  const { expenses, fetchExpenses, addExpense, updateExpense, deleteExpense } = useStore()
+  const { expenses, fetchExpenses, addExpense, updateExpense, deleteExpense, profile } = useStore()
   const [filter,      setFilter]      = useState('all')
   const [showAdd,     setShowAdd]     = useState(false)
   const [editExpense, setEditExpense] = useState(null)
@@ -208,9 +208,10 @@ export default function ExpensesTab({ proj, canEdit = true }) {
     acc[e.currency || 'USD'] = (acc[e.currency || 'USD'] || 0) + Number(e.amount)
     return acc
   }, {})
+  const profileCurrency = profile?.currency || 'USD'
   const totalStr = Object.entries(totals)
     .map(([cur, amt]) => fmtMoney(amt, cur))
-    .join(' + ') || fmtMoney(0, 'USD')
+    .join(' + ') || fmtMoney(0, profileCurrency)
 
   // Filtered list
   const filtered = filter === 'all'
@@ -240,7 +241,7 @@ export default function ExpensesTab({ proj, canEdit = true }) {
     <div style={{ paddingBottom: 28 }}>
 
       {/* ── Header ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, marginTop: 8 }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 11, color: '#B8AFA6', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>
             {t('expenses.totalLabel')}
