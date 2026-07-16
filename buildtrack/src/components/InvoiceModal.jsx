@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Check, X, Warning, Receipt, File, ClipboardText, ArrowLeft, ArrowRight } from '@phosphor-icons/react'
 import { useT } from '../i18n/useLanguage'
+import { todayStr, toLocalDateStr } from '../lib/date'
+import { currencySymbol } from '../store/useStore'
+import { Modal, inputStyle as inp } from './UI'
 
 // ── LocalStorage helpers ───────────────────────────────────────────────────────
 const LS_KEY     = 'tutuu_invoice_settings'
@@ -32,10 +35,10 @@ function saveToHistory(entry) {
 }
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
-function today()   { return new Date().toISOString().slice(0, 10) }
+function today()   { return todayStr() }
 function dueDate() {
   const d = new Date(); d.setDate(d.getDate() + 30)
-  return d.toISOString().slice(0, 10)
+  return toLocalDateStr(d)
 }
 function fmtDate(iso) {
   if (!iso) return ''
@@ -46,12 +49,13 @@ function fmtDate(iso) {
 // ── Format currency ────────────────────────────────────────────────────────────
 function fmtMoney(amount, currency = '$') {
   const n = Number(amount) || 0
-  return `${currency}${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  return `${currencySymbol(currency)}${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 // ── Print invoice in new window ────────────────────────────────────────────────
-function printInvoice(html) {
+function printInvoice(html, t) {
   const win = window.open('', '_blank', 'width=900,height=700')
+  if (!win) { window.alert(t('invoice.popupBlocked')); return }
   win.document.write(html)
   win.document.close()
   win.focus()
@@ -210,12 +214,6 @@ function Field({ label, children, half }) {
   )
 }
 
-const inp = {
-  width:'100%', padding:'8px 10px', borderRadius:8,
-  border:'1.5px solid #EAE3D8', background:'var(--surface-2,#FDFBF8)',
-  fontSize:13, color:'var(--text-1,#2E2420)', fontFamily:'inherit', outline:'none',
-}
-
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function InvoiceModal({ proj, tasks, onClose }) {
   const { t } = useT()
@@ -251,12 +249,6 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
     notes:             saved.notes ?? 'Payment due within 30 days.\nBank transfer or cash accepted.',
     taxRate:           0,
   })
-
-  useEffect(() => {
-    const h = (e) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', h)
-    return () => window.removeEventListener('keydown', h)
-  }, [])
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
 
@@ -300,7 +292,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
       isPartial,
       stageNames: selectedStageNames,
     })
-    printInvoice(html)
+    printInvoice(html, t)
     // Save to history
     saveToHistory({
       invoiceNumber: form.invoiceNumber,
@@ -347,12 +339,10 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
   const noneSelected = selectedStages.size === 0
 
   return (
-    <div
-      className="modal-overlay"
-      onClick={e => e.target === e.currentTarget && onClose()}
-      style={{ zIndex: 300 }}
-    >
-      <div className="modal" style={{
+    <Modal
+      onClose={onClose}
+      overlayStyle={{ zIndex: 300 }}
+      style={{
         maxWidth: 680, width: '95vw',
         maxHeight: '92dvh', display: 'flex', flexDirection: 'column',
       }}>
@@ -705,7 +695,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                   color: (noneSelected || selectedTasks.length === 0) ? '#B8AFA6' : '#fff',
                   fontSize:13, fontWeight:700,
                   cursor: (noneSelected || selectedTasks.length === 0) ? 'default' : 'pointer' }}>
-                Далее <ArrowRight size={13} weight="bold" /> Реквизиты
+                {t('invoice.nextBtn')} <ArrowRight size={13} weight="bold" /> {t('invoice.details')}
               </button>
             </>
           )}
@@ -714,7 +704,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
               <button onClick={() => setStep('stages')} style={{ padding:'8px 16px', borderRadius:8,
                 border:'1.5px solid #EAE3D8', background:'var(--surface-2,#FDFBF8)', color:'#7A6E66',
                 fontSize:13, fontWeight:600, cursor:'pointer' }}>
-                <ArrowLeft size={13} weight="bold" /> Этапы
+                <ArrowLeft size={13} weight="bold" /> {t('invoice.stagesBtn')}
               </button>
               <button onClick={handlePreview} style={{ flex:1, padding:'8px 16px', borderRadius:8,
                 border:'none', background:'#2563EB', color:'#fff',
@@ -739,7 +729,6 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
             </>
           )}
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
-import { Button, FormGroup } from '../components/UI'
+import { Button, FormGroup, Alert } from '../components/UI'
 import LanguagePicker from '../components/LanguagePicker'
 import { useT } from '../i18n/useLanguage'
 import { supabase } from '../lib/supabase'
+import { useAsyncGuard } from '../lib/useAsyncGuard'
 
 const AVATAR_COLORS = [
   '#C96B3A','#5A9467','#D4A843','#4A7FC1','#9B6B9B',
@@ -14,19 +15,17 @@ function JoinForeman({ t }) {
   const { sendJoinRequest } = useStore()
   const [code,    setCode]    = useState('')
   const [msg,     setMsg]     = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, guard]      = useAsyncGuard()
 
-  const send = async () => {
-    if (!code.trim()) return
-    setLoading(true); setMsg('')
+  const send = () => code.trim() && guard(async () => {
+    setMsg('')
     let inviteCode = code.trim()
     if (inviteCode.includes('?join=')) inviteCode = inviteCode.split('?join=')[1]
     const { error, foremanName } = await sendJoinRequest(inviteCode)
-    setLoading(false)
     if (error) setMsg(error)
     else setMsg(t('account.msgRequestSent', { name: foremanName }))
     setCode('')
-  }
+  })
 
   return (
     <div>
@@ -34,17 +33,11 @@ function JoinForeman({ t }) {
         <input className="form-input" placeholder={t('account.inviteCodePlaceholder')}
           value={code} onChange={e => setCode(e.target.value)}
           onKeyDown={e => e.key==='Enter' && send()} style={{ flex:1 }} />
-        <Button variant="primary" size="sm" onClick={send}>
+        <Button variant="primary" size="sm" onClick={send} disabled={loading}>
           {loading ? '...' : t('account.sendRequestBtn')}
         </Button>
       </div>
-      {msg && (
-        <div style={{
-          fontSize:12, padding:'6px 10px', borderRadius:6,
-          background: msg.includes('!') ? '#E8F2EB' : '#FCEBEB',
-          color: msg.includes('!') ? '#3D7A52' : '#A32D2D'
-        }}>{msg}</div>
-      )}
+      <Alert ok={msg.includes('!')} dense>{msg}</Alert>
     </div>
   )
 }
@@ -54,12 +47,15 @@ export default function AccountPage() {
   const { t } = useT()
   const [form,    setForm]    = useState({ name:'', phone:'', company:'', currency:'USD' })
   const [avatarColor, setAvatarColor] = useState('#C96B3A')
-  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [uploadingPhoto, photoGuard] = useAsyncGuard()
   const [avatarUrl, setAvatarUrl] = useState(null)
   const [pwForm,  setPwForm]  = useState({ current:'', newPw:'', confirm:'' })
   const [msg,     setMsg]     = useState('')
+  const [msgOk,   setMsgOk]   = useState(true)
   const [pwMsg,   setPwMsg]   = useState('')
-  const [saving,  setSaving]  = useState(false)
+  const [pwOk,    setPwOk]    = useState(true)
+  const [saving,  saveGuard]  = useAsyncGuard()
+  const [pwSaving, pwGuard]   = useAsyncGuard()
 
   useEffect(() => {
     if (profile) {
@@ -71,45 +67,39 @@ export default function AccountPage() {
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
 
-  const saveProfile = async () => {
-    setSaving(true); setMsg('')
+  const saveProfile = () => profile?.id && saveGuard(async () => {
+    setMsg(''); setMsgOk(true)
     const { error } = await supabase.from('profiles')
       .update({ name: form.name, phone: form.phone, company: form.company, avatar_color: avatarColor, currency: form.currency })
       .eq('id', profile.id)
-    setSaving(false)
-    if (error) setMsg(t('account.msgError', { err: error.message }))
-    else { setMsg(t('account.msgSaved')); fetchProfile?.() }
-  }
+    if (error) { setMsg(t('account.msgError', { err: error.message })); setMsgOk(false) }
+    else { setMsg(t('account.msgSaved')); setMsgOk(true); fetchProfile?.() }
+  })
 
-  const uploadPhoto = async (file) => {
-    if (!file) return
-    setUploadingPhoto(true)
+  const uploadPhoto = (file) => file && profile?.id && photoGuard(async () => {
     const ext  = file.name.split('.').pop()
     const path = `avatars/${profile.id}.${ext}`
     const { error: upErr } = await supabase.storage
       .from('task-photos').upload(path, file, { upsert: true })
-    if (upErr) { setMsg('Upload error'); setUploadingPhoto(false); return }
+    if (upErr) { setMsg(t('account.msgUploadError')); setMsgOk(false); return }
     const { data } = supabase.storage.from('task-photos').getPublicUrl(path)
     await supabase.from('profiles').update({ avatar_url: data.publicUrl }).eq('id', profile.id)
     setAvatarUrl(data.publicUrl)
     fetchProfile?.()
-    setUploadingPhoto(false)
-    setMsg(t('account.msgSaved'))
-  }
+    setMsg(t('account.msgSaved')); setMsgOk(true)
+  })
 
-  const changePassword = async () => {
+  const changePassword = () => pwGuard(async () => {
     setPwMsg('')
-    if (!pwForm.newPw) { setPwMsg(t('account.msgPwEmpty')); return }
-    if (pwForm.newPw !== pwForm.confirm) { setPwMsg(t('account.msgPwNoMatch')); return }
-    if (pwForm.newPw.length < 6) { setPwMsg(t('account.msgPwTooShort')); return }
+    if (!pwForm.newPw) { setPwMsg(t('account.msgPwEmpty')); setPwOk(false); return }
+    if (pwForm.newPw !== pwForm.confirm) { setPwMsg(t('account.msgPwNoMatch')); setPwOk(false); return }
+    if (pwForm.newPw.length < 6) { setPwMsg(t('account.msgPwTooShort')); setPwOk(false); return }
     const { error } = await supabase.auth.updateUser({ password: pwForm.newPw })
-    if (error) setPwMsg('Error: ' + error.message)
-    else { setPwMsg(t('account.msgPwChanged')); setPwForm({ current:'', newPw:'', confirm:'' }) }
-  }
+    if (error) { setPwMsg(t('account.msgError', { err: error.message })); setPwOk(false) }
+    else { setPwMsg(t('account.msgPwChanged')); setPwOk(true); setPwForm({ current:'', newPw:'', confirm:'' }) }
+  })
 
   const initials = (form.name || profile?.name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2)
-  const isSavedMsg = msg === t('account.msgSaved')
-  const isPwOk = pwMsg === t('account.msgPwChanged')
 
   return (
     <div>
@@ -182,9 +172,9 @@ export default function AccountPage() {
 
       {/* ── Currency ── */}
       <div className="card card-body" style={{ marginBottom:12 }}>
-        <div className="section-title">Валюта</div>
+        <div className="section-title">{t('account.currencySection')}</div>
         <p style={{ fontSize:12, color:'var(--text-secondary)', marginBottom:12, lineHeight:1.5 }}>
-          Выбранная валюта будет применяться ко всем задачам, расходам и зарплате
+          {t('account.currencyDesc')}
         </p>
         <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
           {[
@@ -215,13 +205,9 @@ export default function AccountPage() {
             </button>
           ))}
         </div>
-        {msg && (
-          <div style={{ fontSize:12, padding:'6px 10px', borderRadius:6, marginTop:16,
-            background: isSavedMsg ? '#E8F2EB' : '#FCEBEB',
-            color: isSavedMsg ? '#3D7A52' : '#A32D2D' }}>{msg}</div>
-        )}
+        <div style={{ marginTop: msg ? 16 : 0 }}><Alert ok={msgOk} dense>{msg}</Alert></div>
         <div style={{ borderTop:'0.5px solid var(--border)', marginTop:16, paddingTop:16 }}>
-          <Button variant="primary" onClick={saveProfile}>
+          <Button variant="primary" onClick={saveProfile} disabled={saving}>
             {saving ? t('common.saving') : t('account.saveBtn')}
           </Button>
         </div>
@@ -240,12 +226,10 @@ export default function AccountPage() {
             onChange={e => setPwForm(f => ({...f, confirm: e.target.value}))}
             placeholder={t('account.confirmPwPlaceholder')} />
         </FormGroup>
-        {pwMsg && (
-          <div style={{ fontSize:12, padding:'6px 10px', borderRadius:6, marginBottom:8,
-            background: isPwOk ? '#E8F2EB' : '#FCEBEB',
-            color: isPwOk ? '#3D7A52' : '#A32D2D' }}>{pwMsg}</div>
-        )}
-        <Button variant="primary" onClick={changePassword}>{t('account.changePwBtn')}</Button>
+        <Alert ok={pwOk} dense>{pwMsg}</Alert>
+        <Button variant="primary" onClick={changePassword} disabled={pwSaving}>
+          {pwSaving ? t('common.saving') : t('account.changePwBtn')}
+        </Button>
       </div>
 
       {/* ── Join Foreman (workers only) ── */}

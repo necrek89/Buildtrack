@@ -1,14 +1,8 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { X, Warning } from '@phosphor-icons/react'
 import { useT } from '../i18n/useLanguage'
-import { FormGroup, Button } from './UI'
+import { FormGroup, Button, Modal, inputStyle as inp } from './UI'
 import { MATERIAL_UNITS } from '../store/useStore'
-
-const inp = {
-  width: '100%', padding: '8px 10px', borderRadius: 8,
-  border: '1.5px solid var(--border,#EAE3D8)', background: 'var(--surface-2,#FDFBF8)',
-  fontSize: 13, color: 'var(--text-1,#2E2420)', fontFamily: 'inherit', outline: 'none',
-}
 
 export default function MaterialRequestModal({ projectId, taskId, taskName, tasks = [], projects = [], onClose, onSave, showTaskLink = false }) {
   const { t } = useT()
@@ -26,12 +20,6 @@ export default function MaterialRequestModal({ projectId, taskId, taskName, task
     task_id:    taskId != null ? String(taskId) : '',
     notes:      '',
   })
-
-  useEffect(() => {
-    const h = (e) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', h)
-    return () => window.removeEventListener('keydown', h)
-  }, [])
 
   const setField = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
 
@@ -61,8 +49,7 @@ export default function MaterialRequestModal({ projectId, taskId, taskName, task
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxHeight: '90dvh', display: 'flex', flexDirection: 'column' }}>
+    <Modal onClose={onClose} style={{ maxHeight: '90dvh', display: 'flex', flexDirection: 'column' }}>
 
         <div className="modal-title">{t('matReq.addTitle')}</div>
 
@@ -70,9 +57,9 @@ export default function MaterialRequestModal({ projectId, taskId, taskName, task
 
           {/* Project selector — shown only when projectId not pre-filled */}
           {projectId == null && (
-            <FormGroup label="Объект *">
+            <FormGroup label={t('matReq.projectLabel')}>
               <select style={inp} value={form.project_id} onChange={setField('project_id')} required>
-                <option value="">— выберите объект —</option>
+                <option value="">{t('matReq.selectProject')}</option>
                 {projects.map(p => (
                   <option key={p.id} value={String(p.id)}>{p.name}</option>
                 ))}
@@ -179,7 +166,6 @@ export default function MaterialRequestModal({ projectId, taskId, taskName, task
             {saving ? '...' : t('matReq.saveBtn')}
           </Button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

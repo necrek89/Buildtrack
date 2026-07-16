@@ -5,17 +5,7 @@ import { useT } from '../../i18n/useLanguage'
 import { useStore } from '../../store/useStore'
 import MaterialModal from '../../components/MaterialModal'
 import MaterialList from '../../components/MaterialList'
-
-function timeAgo(dateStr) {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins  = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days  = Math.floor(diff / 86400000)
-  if (mins < 2)  return 'just now'
-  if (mins < 60) return `${mins}m ago`
-  if (hours < 24) return `${hours}h ago`
-  return `${days}d ago`
-}
+import { timeAgo } from '../../lib/timeAgo'
 
 // ─── MATERIALS TAB ───────────────────────────────────────────────────────────
 export default function MaterialsTab({ proj, canEdit = true }) {
@@ -56,7 +46,8 @@ export default function MaterialsTab({ proj, canEdit = true }) {
   const handleDelete = (id) => {
     const m = materials.find(x => x.id === id)
     if (!m) return
-    if (role === 'foreman' || m.reportedBy === profile?.name) deleteMaterial(id)
+    const isOwner = m.reportedById ? m.reportedById === profile?.id : m.reportedBy === profile?.name
+    if (role === 'foreman' || isOwner) deleteMaterial(id)
   }
 
   return (

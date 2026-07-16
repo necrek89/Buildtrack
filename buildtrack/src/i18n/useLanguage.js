@@ -1,15 +1,7 @@
 import { create } from 'zustand'
 import translations from './translations'
 
-const SUPPORTED = ['en', 'ru', 'sr', 'es', 'pt', 'de', 'fr', 'sk', 'cs']
-const LS_KEY    = 'tutuu_lang'
-
-function detect() {
-  const saved = localStorage.getItem(LS_KEY)
-  if (saved && SUPPORTED.includes(saved)) return saved
-  const browser = (navigator.language || 'en').slice(0, 2).toLowerCase()
-  return SUPPORTED.includes(browser) ? browser : 'en'
-}
+const LS_KEY = 'tutuu_lang'
 
 export const LANGUAGES = [
   { code: 'en', label: 'English',    flag: '🇬🇧' },
@@ -22,6 +14,15 @@ export const LANGUAGES = [
   { code: 'sk', label: 'Slovenčina', flag: '🇸🇰' },
   { code: 'cs', label: 'Čeština',    flag: '🇨🇿' },
 ]
+
+const SUPPORTED = LANGUAGES.map(l => l.code)
+
+function detect() {
+  const saved = localStorage.getItem(LS_KEY)
+  if (saved && SUPPORTED.includes(saved)) return saved
+  const browser = (navigator.language || 'en').slice(0, 2).toLowerCase()
+  return SUPPORTED.includes(browser) ? browser : 'en'
+}
 
 export const useLang = create((set, get) => ({
   lang: detect(),

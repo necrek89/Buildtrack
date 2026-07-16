@@ -219,12 +219,15 @@ export default function ExpensesTab({ proj, canEdit = true }) {
     : projExpenses.filter(e => e.category === filter)
 
   // Grouped view (when filter === 'all')
-  const groups = CATEGORIES.map(cat => ({
-    cat,
-    items: projExpenses.filter(e => e.category === cat),
-    total: projExpenses.filter(e => e.category === cat).reduce((s, e) => s + Number(e.amount), 0),
-    cur:   projExpenses.find(e => e.category === cat)?.currency || 'USD',
-  })).filter(g => g.items.length > 0)
+  const groups = CATEGORIES.map(cat => {
+    const items = projExpenses.filter(e => e.category === cat)
+    return {
+      cat,
+      items,
+      total: items.reduce((s, e) => s + Number(e.amount), 0),
+      cur:   items[0]?.currency || 'USD',
+    }
+  }).filter(g => g.items.length > 0)
 
   const toggleCat = (cat) => setOpenCats(prev => ({ ...prev, [cat]: !prev[cat] }))
 
@@ -294,7 +297,9 @@ export default function ExpensesTab({ proj, canEdit = true }) {
                     background: c.bg,
                   }}
                 >
-                  <span style={{ fontSize: 18, flexShrink: 0 }}>{CATEGORY_ICONS[cat]}</span>
+                  <span style={{ fontSize: 18, flexShrink: 0, display: 'flex' }}>
+                    {(() => { const IC = CATEGORY_ICONS[cat]; return <IC size={18} weight="bold" /> })()}
+                  </span>
                   <div style={{ flex: 1 }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: c.color }}>
                       {t(`expenses.cat_${cat}`)}

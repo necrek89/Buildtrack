@@ -2,26 +2,26 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useT } from '../i18n/useLanguage'
 import LanguagePicker from '../components/LanguagePicker'
+import { useAsyncGuard } from '../lib/useAsyncGuard'
+import { AuthCard, Alert } from '../components/UI'
 
 export default function ResetPasswordPage({ onDone }) {
   const { t } = useT()
   const [pw,      setPw]      = useState('')
   const [confirm, setConfirm] = useState('')
   const [error,   setError]   = useState('')
-  const [saving,  setSaving]  = useState(false)
+  const [saving,  guard]      = useAsyncGuard()
   const [success, setSuccess] = useState(false)
 
-  const submit = async () => {
+  const submit = () => guard(async () => {
     setError('')
     if (pw.length < 6)   { setError(t('auth.newPwTooShort'));  return }
     if (pw !== confirm)  { setError(t('auth.newPwMismatch'));  return }
 
-    setSaving(true)
     const { error } = await supabase.auth.updateUser({ password: pw })
-    setSaving(false)
 
     if (error) {
-      setError(error.message)
+      setError(t('auth.newPwErrFailed'))
     } else {
       setSuccess(true)
       // sign out so user logs in fresh with new password
@@ -30,18 +30,10 @@ export default function ResetPasswordPage({ onDone }) {
         onDone()
       }, 2200)
     }
-  }
+  })
 
   return (
-    <div style={{
-      minHeight: '100dvh', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', background: '#FAF7F2', padding: 16,
-    }}>
-      <div style={{
-        background: '#fff', borderRadius: 20, padding: 28,
-        width: '100%', maxWidth: 380, border: '1px solid #EAE3D8',
-        boxShadow: '0 4px 24px rgba(46,36,32,0.07)',
-      }}>
+    <AuthCard>
         {/* Language picker */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
           <LanguagePicker />
@@ -73,11 +65,7 @@ export default function ResetPasswordPage({ onDone }) {
         ) : (
           <>
             {/* Error */}
-            {error && (
-              <div style={{ background: '#FCEBEB', color: '#A32D2D', borderRadius: 8, padding: '10px 12px', fontSize: 13, marginBottom: 14 }}>
-                {error}
-              </div>
-            )}
+            <Alert ok={false}>{error}</Alert>
 
             {/* New password */}
             <div className="form-group">
@@ -127,7 +115,6 @@ export default function ResetPasswordPage({ onDone }) {
             </button>
           </>
         )}
-      </div>
-    </div>
+    </AuthCard>
   )
 }

@@ -1,4 +1,55 @@
+import { useEffect } from 'react'
 import { Check } from '@phosphor-icons/react'
+import { useT } from '../i18n/useLanguage'
+
+// Modal shell: backdrop (click-out to close), Escape-to-close, centered card
+export function Modal({ onClose, className, style, overlayStyle, children }) {
+  useEffect(() => {
+    const h = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
+  }, [onClose])
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()} style={overlayStyle}>
+      <div className={['modal', className].filter(Boolean).join(' ')} style={style}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+// Inline success/error banner. `dense` gives the smaller in-card variant
+// used next to a form field instead of the full-page auth-screen size.
+export function Alert({ ok, dense, children }) {
+  if (!children) return null
+  return (
+    <div style={{
+      background: ok ? '#E8F2EB' : '#FCEBEB', color: ok ? '#3D7A52' : '#A32D2D',
+      borderRadius: dense ? 6 : 8, fontSize: dense ? 12 : 13,
+      padding: dense ? '6px 10px' : '10px 12px', marginBottom: dense ? 8 : 14,
+    }}>
+      {children}
+    </div>
+  )
+}
+
+// Centered card used by the auth screens (login/signup, reset password)
+export function AuthCard({ children }) {
+  return (
+    <div style={{
+      minHeight: '100dvh', display: 'flex', alignItems: 'center',
+      justifyContent: 'center', background: '#FAF7F2', padding: 16,
+    }}>
+      <div style={{
+        background: '#fff', borderRadius: 20, padding: 28,
+        width: '100%', maxWidth: 380, border: '1px solid #EAE3D8',
+        boxShadow: '0 4px 24px rgba(46,36,32,0.07)',
+      }}>
+        {children}
+      </div>
+    </div>
+  )
+}
 
 // Badge
 export function Badge({ variant = 'gray', children }) {
@@ -6,9 +57,9 @@ export function Badge({ variant = 'gray', children }) {
 }
 
 // Button
-export function Button({ variant = 'default', size = 'md', onClick, children, type = 'button' }) {
+export function Button({ variant = 'default', size = 'md', onClick, children, type = 'button', disabled = false }) {
   const cls = ['btn', variant === 'primary' ? 'btn-primary' : variant === 'danger' ? 'btn-danger' : '', size === 'sm' ? 'btn-sm' : ''].join(' ')
-  return <button className={cls} onClick={onClick} type={type}>{children}</button>
+  return <button className={cls} onClick={onClick} type={type} disabled={disabled}>{children}</button>
 }
 
 // Icon button (edit / delete)
@@ -32,9 +83,10 @@ export function StatCard({ label, value, danger }) {
 
 // Progress bar
 export function ProgressBar({ value, label }) {
+  const { t } = useT()
   return (
     <div className="progress-wrap">
-      <div className="progress-labels"><span>{label || 'Прогресс'}</span><span>{value}%</span></div>
+      <div className="progress-labels"><span>{label || t('detail.progress')}</span><span>{value}%</span></div>
       <div className="progress-bar"><div className="progress-fill" style={{ width: `${value}%` }} /></div>
     </div>
   )
@@ -57,6 +109,14 @@ export function SectionTitle({ children }) {
 // Empty state
 export function EmptyState({ children }) {
   return <div className="empty-state">{children}</div>
+}
+
+// Shared inline input style used by the form-heavy modals (expenses, material
+// requests, invoices) that don't use the .form-input CSS class
+export const inputStyle = {
+  width: '100%', padding: '8px 10px', borderRadius: 8,
+  border: '1.5px solid var(--border,#EAE3D8)', background: 'var(--surface-2,#FDFBF8)',
+  fontSize: 13, color: 'var(--text-1,#2E2420)', fontFamily: 'inherit', outline: 'none',
 }
 
 // Form input

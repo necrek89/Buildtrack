@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useStore, currencySymbol } from '../../store/useStore'
 import { useT } from '../../i18n/useLanguage'
+import { todayStr } from '../../lib/date'
 
 export default function TimesheetModal({ onClose }) {
   const { team, projects, profile, fetchWorkLogsByDate, addWorkLog, updateWorkLog, deleteWorkLog } = useStore()
   const { t } = useT()
   const currSym = currencySymbol(profile?.currency)
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayStr()
   const [date, setDate]     = useState(today)
   const [rows, setRows]     = useState({})   // workerId → { value, type, rate, notes, existingId }
   const [loading, setLoading] = useState(false)

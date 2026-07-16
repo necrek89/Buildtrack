@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { CheckCircle, X, FirstAid, Umbrella, Clock, ClipboardText } from '@phosphor-icons/react'
 import { useStore } from '../store/useStore'
 import { useT } from '../i18n/useLanguage'
+import { todayStr } from '../lib/date'
 
-const TODAY = new Date().toISOString().slice(0, 10)
+const TODAY = todayStr()
 
 const STATUS_ORDER = ['present', 'absent', 'sick', 'vacation']
 const STATUS_ICON = { present: CheckCircle, absent: X, sick: FirstAid, vacation: Umbrella }

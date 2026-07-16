@@ -3,6 +3,8 @@ import { useStore } from '../store/useStore'
 import { useT } from '../i18n/useLanguage'
 import LanguagePicker from '../components/LanguagePicker'
 import { supabase } from '../lib/supabase'
+import { useAsyncGuard } from '../lib/useAsyncGuard'
+import { AuthCard, Alert } from '../components/UI'
 
 export default function LoginPage({ onLogin }) {
   const { signIn, signUp, loading } = useStore()
@@ -13,7 +15,7 @@ export default function LoginPage({ onLogin }) {
   const [resetEmail, setResetEmail] = useState('')
   const [error,   setError]   = useState('')
   const [success, setSuccess] = useState('')
-  const [sending, setSending] = useState(false)
+  const [sending, guardReset] = useAsyncGuard()
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
 
@@ -21,6 +23,7 @@ export default function LoginPage({ onLogin }) {
 
   // ── Login / Register ────────────────────────────────────────────────────────
   const handleSubmit = async () => {
+    if (loading) return
     setError(''); setSuccess('')
     if (!form.email || !form.password) { setError(t('auth.errFillAll')); return }
     if (mode === 'login') {
@@ -30,37 +33,26 @@ export default function LoginPage({ onLogin }) {
     } else {
       if (!form.name) { setError(t('auth.errFillName')); return }
       const { error } = await signUp(form.email, form.password, form.name, form.role)
-      if (error) { setError(error.message); return }
+      if (error) { setError(t('auth.errSignupFailed')); return }
       setSuccess(t('auth.successCreated'))
       switchMode('login')
     }
   }
 
   // ── Forgot password ─────────────────────────────────────────────────────────
-  const handleReset = async () => {
+  const handleReset = () => guardReset(async () => {
     setError(''); setSuccess('')
     if (!resetEmail.trim()) { setError(t('auth.resetErrNoEmail')); return }
-    setSending(true)
     const { error } = await supabase.auth.resetPasswordForEmail(
       resetEmail.trim(),
       { redirectTo: window.location.origin }
     )
-    setSending(false)
     if (error) { setError(t('auth.resetErrFailed')); return }
     setSuccess(t('auth.resetSent', { email: resetEmail.trim() }))
-  }
+  })
 
-  // ── Shared card wrapper ─────────────────────────────────────────────────────
   return (
-    <div style={{
-      minHeight: '100dvh', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', background: '#FAF7F2', padding: 16,
-    }}>
-      <div style={{
-        background: '#fff', borderRadius: 20, padding: 28,
-        width: '100%', maxWidth: 380, border: '1px solid #EAE3D8',
-        boxShadow: '0 4px 24px rgba(46,36,32,0.07)',
-      }}>
+    <AuthCard>
         {/* Top row: onboarding + language picker */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <button
@@ -73,7 +65,7 @@ export default function LoginPage({ onLogin }) {
               fontWeight: 500,
             }}
           >
-            📖 Гайд
+            {t('auth.guideBtn')}
           </button>
           <LanguagePicker />
         </div>
@@ -91,16 +83,8 @@ export default function LoginPage({ onLogin }) {
         </div>
 
         {/* Error / Success */}
-        {error && (
-          <div style={{ background: '#FCEBEB', color: '#A32D2D', borderRadius: 8, padding: '10px 12px', fontSize: 13, marginBottom: 14 }}>
-            {error}
-          </div>
-        )}
-        {success && (
-          <div style={{ background: '#EAF3DE', color: '#3B6D11', borderRadius: 8, padding: '10px 12px', fontSize: 13, marginBottom: 14 }}>
-            {success}
-          </div>
-        )}
+        <Alert ok={false}>{error}</Alert>
+        <Alert ok>{success}</Alert>
 
         {/* ── FORGOT PASSWORD mode ── */}
         {mode === 'forgot' && (
@@ -219,7 +203,6 @@ export default function LoginPage({ onLogin }) {
             </div>
           </>
         )}
-      </div>
-    </div>
+    </AuthCard>
   )
 }

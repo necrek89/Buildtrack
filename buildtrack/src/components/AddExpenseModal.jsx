@@ -1,16 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { Wall, HardHat, Wrench, Truck, Package, Camera, X, Warning } from '@phosphor-icons/react'
 import { useT } from '../i18n/useLanguage'
-import { FormGroup, Button } from './UI'
+import { FormGroup, Button, Modal, inputStyle as inp } from './UI'
 import { useStore } from '../store/useStore'
-
-const today = () => new Date().toISOString().slice(0, 10)
-
-const inp = {
-  width: '100%', padding: '8px 10px', borderRadius: 8,
-  border: '1.5px solid var(--border,#EAE3D8)', background: 'var(--surface-2,#FDFBF8)',
-  fontSize: 13, color: 'var(--text-1,#2E2420)', fontFamily: 'inherit', outline: 'none',
-}
+import { todayStr } from '../lib/date'
 
 export const CATEGORY_ICONS = {
   materials:  Wall,
@@ -33,15 +26,9 @@ export default function AddExpenseModal({ projectId, expense, onClose, onSave })
     amount:   expense?.amount   != null ? String(expense.amount) : '',
     currency: expense?.currency || useStore.getState().profile?.currency || 'USD',
     category: expense?.category || 'other',
-    date:     expense?.date     || today(),
+    date:     expense?.date     || todayStr(),
     notes:    expense?.notes    || '',
   })
-
-  useEffect(() => {
-    const h = (e) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', h)
-    return () => window.removeEventListener('keydown', h)
-  }, [])
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
 
@@ -75,8 +62,7 @@ export default function AddExpenseModal({ projectId, expense, onClose, onSave })
   const categories = ['materials','labor','equipment','transport','other']
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxHeight: '90dvh', display: 'flex', flexDirection: 'column' }}>
+    <Modal onClose={onClose} style={{ maxHeight: '90dvh', display: 'flex', flexDirection: 'column' }}>
 
         <div className="modal-title">
           {expense ? t('expenses.editTitle') : t('expenses.addTitle')}
@@ -202,7 +188,6 @@ export default function AddExpenseModal({ projectId, expense, onClose, onSave })
             {saving ? '...' : expense ? t('common.save') : t('expenses.saveBtn')}
           </Button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

@@ -1,16 +1,6 @@
 import { Package, Buildings, Check, Trash } from '@phosphor-icons/react'
 import { useT } from '../i18n/useLanguage'
-
-function timeAgo(dateStr) {
-  if (!dateStr) return ''
-  const d    = new Date(dateStr)
-  const diff = (Date.now() - d) / 1000
-  if (diff < 60)      return 'just now'
-  if (diff < 3600)    return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400)   return `${Math.floor(diff / 3600)}h ago`
-  if (diff < 604800)  return `${Math.floor(diff / 86400)}d ago`
-  return d.toLocaleDateString('en', { day: 'numeric', month: 'short' })
-}
+import { timeAgo } from '../lib/timeAgo'
 
 export default function MaterialList({
   materials       = [],
@@ -38,14 +28,15 @@ export default function MaterialList({
         const isPurchased = m.status === 'purchased'
         const projName    = showProject ? (projects.find(p => String(p.id) === String(m.projectId))?.name || (m.projectId ? 'Unknown project' : null)) : null
         const canCheck    = (role === 'foreman' || role === 'manager') && !!onTogglePurchased
-        const canDelete   = role === 'foreman' || role === 'manager' || m.reportedBy === profile?.name
+        const isOwner     = m.reportedById ? m.reportedById === profile?.id : m.reportedBy === profile?.name
+        const canDelete   = role === 'foreman' || role === 'manager' || isOwner
 
         return (
           <div key={m.id} className={`material-row ${m.status}`}>
             {/* Checkbox */}
             <div
               onClick={() => canCheck && onTogglePurchased(m.id)}
-              title={canCheck ? (isPurchased ? t('materials.filterOpen', { n: '' }).trim() : t('materials.filterPurchased')) : undefined}
+              title={canCheck ? (isPurchased ? t('materials.markOpen') : t('materials.markPurchased')) : undefined}
               style={{
                 width: 18, height: 18, borderRadius: 4, flexShrink: 0, marginTop: 2,
                 border: `2px solid ${isPurchased ? '#5A9467' : '#C96B3A'}`,

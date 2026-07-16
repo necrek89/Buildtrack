@@ -23,6 +23,7 @@ function TaskSearch({ onClose, onNavigate }) {
   const [loading, setLoading] = useState(false)
   const inputRef = useRef()
   const timerRef = useRef()
+  const reqIdRef = useRef(0)
 
   useEffect(() => { inputRef.current?.focus() }, [])
 
@@ -30,8 +31,10 @@ function TaskSearch({ onClose, onNavigate }) {
     clearTimeout(timerRef.current)
     if (!query.trim()) { setResults([]); return }
     timerRef.current = setTimeout(async () => {
+      const reqId = ++reqIdRef.current
       setLoading(true)
       const data = await searchTasks(query)
+      if (reqId !== reqIdRef.current) return
       setResults(data)
       setLoading(false)
     }, 300)
