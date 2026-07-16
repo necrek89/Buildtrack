@@ -7,17 +7,7 @@ import { supabase } from '../../lib/supabase'
 import TaskComments from '../../components/TaskComments'
 import MaterialModal from '../../components/MaterialModal'
 import { TaskMedia } from '../tasks/TaskCard'
-
-function timeAgo(dateStr) {
-  if (!dateStr) return ''
-  const d    = new Date(dateStr)
-  const diff = (Date.now() - d) / 1000
-  if (diff < 60)     return 'just now'
-  if (diff < 3600)   return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400)  return `${Math.floor(diff / 3600)}h ago`
-  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`
-  return d.toLocaleDateString('en', { day: 'numeric', month: 'short' })
-}
+import { timeAgo } from '../../lib/timeAgo'
 
 // ─── MY TASKS (worker) ───────────────────────────────────────────────────────
 export default function MyTasks() {
@@ -67,15 +57,19 @@ export default function MyTasks() {
     }).map(([stage, items]) => ({ stage, items: sortTasks(items) }))
   })()
 
-  // Auto-open stages that have active tasks on first load
+  // Auto-open stages that have active tasks — but don't clobber stages the
+  // user has already manually expanded/collapsed on a later tasks refetch
   useEffect(() => {
     if (filtered.length === 0) return
-    const initial = {}
-    stageGroups.forEach(({ stage, items }) => {
-      const hasUrgent = items.some(tk => ['new','rejected'].includes(tk.status))
-      initial[stage] = hasUrgent || stageGroups.length === 1
+    setOpenStages(prev => {
+      const next = { ...prev }
+      stageGroups.forEach(({ stage, items }) => {
+        if (stage in next) return
+        const hasUrgent = items.some(tk => ['new','rejected'].includes(tk.status))
+        next[stage] = hasUrgent || stageGroups.length === 1
+      })
+      return next
     })
-    setOpenStages(initial)
   }, [filter, tasks])
 
   const toggleStage = (stage) => setOpenStages(prev => ({ ...prev, [stage]: !prev[stage] }))
@@ -229,7 +223,7 @@ export default function MyTasks() {
 
       {/* ── My open shortages ── */}
       {(() => {
-        const myShortages = materials.filter(m => m.reportedBy === profile?.name && m.status === 'needed')
+        const myShortages = materials.filter(m => (m.reportedById ? m.reportedById === profile?.id : m.reportedBy === profile?.name) && m.status === 'needed')
         if (myShortages.length === 0) return null
         return (
           <div style={{ marginTop:20 }}>

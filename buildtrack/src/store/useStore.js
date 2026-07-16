@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
+import { todayStr, toLocalDateStr } from '../lib/date'
 
 // ── Theme init ────────────────────────────────────────────────────────────────
 const savedTheme = localStorage.getItem('tutuu_theme') || 'light'
@@ -13,6 +14,10 @@ function drainLocalStorage() {
 }
 
 export const MATERIAL_UNITS = ['pcs', 'm', 'm²', 'm³', 'kg', 'l', 'pack', 'roll']
+
+// Guards fetchWorkers/fetchTeam against a stale response overwriting a newer one
+// when the user switches projects faster than the network round-trip.
+let teamFetchSeq = 0
 
 export const useStore = create((set, get) => ({
   user: null,
@@ -204,35 +209,19 @@ export const useStore = create((set, get) => ({
     }
   },
 
-  submitTask: async (id) => {
+  _setTaskStatus: async (id, status, actionType, extra = {}) => {
     const task = get().tasks.find(t => t.id === id)
-    const result = await get().updateTask(id, { status: 'pending' })
+    const result = await get().updateTask(id, { status, ...extra })
     if (!result?.error && task) {
-      get().logActivity({ action_type: 'task_submitted', entity_name: task.text, entity_id: String(id), project_id: task.project_id })
+      get().logActivity({ action_type: actionType, entity_name: task.text, entity_id: String(id), project_id: task.project_id })
       get().recalcProgress(task.project_id)
     }
     return result
   },
 
-  approveTask: async (id) => {
-    const task = get().tasks.find(t => t.id === id)
-    const result = await get().updateTask(id, { status: 'approved' })
-    if (!result?.error && task) {
-      get().logActivity({ action_type: 'task_approved', entity_name: task.text, entity_id: String(id), project_id: task.project_id })
-      get().recalcProgress(task.project_id)
-    }
-    return result
-  },
-
-  rejectTask: async (id, comment) => {
-    const task = get().tasks.find(t => t.id === id)
-    const result = await get().updateTask(id, { status: 'rejected', reject_comment: comment })
-    if (!result?.error && task) {
-      get().logActivity({ action_type: 'task_rejected', entity_name: task.text, entity_id: String(id), project_id: task.project_id })
-      get().recalcProgress(task.project_id)
-    }
-    return result
-  },
+  submitTask:  (id) => get()._setTaskStatus(id, 'pending', 'task_submitted'),
+  approveTask: (id) => get()._setTaskStatus(id, 'approved', 'task_approved'),
+  rejectTask:  (id, comment) => get()._setTaskStatus(id, 'rejected', 'task_rejected', { reject_comment: comment }),
 
   // ── TOOLS ─────────────────────────────────────────────────
   fetchTools: async (projectId) => {
@@ -285,20 +274,17 @@ export const useStore = create((set, get) => ({
 
   // ── TEAM ──────────────────────────────────────────────────
   fetchTeam: async (projectId) => {
-    const { data } = await supabase
-      .from('project_workers')
-      .select('worker:profiles(id, name, role, worker_status, phone, telegram, default_rate, rate_type)')
-      .eq('project_id', projectId)
-    set({ team: data?.map(d => d.worker) || [] })
+    await get().fetchWorkers(projectId)
   },
 
   fetchWorkers: async (projectId) => {
+    const reqId = ++teamFetchSeq
     const { data } = await supabase
       .from('project_workers')
       .select('worker:profiles(id, name, role, worker_status, phone, telegram, default_rate, rate_type)')
       .eq('project_id', projectId)
     const workers = data?.map(d => d.worker) || []
-    set({ team: workers })
+    if (reqId === teamFetchSeq) set({ team: workers })
     return workers
   },
 
@@ -347,17 +333,16 @@ export const useStore = create((set, get) => ({
     return workers
   },
 
-  updateWorkerStatus: async (workerId, status) => {
-    await supabase.from('profiles').update({ worker_status: status }).eq('id', workerId)
-    set(s => ({ team: s.team.map(m => m.id === workerId ? { ...m, worker_status: status } : m) }))
+  // Update a profiles row and patch the matching entry in the local team array
+  _patchTeamMember: async (workerId, patch) => {
+    await supabase.from('profiles').update(patch).eq('id', workerId)
+    set(s => ({ team: s.team.map(m => m.id === workerId ? { ...m, ...patch } : m) }))
   },
 
-  updateWorkerContact: async (workerId, phone, telegram) => {
-    await supabase.from('profiles')
-      .update({ phone: phone || null, telegram: telegram || null })
-      .eq('id', workerId)
-    set(s => ({ team: s.team.map(m => m.id === workerId ? { ...m, phone: phone || null, telegram: telegram || null } : m) }))
-  },
+  updateWorkerStatus: (workerId, status) => get()._patchTeamMember(workerId, { worker_status: status }),
+
+  updateWorkerContact: (workerId, phone, telegram) =>
+    get()._patchTeamMember(workerId, { phone: phone || null, telegram: telegram || null }),
 
   // ── JOIN REQUESTS ─────────────────────────────────────────
   // Рабочий отправляет заявку прорабу по invite_code
@@ -422,8 +407,7 @@ export const useStore = create((set, get) => ({
   },
 
   addManagerToTeam: async (email) => {
-    const { projects } = get()
-    const allProjects = projects.length ? projects : useStore.getState().projects
+    const { projects: allProjects } = get()
     const { data: mgr, error } = await supabase
       .from('profiles').select('id, name, role').eq('email', email.trim().toLowerCase()).single()
     if (error || !mgr) return { error: 'User not found. Ask them to register first.' }
@@ -449,7 +433,7 @@ export const useStore = create((set, get) => ({
 
   // ── MATERIAL REQUESTS (Supabase) ─────────────────────
   fetchMaterialRequests: async (projectId) => {
-    const { profile, role } = get()
+    const { profile, role, projects } = get()
     if (!profile) return
     let query = supabase
       .from('material_requests')
@@ -459,8 +443,8 @@ export const useStore = create((set, get) => ({
       query = query.eq('worker_id', profile.id)
     } else if (projectId) {
       query = query.eq('project_id', projectId)
-    } else if (role === 'foreman') {
-      // No specific project — show requests from all foreman's projects
+    } else {
+      // No specific project — scope to this user's own accessible projects
       const ids = projects.map(p => p.id)
       if (!ids.length) { set({ materialRequests: [] }); return }
       query = query.in('project_id', ids)
@@ -469,17 +453,21 @@ export const useStore = create((set, get) => ({
     set({ materialRequests: data || [] })
   },
 
+  // Uploads a file to the shared task-photos bucket and returns its public URL, or null on failure
+  _uploadToBucket: async (path, file, options) => {
+    const { error } = await supabase.storage.from('task-photos').upload(path, file, options)
+    if (error) return null
+    const { data } = supabase.storage.from('task-photos').getPublicUrl(path)
+    return data.publicUrl
+  },
+
   addMaterialRequest: async (payload, photoFile) => {
     const { profile } = get()
     let photo_url = null
     if (photoFile) {
       const ext = photoFile.name.split('.').pop()
       const path = `material-requests/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const { error: upErr } = await supabase.storage.from('task-photos').upload(path, photoFile)
-      if (!upErr) {
-        const { data: urlData } = supabase.storage.from('task-photos').getPublicUrl(path)
-        photo_url = urlData.publicUrl
-      }
+      photo_url = await get()._uploadToBucket(path, photoFile)
     }
     const { data, error } = await supabase
       .from('material_requests')
@@ -520,6 +508,7 @@ export const useStore = create((set, get) => ({
     unit:        m.unit,
     note:        m.note,
     reportedBy:  m.reported_by,
+    reportedById: m.reported_by_id,
     status:      m.status,
     createdAt:   m.created_at,
     purchasedAt: m.purchased_at,
@@ -567,6 +556,7 @@ export const useStore = create((set, get) => ({
       unit:        material.unit || 'pcs',
       note:        material.note || null,
       reported_by: material.reportedBy || profile?.name,
+      reported_by_id: profile?.id || null,
       status:      'needed',
     }).select().single()
     if (!error && data) {
@@ -698,12 +688,7 @@ export const useStore = create((set, get) => ({
     if (receiptFile) {
       const ext  = receiptFile.name.split('.').pop()
       const path = `receipts/${expense.project_id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
-      const { error: upErr } = await supabase.storage
-        .from('task-photos').upload(path, receiptFile, { upsert: true })
-      if (!upErr) {
-        const { data } = supabase.storage.from('task-photos').getPublicUrl(path)
-        receipt_url = data.publicUrl
-      }
+      receipt_url = await get()._uploadToBucket(path, receiptFile, { upsert: true })
     }
 
     const { data, error } = await supabase
@@ -720,12 +705,8 @@ export const useStore = create((set, get) => ({
     if (newReceiptFile) {
       const ext  = newReceiptFile.name.split('.').pop()
       const path = `receipts/edit/${id}_${Date.now()}.${ext}`
-      const { error: upErr } = await supabase.storage
-        .from('task-photos').upload(path, newReceiptFile, { upsert: true })
-      if (!upErr) {
-        const { data } = supabase.storage.from('task-photos').getPublicUrl(path)
-        receipt_url = data.publicUrl
-      }
+      const url = await get()._uploadToBucket(path, newReceiptFile, { upsert: true })
+      if (url) receipt_url = url
     }
     const { data, error } = await supabase
       .from('expenses')
@@ -848,7 +829,7 @@ export const useStore = create((set, get) => ({
       worker_id, foreman_id: profile?.id,
       amount: parseFloat(amount) || 0,
       notes: notes || null,
-      paid_at: paid_at || new Date().toISOString().slice(0, 10),
+      paid_at: paid_at || todayStr(),
     }).select().single()
     if (error) return { error: error.message }
     set(s => ({ payments: { ...s.payments, [worker_id]: [data, ...(s.payments[worker_id] || [])] } }))
@@ -860,18 +841,14 @@ export const useStore = create((set, get) => ({
     set(s => ({ payments: { ...s.payments, [workerId]: (s.payments[workerId] || []).filter(p => p.id !== id) } }))
   },
 
-  updateMemberRate: async (workerId, defaultRate, rateType) => {
-    await supabase.from('profiles').update({ default_rate: defaultRate, rate_type: rateType }).eq('id', workerId)
-    set(s => ({
-      team: s.team.map(m => m.id === workerId ? { ...m, default_rate: defaultRate, rate_type: rateType } : m)
-    }))
-  },
+  updateMemberRate: (workerId, defaultRate, rateType) =>
+    get()._patchTeamMember(workerId, { default_rate: defaultRate, rate_type: rateType }),
 
   // ── Attendance ────────────────────────────────────────────────────────────
   attendance: [],
 
   fetchAttendance: async (date) => {
-    const dateStr = date || new Date().toISOString().slice(0, 10)
+    const dateStr = date || todayStr()
     const { data } = await supabase.from('attendance').select('*').eq('date', dateStr)
     set({ attendance: data || [] })
   },
@@ -893,8 +870,8 @@ export const useStore = create((set, get) => ({
   },
 
   copyYesterdayAttendance: async () => {
-    const today = new Date().toISOString().slice(0, 10)
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+    const today = todayStr()
+    const yesterday = toLocalDateStr(new Date(Date.now() - 86400000))
     const { data } = await supabase.from('attendance').select('*').eq('date', yesterday)
     const { profile } = useStore.getState()
     if (!data || data.length === 0) return false

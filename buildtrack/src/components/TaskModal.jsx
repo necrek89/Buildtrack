@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Hourglass, X, Warning } from '@phosphor-icons/react'
 import { useStore, currencySymbol } from '../store/useStore'
 import { useT } from '../i18n/useLanguage'
-import { Button, FormGroup } from './UI'
+import { Button, FormGroup, Modal } from './UI'
 import { supabase } from '../lib/supabase'
 import DatePicker from './DatePicker'
 
@@ -95,12 +95,10 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
   }
 
   const handleQuantityChange = (val) => {
-    setForm(f => ({ ...f, quantity: val }))
     const qty = parseFloat(val)
     const price = parseFloat(unitPrice)
-    if (!isNaN(qty) && qty > 0 && !isNaN(price) && price > 0) {
-      setForm(f => ({ ...f, quantity: val, cost: String(Math.round(qty * price * 100) / 100) }))
-    }
+    const hasPrice = !isNaN(qty) && qty > 0 && !isNaN(price) && price > 0
+    setForm(f => ({ ...f, quantity: val, cost: hasPrice ? String(Math.round(qty * price * 100) / 100) : f.cost }))
   }
 
   useEffect(() => {
@@ -120,9 +118,6 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
       }
     }
     load()
-    const handler = (e) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
   }, [])
 
   const set = (field) => async (e) => {
@@ -183,7 +178,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
     }
     setSaving(false)
     if (error) {
-      setSaveError(error.message || 'Ошибка сохранения')
+      setSaveError(error.message || t('tasks.saveError'))
       return
     }
     // Refresh tasks to get full data with joins (worker name etc.)
@@ -194,8 +189,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
   const isVideo = (url) => /\.(mp4|mov|webm|avi|mkv)$/i.test(url)
 
   return (
-    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxHeight:'90dvh', display:'flex', flexDirection:'column' }}>
+    <Modal onClose={onClose} style={{ maxHeight:'90dvh', display:'flex', flexDirection:'column' }}>
         <div className="modal-title">{isEdit ? t('tasks.editTitle') : t('tasks.newTitle')}</div>
 
         <div style={{ overflowY:'auto', flex:1, paddingRight:2 }}>
@@ -411,7 +405,6 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
             {saving ? '...' : isEdit ? t('common.save') : t('tasks.addBtn')}
           </Button>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

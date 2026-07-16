@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { X } from '@phosphor-icons/react'
 import { useStore, MATERIAL_UNITS } from '../store/useStore'
 import { useT } from '../i18n/useLanguage'
-import { Button } from './UI'
+import { Button, Modal } from './UI'
 
 const newRow = () => ({ _id: Math.random(), name: '', qty: 1, unit: 'pcs', note: '' })
 
@@ -30,7 +30,7 @@ export default function MaterialModal({ open, onClose, defaultProjectId, default
   const filledRows = rows.filter(r => r.name.trim())
 
   const submit = async () => {
-    if (!filledRows.length) { setErr('Введите хотя бы одно название'); return }
+    if (!filledRows.length) { setErr(t('materials.errNoName')); return }
     setSaving(true)
     for (const r of filledRows) {
       await addMaterial({
@@ -50,8 +50,7 @@ export default function MaterialModal({ open, onClose, defaultProjectId, default
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxWidth: 560, width: '96vw', maxHeight: '90dvh', display: 'flex', flexDirection: 'column' }}>
+    <Modal onClose={onClose} style={{ maxWidth: 560, width: '96vw', maxHeight: '90dvh', display: 'flex', flexDirection: 'column' }}>
 
         {/* Header */}
         <div className="modal-title" style={{ flexShrink: 0 }}>{t('materials.addModal')}</div>
@@ -76,9 +75,9 @@ export default function MaterialModal({ open, onClose, defaultProjectId, default
           gap: 6, paddingBottom: 4, borderBottom: '1px solid var(--border)',
           flexShrink: 0,
         }}>
-          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Название *</span>
-          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Кол-во</span>
-          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Ед. изм.</span>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{t('materials.nameLabel')}</span>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{t('materials.qtyLabel')}</span>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{t('materials.unitLabel')}</span>
           <span />
         </div>
 
@@ -88,7 +87,7 @@ export default function MaterialModal({ open, onClose, defaultProjectId, default
             <div key={r._id} style={{ display: 'grid', gridTemplateColumns: '1fr 72px 80px 28px', gap: 6, marginBottom: 6, alignItems: 'center' }}>
               <input
                 className="form-input mat-row-name"
-                placeholder={`Позиция ${i + 1}`}
+                placeholder={t('materials.itemPlaceholder', { n: i + 1 })}
                 value={r.name}
                 onChange={e => setRow(r._id, 'name', e.target.value)}
                 onKeyDown={e => {
@@ -141,7 +140,7 @@ export default function MaterialModal({ open, onClose, defaultProjectId, default
               padding: '6px 12px', width: '100%', marginTop: 4, marginBottom: 8,
             }}
           >
-            <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Добавить строку
+            <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> {t('materials.addRowBtn')}
           </button>
         </div>
 
@@ -155,7 +154,7 @@ export default function MaterialModal({ open, onClose, defaultProjectId, default
         {/* Footer */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: 12, flexShrink: 0 }}>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-            {filledRows.length > 0 ? `${filledRows.length} позиц${filledRows.length === 1 ? 'ия' : filledRows.length < 5 ? 'ии' : 'ий'}` : 'Нет позиций'}
+            {filledRows.length > 0 ? t('materials.itemsCount', { n: filledRows.length }) : t('materials.noItems')}
           </span>
           <div style={{ display: 'flex', gap: 8 }}>
             <Button size="sm" onClick={onClose}>{t('common.cancel')}</Button>
@@ -165,11 +164,10 @@ export default function MaterialModal({ open, onClose, defaultProjectId, default
               onClick={submit}
               disabled={saving || !filledRows.length}
             >
-              {saving ? t('common.adding') : `Добавить (${filledRows.length})`}
+              {saving ? t('common.adding') : t('materials.addBtnCount', { n: filledRows.length })}
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

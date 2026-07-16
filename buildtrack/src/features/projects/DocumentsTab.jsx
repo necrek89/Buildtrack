@@ -42,7 +42,7 @@ export default function DocumentsTab({ proj }) {
   const upload = async (files) => {
     if (!files?.length) return
     setUploading(true)
-    for (const file of Array.from(files)) {
+    await Promise.all(Array.from(files).map(async (file) => {
       const ext  = file.name.split('.').pop().toLowerCase()
       const path = `docs/${proj.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
       const { error: upErr } = await supabase.storage
@@ -58,7 +58,7 @@ export default function DocumentsTab({ proj }) {
           uploaded_by: profile?.id,
         })
       }
-    }
+    }))
     setUploading(false)
   }
 

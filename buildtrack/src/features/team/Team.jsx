@@ -8,6 +8,7 @@ import { generateMonthlyReport, generateAnnualReport } from './SalaryReportGener
 import { DownloadSimple, FileXls, CalendarBlank, ChartBar, CheckCircle, ClipboardText, Lightning, Wrench, Clock, Trash, CaretUp, CaretDown, File, X } from '@phosphor-icons/react'
 import * as XLSX from 'xlsx'
 import TimesheetModal from './TimesheetModal'
+import { todayStr } from '../../lib/date'
 
 // ─── WORKER STATUS CONFIG ────────────────────────────────────────────────────
 const WORKER_STATUS = {
@@ -58,7 +59,7 @@ export default function Team() {
       fetchAllWorkers()
     })
     if (profile?.role === 'foreman') fetchJoinRequests()
-    useStore.getState().fetchAttendance(new Date().toISOString().slice(0, 10))
+    useStore.getState().fetchAttendance(todayStr())
   }, [])
 
   const invite = async () => {
@@ -70,11 +71,13 @@ export default function Team() {
       .from('profiles').select('id, name, role').eq('email', email.trim().toLowerCase()).single()
     if (error || !worker) { setMsg('User not found. Ask them to register first.'); setLoading(false); return }
     const inserts = allProjects.map(p => ({ project_id: p.id, worker_id: worker.id }))
-    const { error: e2 } = await supabase.from('project_workers').insert(inserts)
+    const { data: added, error: e2 } = await supabase.from('project_workers')
+      .upsert(inserts, { onConflict: 'project_id,worker_id', ignoreDuplicates: true })
+      .select()
     if (e2) {
-      setMsg(e2.code === '23505' ? 'Worker already in team' : 'Error adding worker')
+      setMsg('Error adding worker')
     } else {
-      setMsg(`${worker.name} added!`)
+      setMsg(added?.length ? `${worker.name} added!` : 'Worker already in team')
       fetchAllWorkers(); setEmail('')
     }
     setLoading(false)
@@ -242,7 +245,7 @@ export default function Team() {
       <div className="page-header">
         <h1 className="page-title">{t('team.title')}</h1>
         {profile?.role === 'foreman' && (() => {
-          const today = new Date().toISOString().slice(0, 10)
+          const today = todayStr()
           const todayDone = attendance.filter(a => a.date === today).length > 0
           return (
             <div style={{ display:'flex', gap:6 }}>
@@ -473,7 +476,7 @@ export default function Team() {
                     background: stCfg.dot, border:'2px solid #fff',
                   }} />
                   {(() => {
-                    const today = new Date().toISOString().slice(0, 10)
+                    const today = todayStr()
                     const rec = attendance.find(a => a.worker_id === m.id && a.date === today)
                     if (!rec) return null
                     const dotColor = rec.status === 'present' ? '#16A34A' : rec.status === 'absent' ? '#DC2626' : rec.status === 'sick' ? '#7C3AED' : '#0891B2'
@@ -688,7 +691,7 @@ export default function Team() {
                     const pays     = payments[m.id] || []
                     const paid     = pays.reduce((s, p) => s + p.amount, 0)
                     const balance  = earned - paid
-                    const pf = payForm[m.id] || { date: new Date().toISOString().slice(0, 10), amount: '', notes: '' }
+                    const pf = payForm[m.id] || { date: todayStr(), amount: '', notes: '' }
                     const setPf = patch => setPayForm(f => ({ ...f, [m.id]: { ...pf, ...patch } }))
                     return (
                       <div style={{ marginTop:12, borderTop:'0.5px solid var(--border)', paddingTop:12 }}>
@@ -852,7 +855,7 @@ export default function Team() {
 
                       {/* Add log form */}
                       {showLogForm === m.id && (() => {
-                        const lf = logForm[m.id] || { date: new Date().toISOString().slice(0, 10), type: m.rate_type || 'shift', value: '1', rate: m.default_rate || '', notes: '' }
+                        const lf = logForm[m.id] || { date: todayStr(), type: m.rate_type || 'shift', value: '1', rate: m.default_rate || '', notes: '' }
                         const setLf = (patch) => setLogForm(f => ({ ...f, [m.id]: { ...lf, ...patch } }))
                         return (
                           <div style={{ background: 'var(--bg-subtle,#FAFAF9)', border: '0.5px solid var(--border)', borderRadius: 8, padding: '10px 12px', marginBottom: 10 }}>
@@ -1074,7 +1077,7 @@ export default function Team() {
         </div>
       )}
 
-      {showAttendance && <AttendanceModal onClose={() => { setShowAttendance(false); useStore.getState().fetchAttendance(new Date().toISOString().slice(0, 10)) }} />}
+      {showAttendance && <AttendanceModal onClose={() => { setShowAttendance(false); useStore.getState().fetchAttendance(todayStr()) }} />}
       {showTimesheet && <TimesheetModal onClose={() => setShowTimesheet(false)} />}
     </div>
   )

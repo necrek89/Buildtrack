@@ -219,7 +219,7 @@ function buildMonthlyHTML({ workers, logs, pays, month, year, lang, currSym }) {
       <div class="totals">
         <div class="trow"><span class="tl">${t.accrued}</span><span class="tv">${currSym}${fmt(earned)}</span></div>
         <div class="trow"><span class="tl">${t.paid}</span><span class="tv">${currSym}${fmt(paid)}</span></div>
-        <div class="trow"><span class="tl">${t.debt}</span><span class="tv ${debt > 0 ? 'neg-bg' : debt < 0 ? 'pos-bg' : 'pos-bg'}">${debtStr(debt, currSym)}</span></div>
+        <div class="trow"><span class="tl">${t.debt}</span><span class="tv ${debt > 0 ? 'neg-bg' : 'pos-bg'}">${debtStr(debt, currSym)}</span></div>
       </div>
       ${payRows ? `<div class="pays-list">${payRows}</div>` : ''}
     </div>`
@@ -385,19 +385,34 @@ function buildAnnualHTML({ workers, logs, pays, year, lang, currSym }) {
   </div></body></html>`
 }
 
-// ── Public API ────────────────────────────────────────────────────────────────
-// workerId: optional — if provided, generates report for that worker only
-export async function generateMonthlyReport(month, year, workerId = null) {
+// Opens the report window synchronously (Safari blocks popups opened after an
+// await), writes a loading placeholder, then resolves the worker ids and
+// shared report context. Returns null if the popup was blocked or there are
+// no workers to report on — the write-loading placeholder is replaced with
+// an error message in the latter case.
+async function openReportWindow(workerId) {
   const w = window.open('', '_blank')
-  if (!w) { alert('Разрешите открытие новых вкладок в браузере'); return }
+  if (!w) { alert('Разрешите открытие новых вкладок в браузере'); return null }
   w.document.write('<html><body style="font-family:system-ui;padding:32px;color:#888">Загрузка...</body></html>')
 
   const { profile, projects } = useStore.getState()
   const lang    = localStorage.getItem('tutuu_lang') || 'ru'
   const currSym = currencySymbol(profile?.currency)
 
-  let workerIds = workerId ? [workerId] : await getWorkerIds(profile, projects)
-  if (!workerIds.length) { w.document.write('<html><body style="font-family:system-ui;padding:32px">Нет рабочих</body></html>'); return }
+  const workerIds = workerId ? [workerId] : await getWorkerIds(profile, projects)
+  if (!workerIds.length) {
+    w.document.write('<html><body style="font-family:system-ui;padding:32px">Нет рабочих</body></html>')
+    return null
+  }
+  return { w, workerIds, lang, currSym }
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+// workerId: optional — if provided, generates report for that worker only
+export async function generateMonthlyReport(month, year, workerId = null) {
+  const ctx = await openReportWindow(workerId)
+  if (!ctx) return
+  const { w, workerIds, lang, currSym } = ctx
 
   const start = `${year}-${String(month).padStart(2,'0')}-01`
   const end   = `${year}-${String(month).padStart(2,'0')}-${String(lastDay(year, month)).padStart(2,'0')}`
@@ -411,16 +426,9 @@ export async function generateMonthlyReport(month, year, workerId = null) {
 }
 
 export async function generateAnnualReport(year, workerId = null) {
-  const w = window.open('', '_blank')
-  if (!w) { alert('Разрешите открытие новых вкладок в браузере'); return }
-  w.document.write('<html><body style="font-family:system-ui;padding:32px;color:#888">Загрузка...</body></html>')
-
-  const { profile, projects } = useStore.getState()
-  const lang    = localStorage.getItem('tutuu_lang') || 'ru'
-  const currSym = currencySymbol(profile?.currency)
-
-  let workerIds = workerId ? [workerId] : await getWorkerIds(profile, projects)
-  if (!workerIds.length) { w.document.write('<html><body style="font-family:system-ui;padding:32px">Нет рабочих</body></html>'); return }
+  const ctx = await openReportWindow(workerId)
+  if (!ctx) return
+  const { w, workerIds, lang, currSym } = ctx
 
   const { logs, pays, workers } = await fetchPeriodData(workerIds, `${year}-01-01`, `${year}-12-31`)
   const html = buildAnnualHTML({ workers, logs, pays, year, lang, currSym })

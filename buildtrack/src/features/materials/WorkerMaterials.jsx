@@ -4,17 +4,7 @@ import { useStore } from '../../store/useStore'
 import { useT } from '../../i18n/useLanguage'
 import { Button } from '../../components/UI'
 import MaterialRequestModal from '../../components/MaterialRequestModal'
-
-function timeAgo(dateStr) {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins  = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days  = Math.floor(diff / 86400000)
-  if (mins < 2)  return 'just now'
-  if (mins < 60) return `${mins}m ago`
-  if (hours < 24) return `${hours}h ago`
-  return `${days}d ago`
-}
+import { timeAgo } from '../../lib/timeAgo'
 
 function RequestCard({ req, t }) {
   const [lightbox, setLightbox] = useState(false)

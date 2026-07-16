@@ -324,7 +324,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
             maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
           }}>
             <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 600, fontSize: 15, display:'flex', alignItems:'center', gap:5 }}><Warning size={15} weight="bold" /> Просроченные задачи ({overdueTasks})</span>
+              <span style={{ fontWeight: 600, fontSize: 15, display:'flex', alignItems:'center', gap:5 }}><Warning size={15} weight="bold" /> {t('projects.overdueModalTitle', { n: overdueTasks })}</span>
               <button onClick={() => setShowOverdueModal(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-muted)', lineHeight: 1, display:'flex', alignItems:'center' }}><X size={20} weight="bold" /></button>
             </div>
             <div style={{ overflowY: 'auto', padding: '8px 0' }}>
@@ -349,8 +349,8 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                     <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{task.text}</span>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                       {proj && <span style={{ fontSize: 11, color: 'var(--text-secondary)', background: 'var(--bg,#F9F6F0)', borderRadius: 6, padding: '1px 7px' }}>{proj.name}</span>}
-                      <span style={{ fontSize: 11, color: '#C0392B' }}>просрочено на {daysOverdue} {daysOverdue === 1 ? 'день' : daysOverdue < 5 ? 'дня' : 'дней'}</span>
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>срок: {task.deadline}</span>
+                      <span style={{ fontSize: 11, color: '#C0392B' }}>{t('projects.overdueByDays', { n: daysOverdue })}</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('projects.deadlineColon')} {task.deadline}</span>
                     </div>
                   </button>
                 )
@@ -450,9 +450,11 @@ export default function Projects({ canDelete = true, canEdit = true }) {
   }
 
   const deleteProject = async (id) => {
-    await supabase.from('tasks').delete().eq('project_id', id)
-    await supabase.from('tools').delete().eq('project_id', id)
-    await supabase.from('project_workers').delete().eq('project_id', id)
+    await Promise.all([
+      supabase.from('tasks').delete().eq('project_id', id),
+      supabase.from('tools').delete().eq('project_id', id),
+      supabase.from('project_workers').delete().eq('project_id', id),
+    ])
     await supabase.from('projects').delete().eq('id', id)
     fetchProjects(); fetchTasks(); fetchTools()
     setConfirmId(null)

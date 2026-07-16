@@ -5,25 +5,27 @@ import { useStore } from '../../store/useStore'
 import MaterialModal from '../../components/MaterialModal'
 import { FileXls, FilePdf, Check, Trash, X, CheckCircle, CalendarBlank, ClipboardText, Buildings, HardHat } from '@phosphor-icons/react'
 import * as XLSX from 'xlsx'
+import { todayStr, toLocalDateStr } from '../../lib/date'
+import { openPrintWindow } from '../../lib/printReport'
 
-function fmtCreatedAt(dateStr) {
+function fmtCreatedAt(dateStr, t, locale) {
   if (!dateStr) return ''
   const d = new Date(dateStr)
   const now = new Date()
   const diffMins = Math.floor((now - d) / 60000)
-  if (diffMins < 2)   return 'только что'
-  if (diffMins < 60)  return `${diffMins} мин`
-  if (diffMins < 120) return '1 час назад'
+  if (diffMins < 2)   return t('procurement.justNow')
+  if (diffMins < 60)  return t('procurement.minAgo', { n: diffMins })
+  if (diffMins < 120) return t('procurement.hourAgo')
   if (d.toDateString() === now.toDateString())
-    return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+    return d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
   if (d.getFullYear() === now.getFullYear())
-    return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
+    return d.toLocaleDateString(locale, { day: 'numeric', month: 'short' })
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 // ─── PROCUREMENT (unified foreman + worker requests) ─────────────────────────
 export default function Procurement({ canDelete = true, canEdit = true }) {
-  const { t } = useT()
+  const { t, lang } = useT()
   const { materials, projects, fetchProjects, fetchMaterials, role, profile,
           markMaterialPurchased, markMaterialNeeded, deleteMaterial,
           materialRequests, fetchMaterialRequests,
@@ -53,6 +55,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
       unit:        m.unit,
       notes:       m.note,
       reportedBy:  m.reportedBy,
+      reportedById: m.reportedById,
       taskName:    m.taskText || null,
       photo:       null,
       createdAt:   m.createdAt,
@@ -70,6 +73,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
       unit:        r.unit,
       notes:       r.notes,
       reportedBy:  r.worker_name,
+      reportedById: r.worker_id,
       taskName:    r.task?.text || null,
       photo:       r.photo_url,
       createdAt:   r.created_at,
@@ -99,19 +103,19 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
   const groupByDate = filter === 'purchased'
 
   const fmtDay = (iso) => {
-    if (!iso) return 'Дата неизвестна'
+    if (!iso) return t('procurement.dateUnknown')
     const d = new Date(iso)
     const today = new Date(); today.setHours(0,0,0,0)
     const yesterday = new Date(today); yesterday.setDate(today.getDate()-1)
-    if (d >= today) return 'Сегодня'
-    if (d >= yesterday) return 'Вчера'
-    return d.toLocaleDateString('ru-RU', { day:'numeric', month:'long', year:'numeric' })
+    if (d >= today) return t('procurement.today')
+    if (d >= yesterday) return t('procurement.yesterday')
+    return d.toLocaleDateString(lang, { day:'numeric', month:'long', year:'numeric' })
   }
 
   const groupMap = {}
   for (const item of filtered) {
     const key = groupByDate
-      ? (item.purchasedAt ? new Date(item.purchasedAt).toISOString().slice(0,10) : '__unknown__')
+      ? (item.purchasedAt ? toLocalDateStr(item.purchasedAt) : '__unknown__')
       : item.projectId
     if (!groupMap[key]) groupMap[key] = []
     groupMap[key].push(item)
@@ -150,7 +154,8 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
 
   const deleteItem = (item) => {
     if (item.type === 'material') {
-      if (role === 'foreman' || item.reportedBy === profile?.name) deleteMaterial(item.id)
+      const isOwner = item.reportedById ? item.reportedById === profile?.id : item.reportedBy === profile?.name
+      if (role === 'foreman' || isOwner) deleteMaterial(item.id)
     } else {
       deleteMaterialRequest(item.raw.id)
     }
@@ -159,7 +164,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
   // ── XLSX export ───────────────────────────────────────────────────────────
   const exportPurchased = () => {
     const purchased = allItems.filter(i => i.isPurchased)
-    if (!purchased.length) { alert('Нет купленных материалов для экспорта'); return }
+    if (!purchased.length) { alert(t('procurement.noPurchasesToExport')); return }
 
     const sorted = [...purchased].sort((a, b) => {
       if (!a.purchasedAt && !b.purchasedAt) return 0
@@ -169,14 +174,15 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
     })
 
     const fmtDate = (iso) => iso
-      ? new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
+      ? new Date(iso).toLocaleDateString(lang, { day: 'numeric', month: 'short', year: 'numeric' })
       : '—'
 
     const wb = XLSX.utils.book_new()
 
     // ── Sheet 1: all purchases ──────────────────────────────────────────────
     const rows = [
-      ['Дата покупки', 'Наименование', 'Кол-во', 'Ед. изм.', 'Объект', 'Кто запросил', 'Источник', 'Заметки'],
+      [t('procurement.colDate'), t('procurement.colName'), t('procurement.colQty'), t('procurement.colUnit'),
+       t('procurement.colProject'), t('procurement.colRequestedBy'), t('procurement.colSource'), t('procurement.colNotes')],
     ]
     for (const item of sorted) {
       const projName = projects.find(p => String(p.id) === item.projectId)?.name || '—'
@@ -187,27 +193,27 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
         item.unit ?? '',
         projName,
         item.reportedBy || '—',
-        item.type === 'request' ? 'Рабочий' : 'Прораб',
+        item.type === 'request' ? t('procurement.workerSource') : t('procurement.foremanSource'),
         item.notes || '',
       ])
     }
     const ws1 = XLSX.utils.aoa_to_sheet(rows)
     ws1['!cols'] = [{ wch:14 }, { wch:28 }, { wch:8 }, { wch:8 }, { wch:22 }, { wch:18 }, { wch:10 }, { wch:30 }]
-    XLSX.utils.book_append_sheet(wb, ws1, 'Закупки')
+    XLSX.utils.book_append_sheet(wb, ws1, t('procurement.sheetPurchases'))
 
     // ── Sheet 2: summary by project ─────────────────────────────────────────
     const byProj = {}
     for (const item of sorted) {
-      const projName = projects.find(p => String(p.id) === item.projectId)?.name || 'Без объекта'
+      const projName = projects.find(p => String(p.id) === item.projectId)?.name || t('procurement.colProject')
       if (!byProj[projName]) byProj[projName] = { total: 0, foreman: 0, worker: 0 }
       byProj[projName].total++
       if (item.type === 'request') byProj[projName].worker++
       else byProj[projName].foreman++
     }
     const sumRows = [
-      ['Объект', 'Всего позиций', 'От прораба', 'От рабочих'],
+      [t('procurement.colProject'), t('procurement.colTotalItems'), t('procurement.colFromForeman'), t('procurement.colFromWorkers')],
       ...Object.entries(byProj).map(([name, d]) => [name, d.total, d.foreman, d.worker]),
-      ['ИТОГО',
+      [t('procurement.totalRow'),
         sorted.length,
         sorted.filter(i => i.type === 'material').length,
         sorted.filter(i => i.type === 'request').length,
@@ -215,17 +221,13 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
     ]
     const ws2 = XLSX.utils.aoa_to_sheet(sumRows)
     ws2['!cols'] = [{ wch:24 }, { wch:14 }, { wch:12 }, { wch:14 }]
-    XLSX.utils.book_append_sheet(wb, ws2, 'По объектам')
+    XLSX.utils.book_append_sheet(wb, ws2, t('procurement.sheetByProject'))
 
-    XLSX.writeFile(wb, `закупки_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    XLSX.writeFile(wb, `${t('procurement.filenamePrefix')}_${todayStr()}.xlsx`)
   }
 
   // ── PDF / Print report ────────────────────────────────────────────────────
   const printPurchased = () => {
-    // Must open window synchronously — mobile Safari blocks popup after async
-    const w = window.open('', '_blank')
-    if (!w) { alert('Разрешите открытие новых вкладок в браузере'); return }
-
     const purchased = allItems.filter(i => i.isPurchased)
     const sorted = [...purchased].sort((a, b) => {
       if (!a.purchasedAt && !b.purchasedAt) return 0
@@ -235,13 +237,13 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
     })
 
     const fmtDate = (iso) => iso
-      ? new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+      ? new Date(iso).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' })
       : '—'
 
     // Group by project
     const projMap = {}
     for (const item of sorted) {
-      const projName = projects.find(p => String(p.id) === item.projectId)?.name || 'Без объекта'
+      const projName = projects.find(p => String(p.id) === item.projectId)?.name || t('procurement.colProject')
       if (!projMap[projName]) projMap[projName] = []
       projMap[projName].push(item)
     }
@@ -255,28 +257,23 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
           <td>${item.name}</td>
           <td class="col-qty">${item.qty != null ? item.qty : ''}${item.unit ? ' ' + item.unit : ''}</td>
           <td class="col-who">${item.reportedBy || '—'}</td>
-          <td class="col-src">${item.type === 'request' ? '👷 Рабочий' : 'Прораб'}</td>
+          <td class="col-src">${item.type === 'request' ? '👷 ' + t('procurement.workerSource') : t('procurement.foremanSource')}</td>
           <td class="col-notes">${item.notes || ''}</td>
         </tr>`).join('')
       return `
         <tr class="proj-row">
-          <td colspan="7">🏗 ${projName} <span class="proj-count">${items.length} поз.</span></td>
+          <td colspan="7">🏗 ${projName} <span class="proj-count">${items.length} ${t('procurement.itemsSuffix')}</span></td>
         </tr>
         ${itemRows}`
     }).join('')
 
-    const today = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
-    const html = `<!DOCTYPE html><html><head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width,initial-scale=1">
-      <title>Отчёт по закупкам</title>
-      <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; font-size: 12px; color: #1C1917; padding: 24px; }
-        .top-bar { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 20px; }
-        .btn { padding: 8px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; font-family: inherit; font-weight: 500; }
-        .btn-primary { background: #EA580C; color: #fff; }
-        .btn-secondary { background: #F0EEE8; color: #1C1917; }
+    const today = new Date().toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' })
+
+    const w = openPrintWindow({
+      title: t('procurement.reportTitle'),
+      saveLabel: t('procurement.savePdfBtn'),
+      closeLabel: t('procurement.closeBtn'),
+      style: `
         .rpt-header { margin-bottom: 18px; border-bottom: 2px solid #000; padding-bottom: 10px; }
         h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
         .meta { font-size: 11px; color: #666; }
@@ -296,46 +293,35 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
         .proj-row td { background: #E8E4DC; font-weight: 700; font-size: 12px; padding: 6px 10px; }
         .proj-count { font-weight: 400; color: #666; font-size: 11px; margin-left: 8px; }
         .footer { margin-top: 14px; font-size: 10px; color: #aaa; text-align: right; }
-        @media print {
-          .top-bar { display: none !important; }
-          body { padding: 10px; }
-          @page { margin: 15mm; }
-        }
-      </style>
-    </head><body>
-      <div class="top-bar">
-        <button class="btn btn-primary" onclick="window.print()">Сохранить как PDF</button>
-        <button class="btn btn-secondary" onclick="window.close()">Закрыть</button>
-      </div>
-      <div class="rpt-header">
-        <h1>Отчёт по закупкам</h1>
-        <div class="meta">Сформировано: ${today}</div>
-      </div>
-      <div class="summary">
-        <div class="chip"><div class="cl">Всего куплено</div><div class="cv">${sorted.length}</div></div>
-        <div class="chip"><div class="cl">Объектов</div><div class="cv">${Object.keys(projMap).length}</div></div>
-        <div class="chip"><div class="cl">От рабочих</div><div class="cv">${sorted.filter(i => i.type === 'request').length}</div></div>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th class="col-num">№</th>
-            <th class="col-date">Дата покупки</th>
-            <th>Наименование</th>
-            <th class="col-qty">Кол-во / Ед.</th>
-            <th class="col-who">Кто запросил</th>
-            <th class="col-src">Источник</th>
-            <th class="col-notes">Заметки</th>
-          </tr>
-        </thead>
-        <tbody>${tableRows}</tbody>
-      </table>
-      <div class="footer">tutuu.net · ${today}</div>
-    </body></html>`
-
-    w.document.open()
-    w.document.write(html)
-    w.document.close()
+      `,
+      body: `
+        <div class="rpt-header">
+          <h1>${t('procurement.reportTitle')}</h1>
+          <div class="meta">${t('procurement.generatedOn')} ${today}</div>
+        </div>
+        <div class="summary">
+          <div class="chip"><div class="cl">${t('procurement.statTotalPurchased')}</div><div class="cv">${sorted.length}</div></div>
+          <div class="chip"><div class="cl">${t('procurement.statProjects')}</div><div class="cv">${Object.keys(projMap).length}</div></div>
+          <div class="chip"><div class="cl">${t('procurement.statFromWorkers')}</div><div class="cv">${sorted.filter(i => i.type === 'request').length}</div></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th class="col-num">№</th>
+              <th class="col-date">${t('procurement.colDate')}</th>
+              <th>${t('procurement.colName')}</th>
+              <th class="col-qty">${t('procurement.colQtyUnit')}</th>
+              <th class="col-who">${t('procurement.colRequestedBy')}</th>
+              <th class="col-src">${t('procurement.colSource')}</th>
+              <th class="col-notes">${t('procurement.colNotes')}</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+        <div class="footer">tutuu.net · ${today}</div>
+      `,
+    })
+    if (!w) alert(t('procurement.allowPopups'))
   }
 
   return (
@@ -352,7 +338,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
               border:'0.5px solid var(--border-medium,#D9D0C7)',
               fontSize:12, fontWeight:500, fontFamily:'inherit',
             }}
-            title="Скачать отчёт по закупкам (.xlsx)"
+            title={t('procurement.xlsxTitle')}
           >
             <FileXls size={15} weight="bold" />
             .xlsx
@@ -366,7 +352,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
               border:'0.5px solid var(--border-medium,#D9D0C7)',
               fontSize:12, fontWeight:500, fontFamily:'inherit',
             }}
-            title="Открыть отчёт для печати / PDF"
+            title={t('procurement.pdfTitle')}
           >
             <FilePdf size={15} weight="bold" />
             PDF
@@ -430,7 +416,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
             <h3>{g.label}</h3>
             {groupByDate && (
               <span style={{ fontSize:11, color:'#B8AFA6', marginLeft:4 }}>
-                {g.items.length} позиц{g.items.length === 1 ? 'ия' : g.items.length < 5 ? 'ии' : 'ий'}
+                {g.items.length} {t('procurement.itemsSuffix')}
               </span>
             )}
             {!groupByDate && g.openCount > 0 && (
@@ -510,11 +496,11 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
                     )}
                     {item.isPurchased && item.purchasedAt ? (
                       <span style={{ fontSize:11, color:'#3D7A52', marginLeft:'auto', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}>
-                        <Check size={11} weight="bold" /> {new Date(item.purchasedAt).toLocaleDateString('ru-RU', { day:'numeric', month:'short' })}
+                        <Check size={11} weight="bold" /> {new Date(item.purchasedAt).toLocaleDateString(lang, { day:'numeric', month:'short' })}
                       </span>
                     ) : (
                       <span style={{ fontSize:11, color:'#C8C0B8', marginLeft:'auto' }}>
-                        {fmtCreatedAt(item.createdAt)}
+                        {fmtCreatedAt(item.createdAt, t, lang)}
                       </span>
                     )}
                   </div>

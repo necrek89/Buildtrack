@@ -8,10 +8,12 @@ import ConfirmModal from '../../components/ConfirmModal'
 import { SortableStageList } from '../tasks/SortableStage'
 import { FileText, UploadSimple, DownloadSimple, Printer, ChatCircle, MapPin, CalendarBlank, Wrench, X } from '@phosphor-icons/react'
 import * as XLSX from 'xlsx'
+import { todayStr } from '../../lib/date'
+import { buildReportHtml } from '../../lib/printReport'
 
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
 export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], team = [] }) {
-  const { t } = useT()
+  const { t, lang } = useT()
   const { tasks, fetchTasks, addTask, deleteTask, approveTask, rejectTask, updateProject, updateTask,
           pendingOpenTaskId, setPendingOpenTask, profile } = useStore()
   const [filter,       setFilter]       = useState('all')
@@ -59,6 +61,23 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
     '#C96B3A','#5A9467','#4A7FC1','#D4A843','#9B6B9B',
     '#E07B6A','#6BAA8E','#7B8EC8','#A67C52','#3A5FAB',
   ]
+
+  // Group tasks by stage, ordered by proj.stages first, then any extra
+  // stages found only in tasks, with no-stage tasks last. Used by both the
+  // .xlsx export and the print report (only stages with tasks are included).
+  const groupTasksByStage = (taskList) => {
+    const map = {}
+    taskList.forEach(tk => {
+      const key = tk.stage || '—'
+      if (!map[key]) map[key] = []
+      map[key].push(tk)
+    })
+    const taskStageKeys = Object.keys(map)
+    const ordered = projStages.filter(s => taskStageKeys.includes(s))
+    const extra   = taskStageKeys.filter(s => s !== '—' && !projStages.includes(s))
+    const all     = [...ordered, ...extra, ...(taskStageKeys.includes('—') ? ['—'] : [])]
+    return all.map((stage, i) => ({ stage, num: i + 1, items: sortTasks(map[stage] || []) }))
+  }
 
   // Build ordered stage list: proj.stages order first, then any task stages not in list
   const stageGroups = (() => {
@@ -240,46 +259,36 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
       await updateProject(proj.id, { stages: newStages })
     }
     // Insert tasks
-    for (const row of importPreview) {
-      await addTask({
-        text: row.text,
-        description: row.description || null,
-        stage: row.stage || null,
-        unit: row.unit || null,
-        quantity: row.quantity,
-        cost: row.cost,
-        currency: row.currency || '$',
-        project_id: proj.id,
-        status: 'new',
-        priority: 'normal',
-      })
-    }
+    await Promise.all(importPreview.map(row => addTask({
+      text: row.text,
+      description: row.description || null,
+      stage: row.stage || null,
+      unit: row.unit || null,
+      quantity: row.quantity,
+      cost: row.cost,
+      currency: row.currency || '$',
+      project_id: proj.id,
+      status: 'new',
+      priority: 'normal',
+    })))
     await fetchTasks(proj.id)
     setImportPreview(null)
   }
 
   const exportXLSX = () => {
-    const STATUS_RU = { new: 'Новая', pending: 'На проверке', approved: 'Выполнена', rejected: 'Отклонена' }
+    const STATUS_LABEL = {
+      new: t('procTasks.statusNew'), pending: t('procTasks.statusPending'),
+      approved: t('procTasks.statusApproved'), rejected: t('procTasks.statusRejected'),
+    }
 
-    const allGroups = (() => {
-      const map = {}
-      pTasks.forEach(tk => {
-        const key = tk.stage || '—'
-        if (!map[key]) map[key] = []
-        map[key].push(tk)
-      })
-      const taskStageKeys = Object.keys(map)
-      const ordered = projStages.filter(s => taskStageKeys.includes(s))
-      const extra   = taskStageKeys.filter(s => s !== '—' && !projStages.includes(s))
-      const all     = [...ordered, ...extra, ...(taskStageKeys.includes('—') ? ['—'] : [])]
-      return all.map((stage, i) => ({ stage, num: i + 1, items: sortTasks(map[stage] || []) }))
-    })()
+    const allGroups = groupTasksByStage(pTasks)
 
     const wb = XLSX.utils.book_new()
 
     // ── Sheet 1: Tasks ────────────────────────────────────────────────────────
     const rows = [
-      ['№', 'Этап', 'Наименование работы', 'Описание', 'Ед. изм.', 'Кол-во', 'Цена', 'Валюта', 'Статус'],
+      [t('procTasks.colNum'), t('procTasks.colStage'), t('procTasks.colName'), t('procTasks.colDesc'),
+       t('procTasks.colUnit'), t('procTasks.colQty'), t('procTasks.colCost'), t('procTasks.colCurrency'), t('procTasks.colStatus')],
     ]
     let num = 1
     for (const { stage, items } of allGroups) {
@@ -293,7 +302,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
           tk.quantity != null ? Number(tk.quantity) : '',
           tk.cost    != null ? Number(tk.cost)     : '',
           tk.currency || '',
-          STATUS_RU[tk.status] || tk.status,
+          STATUS_LABEL[tk.status] || tk.status,
         ])
       }
     }
@@ -313,11 +322,11 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
       { wch: 14 },  // Статус
     ]
 
-    XLSX.utils.book_append_sheet(wb, ws, 'Задачи')
+    XLSX.utils.book_append_sheet(wb, ws, t('procTasks.sheetTasks'))
 
     // ── Sheet 2: Summary by stage ─────────────────────────────────────────────
     const summaryRows = [
-      ['Этап', 'Всего задач', 'Выполнено', 'На проверке', 'Активных', 'Сумма'],
+      [t('procTasks.colStage'), t('procTasks.colTotalTasks'), t('procTasks.colDone'), t('procTasks.colPending'), t('procTasks.colActive'), t('procTasks.colSum')],
     ]
     for (const { stage, items } of allGroups) {
       const done    = items.filter(t => t.status === 'approved').length
@@ -328,10 +337,10 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
     }
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows)
     wsSummary['!cols'] = [{ wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 12 }]
-    XLSX.utils.book_append_sheet(wb, wsSummary, 'Сводка по этапам')
+    XLSX.utils.book_append_sheet(wb, wsSummary, t('procTasks.sheetSummary'))
 
-    const date = new Date().toLocaleDateString('ru-RU').replace(/\./g, '-')
-    XLSX.writeFile(wb, `${proj.name}_задачи_${date}.xlsx`)
+    const date = todayStr()
+    XLSX.writeFile(wb, `${proj.name}_${t('procTasks.filenameSuffix')}_${date}.xlsx`)
   }
 
   const [printWithComments, setPrintWithComments] = useState(true)
@@ -341,8 +350,8 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
   const printTasks = async () => {
     // Must open window synchronously (before any await) — mobile Safari blocks popup if called after async
     const w = window.open('', '_blank')
-    if (!w) { alert('Разрешите открытие новых вкладок в браузере'); return }
-    w.document.write('<html><body style="font-family:system-ui;padding:32px;color:#888">Загрузка...</body></html>')
+    if (!w) { alert(t('procTasks.allowPopups')); return }
+    w.document.write(`<html><body style="font-family:system-ui;padding:32px;color:#888">${t('procTasks.loadingMsg')}</body></html>`)
 
     setPrinting(true)
 
@@ -360,19 +369,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
       })
     }
 
-    const allGroups = (() => {
-      const map = {}
-      pTasks.forEach(tk => {
-        const key = tk.stage || '—'
-        if (!map[key]) map[key] = []
-        map[key].push(tk)
-      })
-      const taskStageKeys = Object.keys(map)
-      const ordered = projStages.filter(s => taskStageKeys.includes(s))
-      const extra = taskStageKeys.filter(s => s !== '—' && !projStages.includes(s))
-      const all = [...ordered, ...extra, ...(taskStageKeys.includes('—') ? ['—'] : [])]
-      return all.map((stage, i) => ({ stage, num: i + 1, items: sortTasks(map[stage] || []) }))
-    })()
+    const allGroups = groupTasksByStage(pTasks)
 
     let globalRow = 1
     const rows = allGroups.map(({ stage, num, items }) => {
@@ -385,7 +382,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
               <div class="comment">
                 <span class="comment-meta">
                   💬 <strong>${c.author_name || '—'}</strong>
-                  <span class="comment-date">${new Date(c.created_at).toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' })}</span>
+                  <span class="comment-date">${new Date(c.created_at).toLocaleDateString(lang, { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' })}</span>
                 </span>
                 <div class="comment-text">${c.text}</div>
               </div>`).join('')}
@@ -399,7 +396,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
           </td>
           <td class="col-unit">${tk.unit || ''}</td>
           <td class="col-qty">${tk.quantity != null ? tk.quantity : ''}</td>
-          <td class="col-cost">${tk.cost != null ? `${Number(tk.cost).toLocaleString('ru-RU')} ${tk.currency || ''}` : ''}</td>
+          <td class="col-cost">${tk.cost != null ? `${Number(tk.cost).toLocaleString(lang)} ${tk.currency || ''}` : ''}</td>
         </tr>`
       }).join('')
       return `
@@ -411,16 +408,13 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
 
     const totalComments = Object.values(commentsMap).reduce((s, a) => s + a.length, 0)
 
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
-      <meta name="viewport" content="width=device-width,initial-scale=1">
-      <title>${proj.name}</title>
-      <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; font-size: 12px; color: #000; padding: 24px; }
-        .top-bar { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 24px; }
-        .btn { padding: 8px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; font-family: inherit; font-weight: 500; }
-        .btn-primary { background: #EA580C; color: #fff; }
-        .btn-secondary { background: #F0EEE8; color: #1C1917; }
+    const html = buildReportHtml({
+      title: proj.name,
+      saveLabel: t('procTasks.savePdfBtn'),
+      closeLabel: t('procTasks.closeBtn'),
+      style: `
+        body { color: #000; }
+        .top-bar { margin-bottom: 24px; }
         h1 { font-size: 16px; font-weight: bold; margin-bottom: 2px; }
         .meta { font-size: 11px; color: #555; margin-bottom: 16px; }
         table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; }
@@ -439,38 +433,30 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
         .comment-date { color: #999; margin-left: 6px; }
         .comment-text { font-size: 11px; color: #333; line-height: 1.4; white-space: pre-wrap; }
         .footer { margin-top: 16px; font-size: 10px; color: #aaa; text-align: right; }
-        @media print {
-          .top-bar { display: none !important; }
-          body { padding: 10px; }
-          @page { margin: 15mm; }
-        }
-      </style>
-    </head><body>
-      <div class="top-bar">
-        <button class="btn btn-primary" onclick="window.print()">Сохранить как PDF</button>
-        <button class="btn btn-secondary" onclick="window.close()">Закрыть</button>
-      </div>
-      <h1>${proj.name}</h1>
-      <div class="meta">
-        ${proj.address ? proj.address + ' · ' : ''}
-        ${proj.deadline ? 'Срок: ' + proj.deadline + ' · ' : ''}
-        Задач: ${pTasks.length}
-        ${totalComments > 0 ? ` · Комментариев: ${totalComments}` : ''}
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th class="col-num">№</th>
-            <th>Наименование работы</th>
-            <th class="col-unit">Ед. изм.</th>
-            <th class="col-qty">Кол-во</th>
-            <th class="col-cost">Сумма</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-      <div class="footer">Tutuu · ${new Date().toLocaleDateString('ru-RU')}</div>
-    </body></html>`
+      `,
+      body: `
+        <h1>${proj.name}</h1>
+        <div class="meta">
+          ${proj.address ? proj.address + ' · ' : ''}
+          ${proj.deadline ? t('procTasks.deadlineLabel') + ' ' + proj.deadline + ' · ' : ''}
+          ${t('procTasks.tasksLabel')} ${pTasks.length}
+          ${totalComments > 0 ? ` · ${t('procTasks.commentsLabel')} ${totalComments}` : ''}
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th class="col-num">№</th>
+              <th>${t('procTasks.colName')}</th>
+              <th class="col-unit">${t('procTasks.colUnit')}</th>
+              <th class="col-qty">${t('procTasks.colQty')}</th>
+              <th class="col-cost">${t('procTasks.colSum')}</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="footer">Tutuu · ${new Date().toLocaleDateString(lang)}</div>
+      `,
+    })
 
     setPrinting(false)
     w.document.open()
@@ -581,7 +567,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
                 {[
                   canEdit && { icon: <FileText size={15} weight="bold" />,    label: t('tasks.menuTemplate'),  action: () => downloadTemplate() },
                   canEdit && { icon: <UploadSimple size={15} weight="bold" />, label: t('tasks.menuImport'),    action: () => importRef.current?.click() },
-                  { icon: <DownloadSimple size={15} weight="bold" />,          label: 'Скачать .xlsx',          action: () => exportXLSX() },
+                  { icon: <DownloadSimple size={15} weight="bold" />,          label: t('tasks.menuXlsx'),      action: () => exportXLSX() },
                   { icon: <Printer size={15} weight="bold" />,                 label: printing ? '...' : t('tasks.menuPrint'), action: () => !printing && printTasks() },
                   {
                     icon: <ChatCircle size={15} weight="bold" />,

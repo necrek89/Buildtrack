@@ -102,7 +102,8 @@ function TaskMaterialSection({ task }) {
   const handleDelete = (id) => {
     const m = materials.find(x => x.id === id)
     if (!m) return
-    if (role === 'foreman' || m.reportedBy === profile?.name) deleteMaterial(id)
+    const isOwner = m.reportedById ? m.reportedById === profile?.id : m.reportedBy === profile?.name
+    if (role === 'foreman' || isOwner) deleteMaterial(id)
   }
 
   return (
@@ -150,7 +151,7 @@ function TaskMaterialSection({ task }) {
 // ─── TASK ACCORDION CARD ─────────────────────────────────────────────────────
 export default function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApprove, onReject, onMarkDone, showProject, projects }) {
   const { t: tr } = useT()
-  const { role, addMaterialRequest, tasks: storeTasks } = useStore()
+  const { role, profile, addMaterialRequest, tasks: storeTasks } = useStore()
   const isOpen = openId === t.id
   const projName = showProject && projects ? projects.find(p => p.id === t.project_id)?.name : null
 
