@@ -277,17 +277,17 @@ export default function App() {
     )
   }
 
-  // Онбординг — первый запуск
-  if (onboarding) return (
-    <OnboardingScreen onDone={() => setOnboarding(false)} />
-  )
-
   // Password recovery — shown when user opens reset link from email
   if (recovering) return (
     <ResetPasswordPage onDone={() => { setRecovering(false); setAuthed(false) }} />
   )
 
   if (!authed) return <LoginPage onLogin={handleLogin} />
+
+  // Онбординг — показываем после логина, чтобы 5-й слайд мог включить уведомления
+  if (onboarding) return (
+    <OnboardingScreen onDone={() => setOnboarding(false)} />
+  )
 
   const navItems = (NAV[role] || NAV.worker).map(item => ({
     ...item,
