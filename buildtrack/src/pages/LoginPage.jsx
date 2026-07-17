@@ -34,6 +34,7 @@ export default function LoginPage({ onLogin }) {
       if (!form.name) { setError(t('auth.errFillName')); return }
       const { error } = await signUp(form.email, form.password, form.name, form.role)
       if (error) { setError(t('auth.errSignupFailed')); return }
+      localStorage.removeItem('tutuu_onboarded')
       setSuccess(t('auth.successCreated'))
       switchMode('login')
     }
