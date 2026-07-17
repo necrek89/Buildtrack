@@ -9,6 +9,53 @@ import MaterialModal from '../../components/MaterialModal'
 import { TaskMedia } from '../tasks/TaskCard'
 import { timeAgo } from '../../lib/timeAgo'
 
+function JoinCrewCard({ t }) {
+  const { sendJoinRequest } = useStore()
+  const [code, setCode]       = useState('')
+  const [msg, setMsg]         = useState('')
+  const [ok, setOk]           = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const send = async () => {
+    if (!code.trim() || loading) return
+    setLoading(true); setMsg('')
+    let invite = code.trim()
+    if (invite.includes('?join=')) invite = invite.split('?join=')[1]
+    const { error, foremanName } = await sendJoinRequest(invite)
+    setLoading(false)
+    if (error) { setMsg(error); setOk(false) }
+    else { setMsg(t('account.msgRequestSent', { name: foremanName })); setOk(true) }
+    setCode('')
+  }
+
+  return (
+    <div style={{ margin:'24px 0', padding:'28px 24px', background:'var(--surface)', border:'1.5px dashed var(--border-medium)', borderRadius:20, textAlign:'center' }}>
+      <div style={{ fontSize:44, marginBottom:14 }}>👷</div>
+      <div style={{ fontSize:18, fontWeight:700, color:'var(--text-primary)', marginBottom:8 }}>{t('tasks.joinCrewTitle')}</div>
+      <div style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.6, maxWidth:300, margin:'0 auto 20px' }}>{t('tasks.joinCrewDesc')}</div>
+      <div style={{ display:'flex', gap:8, maxWidth:340, margin:'0 auto' }}>
+        <input
+          className="form-input"
+          placeholder={t('account.inviteCodePlaceholder')}
+          value={code}
+          onChange={e => setCode(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && send()}
+          style={{ flex:1 }}
+        />
+        <Button variant="primary" onClick={send} disabled={loading}>
+          {loading ? '...' : t('account.sendRequestBtn')}
+        </Button>
+      </div>
+      {msg && (
+        <div style={{ marginTop:12, fontSize:13, color: ok ? '#3D7A52' : '#A32D2D', background: ok ? '#F0FAF4' : '#FCEBEB', padding:'8px 14px', borderRadius:8, maxWidth:340, margin:'12px auto 0' }}>
+          {msg}
+        </div>
+      )}
+      <div style={{ marginTop:16, fontSize:12, color:'var(--text-secondary)' }}>{t('tasks.joinCrewNote')}</div>
+    </div>
+  )
+}
+
 // ─── MY TASKS (worker) ───────────────────────────────────────────────────────
 export default function MyTasks() {
   const { t } = useT()
@@ -109,7 +156,8 @@ export default function MyTasks() {
         <button className={`filter-btn ${filter==='all'     ?'active':''}`} onClick={() => setFilter('all')}>{t('tasks.filterAll')}</button>
       </div>
 
-      {filtered.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
+      {mine.length === 0 && <JoinCrewCard t={t} />}
+      {mine.length > 0 && filtered.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
 
       <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
         {stageGroups.map(({ stage, items }, gi) => {

@@ -475,13 +475,41 @@ export default function Projects({ canDelete = true, canEdit = true }) {
             <h1 className="page-title">{t('projects.title')}</h1>
             {canEdit && <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('projects.add')}</Button>}
           </div>
-          <ProjectCardList
-            onSelect={(id) => setSelectedProject(id)}
-            onEdit={canEdit ? openEdit : null}
-            onDelete={canDelete ? (id) => setConfirmId(id) : null}
-            onComplete={canEdit ? completeProject : null}
-            onReopen={canEdit ? reopenProject : null}
-          />
+          {canEdit && projects.length === 0 ? (
+            <div style={{ margin:'32px 0', padding:'32px 24px', background:'var(--surface)', border:'1.5px dashed var(--border-medium)', borderRadius:20, textAlign:'center' }}>
+              <div style={{ fontSize:48, marginBottom:16 }}>🏗️</div>
+              <div style={{ fontSize:20, fontWeight:700, color:'var(--text-primary)', marginBottom:10 }}>{t('projects.welcomeTitle')}</div>
+              <div style={{ fontSize:14, color:'var(--text-secondary)', lineHeight:1.6, maxWidth:320, margin:'0 auto 24px' }}>{t('projects.welcomeDesc')}</div>
+              <div style={{ display:'flex', flexDirection:'column', gap:12, maxWidth:280, margin:'0 auto' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10, background:'var(--bg)', borderRadius:12, padding:'10px 14px', textAlign:'left' }}>
+                  <span style={{ fontSize:20 }}>1️⃣</span>
+                  <span style={{ fontSize:13, color:'var(--text-primary)', fontWeight:500 }}>{t('projects.add')} → {t('projects.stagesLabel')}</span>
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:10, background:'var(--bg)', borderRadius:12, padding:'10px 14px', textAlign:'left' }}>
+                  <span style={{ fontSize:20 }}>2️⃣</span>
+                  <span style={{ fontSize:13, color:'var(--text-primary)', fontWeight:500 }}>{t('tasks.add')} → {t('team.title')}</span>
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:10, background:'var(--bg)', borderRadius:12, padding:'10px 14px', textAlign:'left' }}>
+                  <span style={{ fontSize:20 }}>3️⃣</span>
+                  <span style={{ fontSize:13, color:'var(--text-primary)', fontWeight:500 }}>{t('account.joinForemanSection')} → {t('nav.team')}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAdd(true)}
+                style={{ marginTop:28, padding:'14px 32px', borderRadius:14, background:'var(--accent)', color:'#fff', border:'none', fontSize:15, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 16px rgba(201,107,58,0.3)' }}
+              >
+                {t('projects.createFirstBtn')}
+              </button>
+            </div>
+          ) : (
+            <ProjectCardList
+              onSelect={(id) => setSelectedProject(id)}
+              onEdit={canEdit ? openEdit : null}
+              onDelete={canDelete ? (id) => setConfirmId(id) : null}
+              onComplete={canEdit ? completeProject : null}
+              onReopen={canEdit ? reopenProject : null}
+            />
+          )}
         </>
       ) : (
         <ProjectDetail
