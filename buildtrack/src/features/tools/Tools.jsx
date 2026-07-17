@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Wrench } from '@phosphor-icons/react'
 import { Badge, Button, FormGroup, IconButton, EmptyState } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore, TOOL_STATUS_BADGE, TOOL_STATUS_LABEL } from '../../store/useStore'
@@ -105,19 +106,19 @@ export default function Tools({ canAdd, canDelete = true }) {
           const isAssigned = tool.project_id || tool.worker_id
           return (
             <div className="tool-row" key={tool.id} style={{ alignItems:'flex-start', padding:'12px 14px' }}>
-              <div className="tool-icon" style={{ marginTop:2 }}>🔧</div>
+              <div className="tool-icon" style={{ marginTop:2 }}><Wrench size={18} weight="bold" /></div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div className="tool-name">{tool.name}</div>
                 {tool.location && <div className="tool-loc">{tool.location}</div>}
                 <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginTop:5 }}>
-                  {pName && <span style={{ fontSize:10, background:'var(--accent-light,#FAECE4)', color:'#C96B3A', borderRadius:6, padding:'2px 8px', fontWeight:600 }}>🏗 {pName}</span>}
-                  {wName && <span style={{ fontSize:10, background:'#E8F2EB', color:'#3D7A52', borderRadius:6, padding:'2px 8px', fontWeight:600 }}>👷 {wName}</span>}
+                  {pName && <span style={{ fontSize:10, background:'var(--accent-light,#FAECE4)', color:'#C96B3A', borderRadius:6, padding:'2px 8px', fontWeight:600 }}>{pName}</span>}
+                  {wName && <span style={{ fontSize:10, background:'#E8F2EB', color:'#3D7A52', borderRadius:6, padding:'2px 8px', fontWeight:600 }}>{wName}</span>}
                   {!pName && !wName && <span style={{ fontSize:10, color:'#B8AFA6' }}>{t('tools.notAssigned')}</span>}
                 </div>
                 {isAssigned && tool.assigned_at && (
                   <div style={{ marginTop:5, display:'flex', flexWrap:'wrap', gap:5 }}>
                     <span style={{ fontSize:10, color:'#7A6E66' }}>
-                      📅 {t('tools.assignedOn')} {new Date(tool.assigned_at).toLocaleDateString()}
+                      {t('tools.assignedOn')} {new Date(tool.assigned_at).toLocaleDateString()}
                     </span>
                     {tool.assigned_by_name && (
                       <span style={{ fontSize:10, color:'#7A6E66' }}>
@@ -131,7 +132,7 @@ export default function Tools({ canAdd, canDelete = true }) {
                 <div style={{ display:'flex', gap:5, flexShrink:0, marginTop:2 }}>
                   <Button size="sm" onClick={() => openAssign(tool)}>{t('tools.assign')}</Button>
                   {isAssigned && <Button size="sm" onClick={() => unassign(tool)}>✕</Button>}
-                  {canDelete && <IconButton className="danger" onClick={() => setDeleteId(tool.id)}>🗑</IconButton>}
+                  {canDelete && <IconButton className="danger" onClick={() => setDeleteId(tool.id)}>✕</IconButton>}
                 </div>
               )}
               {!canAdd && <Badge variant={TOOL_STATUS_BADGE[tool.status]?.replace('badge-','')}>{TOOL_STATUS_LABEL[tool.status]}</Badge>}
@@ -189,7 +190,7 @@ export default function Tools({ canAdd, canDelete = true }) {
       )}
 
       {deleteId && (
-        <ConfirmModal icon="🗑️" title={t('tools.deleteTitle')} sub={tools.find(tool => tool.id === deleteId)?.name}
+        <ConfirmModal title={t('tools.deleteTitle')} sub={tools.find(tool => tool.id === deleteId)?.name}
           onConfirm={() => { deleteTool(deleteId); setDeleteId(null) }}
           onCancel={() => setDeleteId(null)} />
       )}

@@ -226,7 +226,6 @@ function BetaModal({ l, onClose }) {
           background: '#FFF7ED', border: '0.5px solid #FED7AA',
           borderRadius: 20, padding: '4px 14px', marginBottom: 20,
         }}>
-          <span style={{ fontSize: 14 }}>🚀</span>
           <span style={{ fontSize: 12, fontWeight: 500, color: '#EA580C' }}>{l.betaTitle}</span>
         </div>
 

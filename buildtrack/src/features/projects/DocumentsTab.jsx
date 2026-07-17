@@ -6,11 +6,11 @@ import { useStore } from '../../store/useStore'
 import { supabase } from '../../lib/supabase'
 
 const FILE_ICONS = {
-  pdf: '📄', doc: '📝', docx: '📝', xls: '📊', xlsx: '📊',
-  ppt: '📊', pptx: '📊', dwg: '📐', dxf: '📐',
-  zip: '🗜', rar: '🗜', '7z': '🗜',
-  jpg: '🖼', jpeg: '🖼', png: '🖼', gif: '🖼', webp: '🖼',
-  mp4: '🎬', mov: '🎬', avi: '🎬',
+  pdf: 'PDF', doc: 'DOC', docx: 'DOC', xls: 'XLS', xlsx: 'XLS',
+  ppt: 'PPT', pptx: 'PPT', dwg: 'DWG', dxf: 'DXF',
+  zip: 'ZIP', rar: 'RAR', '7z': '7Z',
+  jpg: 'IMG', jpeg: 'IMG', png: 'IMG', gif: 'IMG', webp: 'IMG',
+  mp4: 'VID', mov: 'VID', avi: 'VID',
 }
 const OFFICE_EXTS = ['doc','docx','xls','xlsx','ppt','pptx']
 
@@ -90,7 +90,7 @@ export default function DocumentsTab({ proj }) {
         <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
           {projDocs.map(doc => {
             const ext    = (doc.type || doc.name?.split('.').pop() || '').toLowerCase()
-            const icon   = FILE_ICONS[ext] || '📎'
+            const icon   = FILE_ICONS[ext] || ext.toUpperCase() || 'FILE'
             const viewUrl = getViewUrl(doc.url, ext)
             return (
               <div key={doc.id} style={{
@@ -102,8 +102,8 @@ export default function DocumentsTab({ proj }) {
                 {/* Icon */}
                 <div style={{
                   width:40, height:40, borderRadius:10, flexShrink:0,
-                  background:'var(--surface-2,#F2EDE6)', display:'flex', alignItems:'center',
-                  justifyContent:'center', fontSize:20,
+                  background:'var(--accent)', color:'#fff', display:'flex', alignItems:'center',
+                  justifyContent:'center', fontSize:9, fontWeight:700, letterSpacing:'0.3px',
                 }}>{icon}</div>
 
                 {/* Info */}

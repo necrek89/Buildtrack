@@ -77,7 +77,7 @@ function EditStages({ stages, onChange, placeholder }) {
             ) : (
               <>
                 <button type="button" style={iconStyle()} onClick={() => startEdit(i)}>✏️</button>
-                <button type="button" style={iconStyle('#A32D2D')} onClick={() => remove(i)}>🗑</button>
+                <button type="button" style={iconStyle('#A32D2D')} onClick={() => remove(i)}>✕</button>
               </>
             )}
           </div>
@@ -477,22 +477,19 @@ export default function Projects({ canDelete = true, canEdit = true }) {
           </div>
           {canEdit && projects.length === 0 ? (
             <div style={{ margin:'32px 0', padding:'32px 24px', background:'var(--surface)', border:'1.5px dashed var(--border-medium)', borderRadius:20, textAlign:'center' }}>
-              <div style={{ fontSize:48, marginBottom:16 }}>🏗️</div>
               <div style={{ fontSize:20, fontWeight:700, color:'var(--text-primary)', marginBottom:10 }}>{t('projects.welcomeTitle')}</div>
               <div style={{ fontSize:14, color:'var(--text-secondary)', lineHeight:1.6, maxWidth:320, margin:'0 auto 24px' }}>{t('projects.welcomeDesc')}</div>
               <div style={{ display:'flex', flexDirection:'column', gap:12, maxWidth:280, margin:'0 auto' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:10, background:'var(--bg)', borderRadius:12, padding:'10px 14px', textAlign:'left' }}>
-                  <span style={{ fontSize:20 }}>1️⃣</span>
-                  <span style={{ fontSize:13, color:'var(--text-primary)', fontWeight:500 }}>{t('projects.add')} → {t('projects.stagesLabel')}</span>
-                </div>
-                <div style={{ display:'flex', alignItems:'center', gap:10, background:'var(--bg)', borderRadius:12, padding:'10px 14px', textAlign:'left' }}>
-                  <span style={{ fontSize:20 }}>2️⃣</span>
-                  <span style={{ fontSize:13, color:'var(--text-primary)', fontWeight:500 }}>{t('tasks.add')} → {t('team.title')}</span>
-                </div>
-                <div style={{ display:'flex', alignItems:'center', gap:10, background:'var(--bg)', borderRadius:12, padding:'10px 14px', textAlign:'left' }}>
-                  <span style={{ fontSize:20 }}>3️⃣</span>
-                  <span style={{ fontSize:13, color:'var(--text-primary)', fontWeight:500 }}>{t('account.joinForemanSection')} → {t('nav.team')}</span>
-                </div>
+                {[
+                  `${t('projects.add')} — ${t('projects.stagesLabel')}`,
+                  `${t('tasks.add')} — ${t('team.title')}`,
+                  `${t('account.joinForemanSection')} — ${t('nav.team')}`,
+                ].map((label, i) => (
+                  <div key={i} style={{ display:'flex', alignItems:'center', gap:12, background:'var(--bg)', borderRadius:12, padding:'10px 14px', textAlign:'left' }}>
+                    <div style={{ width:24, height:24, borderRadius:'50%', background:'var(--accent)', color:'#fff', fontSize:12, fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>{i + 1}</div>
+                    <span style={{ fontSize:13, color:'var(--text-primary)', fontWeight:500 }}>{label}</span>
+                  </div>
+                ))}
               </div>
               <button
                 onClick={() => setShowAdd(true)}
@@ -583,7 +580,7 @@ export default function Projects({ canDelete = true, canEdit = true }) {
 
       {/* ── Confirm Delete ── */}
       {confirmId && (
-        <ConfirmModal icon="🗑️" title={t('projects.deleteTitle')}
+        <ConfirmModal title={t('projects.deleteTitle')}
           sub={t('projects.deleteSub', { name: projects.find(p => p.id === confirmId)?.name })}
           onConfirm={() => deleteProject(confirmId)}
           onCancel={() => setConfirmId(null)} />

@@ -257,12 +257,12 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
           <td>${item.name}</td>
           <td class="col-qty">${item.qty != null ? item.qty : ''}${item.unit ? ' ' + item.unit : ''}</td>
           <td class="col-who">${item.reportedBy || '—'}</td>
-          <td class="col-src">${item.type === 'request' ? '👷 ' + t('procurement.workerSource') : t('procurement.foremanSource')}</td>
+          <td class="col-src">${item.type === 'request' ? t('procurement.workerSource') : t('procurement.foremanSource')}</td>
           <td class="col-notes">${item.notes || ''}</td>
         </tr>`).join('')
       return `
         <tr class="proj-row">
-          <td colspan="7">🏗 ${projName} <span class="proj-count">${items.length} ${t('procurement.itemsSuffix')}</span></td>
+          <td colspan="7">${projName} <span class="proj-count">${items.length} ${t('procurement.itemsSuffix')}</span></td>
         </tr>
         ${itemRows}`
     }).join('')

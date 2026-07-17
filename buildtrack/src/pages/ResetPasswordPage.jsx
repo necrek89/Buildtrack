@@ -57,7 +57,7 @@ export default function ResetPasswordPage({ onDone }) {
           <div style={{
             textAlign: 'center', padding: '24px 0',
           }}>
-            <div style={{ fontSize: 44, marginBottom: 12 }}>✅</div>
+            <div style={{ width:48, height:48, borderRadius:'50%', background:'#3D7A52', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px', fontSize:22, fontWeight:700 }}>✓</div>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#3D7A52', marginBottom: 6 }}>
               {t('auth.newPwSuccess')}
             </div>

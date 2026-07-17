@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Lightning, CalendarBlank, CaretUp, CaretDown, ArrowCounterClockwise } from '@phosphor-icons/react'
+import { Lightning, CalendarBlank, CaretUp, CaretDown, ArrowCounterClockwise, HardHat } from '@phosphor-icons/react'
 import { Badge, Button, StatCard, EmptyState } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore, PRIORITY_BADGE, PRIORITY_LABEL, STATUS_LABEL, STATUS_BADGE, STAGES } from '../../store/useStore'
@@ -30,7 +30,7 @@ function JoinCrewCard({ t }) {
 
   return (
     <div style={{ margin:'24px 0', padding:'28px 24px', background:'var(--surface)', border:'1.5px dashed var(--border-medium)', borderRadius:20, textAlign:'center' }}>
-      <div style={{ fontSize:44, marginBottom:14 }}>👷</div>
+      <div style={{ width:56, height:56, borderRadius:'50%', background:'var(--accent)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' }}><HardHat size={28} weight="bold" /></div>
       <div style={{ fontSize:18, fontWeight:700, color:'var(--text-primary)', marginBottom:8 }}>{t('tasks.joinCrewTitle')}</div>
       <div style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.6, maxWidth:300, margin:'0 auto 20px' }}>{t('tasks.joinCrewDesc')}</div>
       <div style={{ display:'flex', gap:8, maxWidth:340, margin:'0 auto' }}>

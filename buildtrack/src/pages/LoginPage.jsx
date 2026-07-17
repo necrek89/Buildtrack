@@ -91,7 +91,6 @@ export default function LoginPage({ onLogin }) {
         {mode === 'forgot' && (
           <>
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
-              <div style={{ fontSize: 36, marginBottom: 8 }}>🔑</div>
               <div style={{ fontSize: 15, fontWeight: 700, color: '#2E2420' }}>
                 {t('auth.resetTitle')}
               </div>

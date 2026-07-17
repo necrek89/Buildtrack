@@ -10,12 +10,13 @@ create table if not exists push_subscriptions (
 
 alter table push_subscriptions enable row level security;
 
+drop policy if exists "Users manage own subscriptions" on push_subscriptions;
 create policy "Users manage own subscriptions"
   on push_subscriptions for all
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
--- Service role can read all subscriptions (for Edge Function)
+drop policy if exists "Service role reads all" on push_subscriptions;
 create policy "Service role reads all"
   on push_subscriptions for select
   using (auth.role() = 'service_role');

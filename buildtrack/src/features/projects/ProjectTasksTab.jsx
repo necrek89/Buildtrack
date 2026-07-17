@@ -680,7 +680,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
         <TaskModal task={editTask} defaultProjectId={proj.id} onClose={() => { setShowAdd(false); setEditTask(null); fetchTasks(proj.id) }} />
       )}
       {deleteId && (
-        <ConfirmModal icon="🗑️" title={t('tasks.deleteTitle')} sub={tasks.find(t => t.id === deleteId)?.text}
+        <ConfirmModal title={t('tasks.deleteTitle')} sub={tasks.find(t => t.id === deleteId)?.text}
           onConfirm={() => { deleteTask(deleteId); setDeleteId(null) }}
           onCancel={() => setDeleteId(null)} />
       )}
