@@ -2,6 +2,19 @@ import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import { todayStr, toLocalDateStr } from '../lib/date'
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+
+async function sendPush(userId, title, body, url = '/app') {
+  if (!userId) return
+  try {
+    await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
+      body: JSON.stringify({ user_id: userId, title, body, url }),
+    })
+  } catch { /* non-critical */ }
+}
+
 // ── Theme init ────────────────────────────────────────────────────────────────
 const savedTheme = localStorage.getItem('tutuu_theme') || 'light'
 // apply immediately on load
@@ -190,6 +203,9 @@ export const useStore = create((set, get) => ({
       set(s => ({ tasks: [data, ...s.tasks] }))
       get().logActivity({ action_type: 'task_created', entity_name: task.text, entity_id: String(data.id), project_id: task.project_id })
       get().recalcProgress(task.project_id)
+      if (task.assigned_to && task.assigned_to !== get().profile?.id) {
+        sendPush(task.assigned_to, '📋 New task assigned', task.text, '/app')
+      }
     }
     return { error }
   },
@@ -366,6 +382,7 @@ export const useStore = create((set, get) => ({
       if (error.code === '23505') return { error: 'Request already sent.' }
       return { error: error.message }
     }
+    sendPush(foreman.id, '🔔 New join request', `${profile.name} wants to join your crew`, '/app')
     return { error: null, foremanName: foreman.name }
   },
 
@@ -398,6 +415,7 @@ export const useStore = create((set, get) => ({
     await supabase.from('join_requests').update({ status: 'approved' }).eq('id', requestId)
     set(s => ({ joinRequests: s.joinRequests.filter(r => r.id !== requestId) }))
     get().logActivity({ action_type: 'worker_joined', entity_name: workerName, entity_id: workerId })
+    sendPush(workerId, '✅ Request approved', `${profile.name} added you to the crew`, '/app')
   },
 
   // Прораб отклоняет заявку
@@ -833,6 +851,8 @@ export const useStore = create((set, get) => ({
     }).select().single()
     if (error) return { error: error.message }
     set(s => ({ payments: { ...s.payments, [worker_id]: [data, ...(s.payments[worker_id] || [])] } }))
+    const sym = currencySymbol(get().profile?.currency)
+    sendPush(worker_id, '💰 Payment received', `${sym}${parseFloat(amount).toLocaleString()} from ${get().profile?.name}`, '/app')
     return { data }
   },
 

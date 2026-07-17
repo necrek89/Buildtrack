@@ -1,0 +1,13 @@
+{
+  "name": "Tutuu — Construction Crew",
+  "short_name": "Tutuu",
+  "description": "Track tasks, tools, attendance and salary for your construction crew.",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#EA580C",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any maskable" }
+  ]
+}

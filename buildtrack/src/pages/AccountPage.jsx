@@ -5,6 +5,7 @@ import LanguagePicker from '../components/LanguagePicker'
 import { useT } from '../i18n/useLanguage'
 import { supabase } from '../lib/supabase'
 import { useAsyncGuard } from '../lib/useAsyncGuard'
+import { subscribeToPush, unsubscribeFromPush, isSubscribed, isPushSupported } from '../lib/push'
 
 const AVATAR_COLORS = [
   '#C96B3A','#5A9467','#D4A843','#4A7FC1','#9B6B9B',
@@ -56,6 +57,37 @@ export default function AccountPage() {
   const [pwOk,    setPwOk]    = useState(true)
   const [saving,  saveGuard]  = useAsyncGuard()
   const [pwSaving, pwGuard]   = useAsyncGuard()
+  const [pushSupported, setPushSupported] = useState(false)
+  const [pushEnabled,   setPushEnabled]   = useState(false)
+  const [pushLoading,   setPushLoading]   = useState(false)
+  const [pushDenied,    setPushDenied]    = useState(false)
+
+  useEffect(() => {
+    isPushSupported().then(supported => {
+      setPushSupported(supported)
+      if (supported) {
+        setPushDenied(Notification.permission === 'denied')
+        isSubscribed().then(setPushEnabled)
+      }
+    })
+  }, [])
+
+  const togglePush = async () => {
+    if (!profile) return
+    setPushLoading(true)
+    if (pushEnabled) {
+      await unsubscribeFromPush(profile.id)
+      setPushEnabled(false)
+    } else {
+      const { error } = await subscribeToPush(profile.id)
+      if (error === 'Permission denied') {
+        setPushDenied(true)
+      } else if (!error) {
+        setPushEnabled(true)
+      }
+    }
+    setPushLoading(false)
+  }
 
   useEffect(() => {
     if (profile) {
@@ -230,6 +262,40 @@ export default function AccountPage() {
         <Button variant="primary" onClick={changePassword} disabled={pwSaving}>
           {pwSaving ? t('common.saving') : t('account.changePwBtn')}
         </Button>
+      </div>
+
+      {/* ── Push Notifications ── */}
+      <div className="card card-body" style={{ marginBottom:12 }}>
+        <div className="section-title">{t('account.notificationsSection')}</div>
+        <p style={{ fontSize:12, color:'var(--text-secondary)', marginBottom:12 }}>
+          {t('account.notificationsDesc')}
+        </p>
+        {!pushSupported ? (
+          <div style={{ fontSize:12, color:'var(--text-muted)' }}>{t('account.notificationsUnsupported')}</div>
+        ) : pushDenied ? (
+          <div style={{ fontSize:12, color:'#A32D2D', background:'#FCEBEB', padding:'8px 12px', borderRadius:8 }}>
+            {t('account.notificationsBlocked')}
+          </div>
+        ) : pushEnabled ? (
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+            <span style={{ fontSize:13, color:'#3D7A52', fontWeight:500 }}>{t('account.notificationsOn')}</span>
+            <button
+              onClick={togglePush}
+              disabled={pushLoading}
+              style={{ fontSize:12, padding:'6px 14px', borderRadius:8, background:'#FCEBEB', color:'#A32D2D', border:'0.5px solid #F0AAAA', cursor:'pointer', fontWeight:500 }}
+            >
+              {pushLoading ? '...' : t('account.notificationsDisable')}
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={togglePush}
+            disabled={pushLoading}
+            style={{ fontSize:13, padding:'10px 20px', borderRadius:10, background:'var(--accent)', color:'#fff', border:'none', cursor:'pointer', fontWeight:600, width:'100%' }}
+          >
+            {pushLoading ? '...' : t('account.notificationsEnable')}
+          </button>
+        )}
       </div>
 
       {/* ── Join Foreman (workers only) ── */}
