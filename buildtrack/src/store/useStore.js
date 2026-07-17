@@ -203,8 +203,8 @@ export const useStore = create((set, get) => ({
       set(s => ({ tasks: [data, ...s.tasks] }))
       get().logActivity({ action_type: 'task_created', entity_name: task.text, entity_id: String(data.id), project_id: task.project_id })
       get().recalcProgress(task.project_id)
-      if (task.assigned_to && task.assigned_to !== get().profile?.id) {
-        sendPush(task.assigned_to, '📋 New task assigned', task.text, '/app')
+      if (task.worker_id && task.worker_id !== get().profile?.id) {
+        sendPush(task.worker_id, '📋 New task assigned', task.text, '/app')
       }
     }
     return { error }
