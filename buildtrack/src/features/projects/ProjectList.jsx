@@ -281,7 +281,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
           {(pPending > 0 || pOverdue > 0) && (
             <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
               {pPending > 0 && <span style={{ fontSize:10, background:'#FEF3C7', color:'#92400E', borderRadius:6, padding:'2px 7px', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}><Clock size={10} weight="bold" /> {pPending}</span>}
-              {pOverdue > 0 && <span style={{ fontSize:10, background:'#FEE2E2', color:'#991B1B', borderRadius:6, padding:'2px 7px', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}><Warning size={10} weight="bold" /> {pOverdue}</span>}
+              {pOverdue > 0 && <span style={{ fontSize:10, background:'#1C1108', color:'var(--accent-hover)', border:'0.5px solid rgba(234,88,12,0.3)', boxShadow:'0 0 8px rgba(234,88,12,0.1)', borderRadius:6, padding:'2px 7px', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}><Warning size={10} weight="bold" /> {pOverdue}</span>}
             </div>
           )}
         </div>
@@ -292,18 +292,18 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
   return (
     <div>
       {/* Summary chips */}
-      {(overdueTasks > 0 || pendingReview > 0) && (
-        <div className="summary-bar">
-          {overdueTasks > 0 && (
-            <button
-              onClick={() => setShowOverdueModal(true)}
-              className="summary-chip danger"
-              style={{ cursor: 'pointer', background: 'none', border: 'none', font: 'inherit' }}
-            >
-              <Warning size={11} weight="bold" /> {t('projects.overdue', { n: overdueTasks })}
-            </button>
-          )}
-          {pendingReview > 0 && <div className="summary-chip warning" style={{ display:'flex', alignItems:'center', gap:4 }}><Clock size={11} weight="bold" /> {t('projects.forReview', { n: pendingReview })}</div>}
+      {overdueTasks > 0 && (
+        <button
+          onClick={() => setShowOverdueModal(true)}
+          className="alert-bar"
+        >
+          <Warning size={13} weight="bold" color="var(--accent)" />
+          {t('projects.overdue', { n: overdueTasks })}
+        </button>
+      )}
+      {pendingReview > 0 && (
+        <div className="summary-bar" style={{ marginBottom:12 }}>
+          <div className="summary-chip warning" style={{ display:'flex', alignItems:'center', gap:4 }}><Clock size={11} weight="bold" /> {t('projects.forReview', { n: pendingReview })}</div>
         </div>
       )}
 

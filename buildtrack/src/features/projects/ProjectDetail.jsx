@@ -32,10 +32,13 @@ export default function ProjectDetail({ proj, onBack, onEdit, canDelete = true, 
     fetchTeam(proj.id)
   }, [proj.id])
 
-  const pct = (() => {
-    const pt = tasks.filter(tk => tk.project_id === proj.id)
-    return pt.length === 0 ? 0 : Math.round((pt.filter(tk => tk.status==='approved').length / pt.length) * 100)
-  })()
+  const pt       = tasks.filter(tk => tk.project_id === proj.id)
+  const ptDone   = pt.filter(tk => tk.status === 'approved').length
+  const pct      = pt.length === 0 ? 0 : Math.round((ptDone / pt.length) * 100)
+  const workers  = team.filter(m => m.role === 'worker').length
+  const daysLeft = proj.deadline
+    ? Math.max(0, Math.ceil((new Date(proj.deadline) - new Date()) / 86400000))
+    : null
 
   return (
     <div>
@@ -53,12 +56,7 @@ export default function ProjectDetail({ proj, onBack, onEdit, canDelete = true, 
           <button
             onClick={() => setShowInvoice(true)}
             title={t('invoice.title')}
-            style={{
-              display:'flex', alignItems:'center', gap:5,
-              padding:'5px 10px', borderRadius:8, border:'1.5px solid #BFDBFE',
-              background:'#EFF6FF', color:'#2563EB', fontSize:12, fontWeight:600,
-              cursor:'pointer', flexShrink:0,
-            }}
+            className="btn-invoice"
           >
             {t('invoice.title')}
           </button>
@@ -86,6 +84,26 @@ export default function ProjectDetail({ proj, onBack, onEdit, canDelete = true, 
             {tb.label}
           </button>
         ))}
+      </div>
+
+      {/* ── Stats bento row ── */}
+      <div className="stats-bento">
+        <div className="stats-bento-cell">
+          <div className="stats-bento-val">{pct}%</div>
+          <div className="stats-bento-lbl">{t('detail.progress')}</div>
+        </div>
+        <div className="stats-bento-cell">
+          <div className="stats-bento-val neutral">{workers}</div>
+          <div className="stats-bento-lbl">{t('detail.workers')}</div>
+        </div>
+        <div className="stats-bento-cell">
+          <div className="stats-bento-val">{daysLeft !== null ? `${daysLeft}d` : '—'}</div>
+          <div className="stats-bento-lbl">{t('detail.daysLeft')}</div>
+        </div>
+        <div className="stats-bento-cell">
+          <div className="stats-bento-val neutral">{ptDone}/{pt.length}</div>
+          <div className="stats-bento-lbl">{t('detail.tasks')}</div>
+        </div>
       </div>
 
       {/* ── Tab content ── */}

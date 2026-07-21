@@ -596,8 +596,69 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 0 12px rgba(234,88,12,0.12);
-  margin-bottom: 10px;
+  box-shadow: 0 0 12px rgba(234,88,12,0.15);
+  margin: 0 0 10px;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Invoice shimmer button (outline variant) */
+.btn-invoice {
+  position: relative;
+  overflow: hidden;
+  background: var(--accent-light);
+  color: var(--accent);
+  border: 0.5px solid rgba(234,88,12,0.3);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.btn-invoice::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(249,115,22,0.15), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 2.5s infinite;
+}
+
+/* Stats bento row (project detail) */
+.stats-bento {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 0.5px solid var(--border-medium);
+  flex-shrink: 0;
+}
+.stats-bento-cell {
+  padding: 8px 10px;
+  text-align: center;
+  border-right: 0.5px solid var(--border-medium);
+}
+.stats-bento-cell:last-child { border-right: none; }
+.stats-bento-val {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.stats-bento-val.neutral { color: var(--text-primary); }
+.stats-bento-lbl {
+  font-size: 8px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 /* ── BOTTOM SHEET ── */
