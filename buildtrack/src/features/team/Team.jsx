@@ -12,11 +12,11 @@ import { todayStr } from '../../lib/date'
 
 // ─── WORKER STATUS CONFIG ────────────────────────────────────────────────────
 const WORKER_STATUS = {
-  on_site:   { label: 'On Site',     color: '#3D7A52', bg: '#E8F2EB', border: '#A8D4B4', dot: '#3D7A52' },
-  day_off:   { label: 'Day Off',     color: '#7A6E66', bg: '#F2EDE4', border: '#D9D0C7', dot: '#B8AFA6' },
-  sick:      { label: 'Sick Leave',  color: '#A32D2D', bg: '#FCEBEB', border: '#F0AAAA', dot: '#A32D2D' },
-  vacation:  { label: 'Vacation',    color: '#2E6FB5', bg: '#E4EEFA', border: '#A3C2E8', dot: '#2E6FB5' },
-  other:     { label: 'Not Available', color: '#9A6E10', bg: '#FBF3DC', border: '#F0D897', dot: '#D4A843' },
+  on_site:   { label: 'On Site',       color: 'var(--success)',  bg: 'var(--success-bg)',  border: 'var(--success-border)',          dot: 'var(--success)'  },
+  day_off:   { label: 'Day Off',       color: 'var(--text-muted)', bg: 'var(--bg-subtle)', border: 'var(--border-medium)',           dot: 'var(--text-muted)' },
+  sick:      { label: 'Sick Leave',    color: 'var(--danger)',   bg: 'var(--danger-bg)',   border: 'var(--danger-border)',           dot: 'var(--danger)'   },
+  vacation:  { label: 'Vacation',      color: 'var(--warning)',  bg: 'var(--warning-bg)',  border: 'rgba(245,158,11,0.25)',          dot: 'var(--warning)'  },
+  other:     { label: 'Not Available', color: 'var(--text-muted)', bg: 'var(--bg-subtle)', border: 'var(--border-medium)',           dot: 'var(--text-muted)' },
 }
 const STATUS_CYCLE = ['on_site', 'day_off', 'sick', 'vacation', 'other']
 
@@ -536,7 +536,7 @@ export default function Team() {
 
               {/* ── Expanded detail ── */}
               {isOpen && (
-                <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'var(--surface-2,#FDFBF8)' }}>
+                <div style={{ borderTop:'1px solid var(--border-medium)', padding:'12px 14px', background:'var(--bg-subtle)' }}>
 
                   {/* Status picker row */}
                   {profile?.role === 'foreman' && (
@@ -551,9 +551,9 @@ export default function Team() {
                               onClick={() => updateWorkerStatus(m.id, s)}
                               style={{
                                 padding:'5px 11px', borderRadius:20, fontSize:11, fontWeight:600, cursor:'pointer',
-                                background: isActive ? cfg.bg : '#F2EDE4',
-                                color: isActive ? cfg.color : '#B8AFA6',
-                                border: isActive ? `1.5px solid ${cfg.border}` : '1.5px solid #EAE3D8',
+                                background: isActive ? cfg.bg : 'var(--bg-subtle)',
+                                color: isActive ? cfg.color : 'var(--text-muted)',
+                                border: isActive ? `1.5px solid ${cfg.border}` : '1.5px solid var(--border-medium)',
                                 transition:'all .12s',
                               }}
                             >

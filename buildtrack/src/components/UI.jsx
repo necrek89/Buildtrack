@@ -24,9 +24,10 @@ export function Alert({ ok, dense, children }) {
   if (!children) return null
   return (
     <div style={{
-      background: ok ? '#E8F2EB' : '#FCEBEB', color: ok ? '#3D7A52' : '#A32D2D',
+      background: ok ? 'var(--success-bg)' : 'var(--danger-bg)', color: ok ? 'var(--success)' : 'var(--danger)',
       borderRadius: dense ? 6 : 8, fontSize: dense ? 12 : 13,
       padding: dense ? '6px 10px' : '10px 12px', marginBottom: dense ? 8 : 14,
+      border: `1px solid ${ok ? 'var(--success-border)' : 'var(--danger-border)'}`,
     }}>
       {children}
     </div>
@@ -38,12 +39,12 @@ export function AuthCard({ children }) {
   return (
     <div style={{
       minHeight: '100dvh', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', background: '#FAF7F2', padding: 16,
+      justifyContent: 'center', background: 'var(--bg)', padding: 16,
     }}>
       <div style={{
-        background: '#fff', borderRadius: 20, padding: 28,
-        width: '100%', maxWidth: 380, border: '1px solid #EAE3D8',
-        boxShadow: '0 4px 24px rgba(46,36,32,0.07)',
+        background: 'var(--bg-card)', borderRadius: 20, padding: 28,
+        width: '100%', maxWidth: 380, border: '0.5px solid var(--border-medium)',
+        boxShadow: 'none',
       }}>
         {children}
       </div>
@@ -115,8 +116,8 @@ export function EmptyState({ children }) {
 // requests, invoices) that don't use the .form-input CSS class
 export const inputStyle = {
   width: '100%', padding: '8px 10px', borderRadius: 8,
-  border: '1.5px solid var(--border,#EAE3D8)', background: 'var(--surface-2,#FDFBF8)',
-  fontSize: 13, color: 'var(--text-1,#2E2420)', fontFamily: 'inherit', outline: 'none',
+  border: '1px solid var(--border-medium)', background: 'var(--bg-subtle)',
+  fontSize: 13, color: 'var(--text-primary)', fontFamily: 'inherit', outline: 'none',
 }
 
 // Form input

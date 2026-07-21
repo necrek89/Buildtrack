@@ -16,9 +16,10 @@ async function sendPush(userId, title, body, url = '/app') {
 }
 
 // ── Theme init ────────────────────────────────────────────────────────────────
-const savedTheme = localStorage.getItem('tutuu_theme') || 'light'
-// apply immediately on load
-if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark')
+const savedTheme = localStorage.getItem('tutuu_theme') || 'dark'
+// apply immediately on load — dark is default, only skip if explicitly set to light
+if (savedTheme !== 'light') document.documentElement.removeAttribute('data-theme')
+else document.documentElement.setAttribute('data-theme', 'light')
 
 // ── localStorage migration helper (one-time) ─────────────────────────────────
 const LS_KEY = 'tutuu_materials'
@@ -70,7 +71,8 @@ export const useStore = create((set, get) => ({
   toggleTheme: () => {
     const next = get().theme === 'dark' ? 'light' : 'dark'
     localStorage.setItem('tutuu_theme', next)
-    document.documentElement.setAttribute('data-theme', next)
+    if (next === 'light') document.documentElement.setAttribute('data-theme', 'light')
+    else document.documentElement.removeAttribute('data-theme')
     set({ theme: next })
   },
 

@@ -52,11 +52,11 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
   const cancelEdit = () => { setEditing(false); setNameVal(stage) }
 
   return (
-    <div ref={setNodeRef} style={{ ...style, borderRadius:14, overflow:'hidden', border:'1.5px solid var(--border,#EAE3D8)', background:'var(--surface,#fff)' }}>
+    <div ref={setNodeRef} className="stage-item" style={{ ...style, borderRadius:14, overflow:'hidden', border:'1.5px solid var(--border-medium)', background:'var(--bg-card)' }}>
       <div style={{
         display:'flex', alignItems:'center', gap:10, padding:'12px 14px',
-        background: isOpen ? 'var(--surface-2,#FDFBF8)' : 'var(--surface,#fff)',
-        borderBottom: isOpen ? '1px solid var(--border,#EAE3D8)' : 'none',
+        background: isOpen ? 'var(--bg-subtle)' : 'var(--bg-card)',
+        borderBottom: isOpen ? '1px solid var(--border-medium)' : 'none',
       }}>
         {/* Drag handle */}
         {canEdit && (
@@ -71,9 +71,9 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
           width:24, height:24, borderRadius:'50%', flexShrink:0, cursor:'pointer',
           display:'flex', alignItems:'center', justifyContent:'center',
           fontSize:11, fontWeight:700,
-          background: isDone ? '#E8F2EB' : 'var(--bg-accent,#F2EDE4)',
-          color: isDone ? '#3D7A52' : color,
-          border: `2px solid ${isDone ? '#A8D4B4' : color}`,
+          background: isDone ? 'var(--success-bg)' : 'var(--accent)',
+          color: isDone ? 'var(--success)' : '#fff',
+          border: `2px solid ${isDone ? 'var(--success-border)' : 'var(--accent)'}`,
         }}>
           {isDone ? <Check size={11} weight="bold" /> : (num ?? '·')}
         </div>
@@ -125,8 +125,8 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
               ><PencilSimple size={12} weight="bold" /></button>
             )}
           </div>
-          <div onClick={() => toggleStage(stage)} style={{ height:5, borderRadius:3, background:'var(--border,#EAE3D8)', overflow:'hidden', cursor:'pointer' }}>
-            <div style={{ height:'100%', borderRadius:3, width:`${pct}%`, background: isDone ? '#5A9467' : color, transition:'width .4s ease' }} />
+          <div onClick={() => toggleStage(stage)} style={{ height:5, borderRadius:3, background:'var(--border-medium)', overflow:'hidden', cursor:'pointer' }}>
+            <div style={{ height:'100%', borderRadius:3, width:`${pct}%`, background: isDone ? 'var(--success)' : 'var(--accent)', transition:'width .4s ease' }} />
           </div>
         </div>
         <span onClick={() => toggleStage(stage)} style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4, cursor:'pointer', display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={11} weight="bold" /> : <CaretDown size={11} weight="bold" />}</span>

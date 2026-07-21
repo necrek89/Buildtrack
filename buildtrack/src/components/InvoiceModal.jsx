@@ -82,7 +82,7 @@ function buildInvoiceHTML({ form, items, subtotal, taxAmount, total, isPartial, 
   const currency = items[0]?.currency || '$'
   const badgeLabel = isPartial ? 'Partial Invoice' : 'Invoice'
   const stagesNote = isPartial && stageNames.length > 0
-    ? `<div style="margin-top:6px;font-size:11px;color:#CBD5E1">Stages: ${stageNames.join(', ')}</div>`
+    ? `<div style="margin-top:6px;font-size:11px;color:var(--text-secondary)">Stages: ${stageNames.join(', ')}</div>`
     : ''
 
   return `<!DOCTYPE html>
@@ -100,22 +100,22 @@ function buildInvoiceHTML({ form, items, subtotal, taxAmount, total, isPartial, 
     }
     .page { max-width:860px; margin:0 auto; padding:40px 40px 60px; }
     .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:36px; }
-    .company-name { font-size:26px; font-weight:800; color:#1E3A5F; letter-spacing:-.5px; }
+    .company-name { font-size:26px; font-weight:800; color:#1F2937; letter-spacing:-.5px; }
     .company-meta { margin-top:6px; font-size:12px; color:#6B7280; line-height:1.7; }
     .invoice-badge {
-      background:#2563EB; color:#fff; font-size:18px; font-weight:800;
+      background:#EA580C; color:#fff; font-size:18px; font-weight:800;
       letter-spacing:1px; padding:6px 20px; border-radius:6px; text-transform:uppercase;
     }
     .invoice-meta { text-align:right; margin-top:10px; font-size:12px; color:#6B7280; line-height:1.8; }
     .invoice-meta strong { color:#1F2937; }
-    .divider { border:none; border-top:2px solid #2563EB; margin:0 0 24px; }
+    .divider { border:none; border-top:2px solid #EA580C; margin:0 0 24px; }
     .bill-section { margin-bottom:28px; }
     .bill-label { font-size:10px; font-weight:700; text-transform:uppercase;
-                  letter-spacing:.08em; color:#2563EB; margin-bottom:6px; }
+                  letter-spacing:.08em; color:#EA580C; margin-bottom:6px; }
     .bill-name { font-size:15px; font-weight:700; color:#1F2937; }
     .bill-addr { font-size:12px; color:#6B7280; line-height:1.7; margin-top:3px; }
     table { width:100%; border-collapse:collapse; margin-bottom:0; }
-    thead tr { background:#2563EB; color:#fff; }
+    thead tr { background:#EA580C; color:#fff; }
     thead th { padding:10px 12px; text-align:left; font-size:11px; font-weight:700;
                text-transform:uppercase; letter-spacing:.06em; }
     thead th:nth-child(3),
@@ -125,13 +125,13 @@ function buildInvoiceHTML({ form, items, subtotal, taxAmount, total, isPartial, 
     .totals { margin-top:0; }
     .totals table { width:auto; min-width:280px; margin-left:auto; }
     .totals td { padding:6px 12px; font-size:13px; }
-    .totals .total-row { background:#1E3A5F; color:#fff; font-size:15px; font-weight:800; }
+    .totals .total-row { background:#C2410C; color:#fff; font-size:15px; font-weight:800; }
     .totals .total-row td { padding:10px 12px; }
     .notes { margin-top:36px; padding:16px 18px;
-             border-left:4px solid #2563EB; background:#EFF6FF;
+             border-left:4px solid #EA580C; background:#FFF7ED;
              border-radius:0 6px 6px 0; }
     .notes-label { font-size:10px; font-weight:700; text-transform:uppercase;
-                   letter-spacing:.08em; color:#2563EB; margin-bottom:6px; }
+                   letter-spacing:.08em; color:#EA580C; margin-bottom:6px; }
     .notes-text { font-size:12px; color:#374151; line-height:1.6; white-space:pre-wrap; }
     .footer { margin-top:48px; padding-top:16px; border-top:1px solid #E5E7EB;
               text-align:center; font-size:11px; color:#9CA3AF; }
@@ -309,17 +309,17 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
   // ── SECTION LABEL ──
   const SL = ({ children }) => (
     <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em',
-      color:'#2563EB', borderBottom:'1.5px solid #DBEAFE', paddingBottom:6, marginBottom:12, marginTop:20 }}>
+      color:'var(--accent)', borderBottom:'1.5px solid var(--accent-border)', paddingBottom:6, marginBottom:12, marginTop:20 }}>
       {children}
     </div>
   )
 
   const PreviewRow = ({ label, value, bold, blue, big }) => (
     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
-      padding:'8px 14px', background: blue ? '#1E3A5F' : 'transparent',
+      padding:'8px 14px', background: blue ? 'var(--bg-subtle)' : 'transparent',
       color: blue ? '#fff' : '#1F2937', borderBottom: blue ? 'none' : '1px solid #F3F4F6',
     }}>
-      <span style={{ fontSize: big ? 14 : 12, color: blue ? '#CBD5E1' : '#6B7280' }}>{label}</span>
+      <span style={{ fontSize: big ? 14 : 12, color: blue ? 'var(--text-secondary)' : '#6B7280' }}>{label}</span>
       <span style={{ fontSize: big ? 15 : 13, fontWeight: bold || blue ? 700 : 400 }}>{value}</span>
     </div>
   )
@@ -348,12 +348,12 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
       }}>
 
         {/* ── Title bar ── */}
-        <div style={{ display:'flex', alignItems:'center', gap:10, paddingBottom:14, borderBottom:'1.5px solid #EAE3D8', flexShrink:0 }}>
-          <div style={{ background:'#2563EB', color:'#fff', fontSize:11, fontWeight:800,
+        <div style={{ display:'flex', alignItems:'center', gap:10, paddingBottom:14, borderBottom:'1.5px solid var(--border-medium)', flexShrink:0 }}>
+          <div style={{ background:'var(--accent)', color:'#fff', fontSize:11, fontWeight:800,
             letterSpacing:'.1em', padding:'3px 10px', borderRadius:6, textTransform:'uppercase' }}>
             Invoice
           </div>
-          <div style={{ flex:1, fontSize:15, fontWeight:700, color:'#1E3A5F' }}>
+          <div style={{ flex:1, fontSize:15, fontWeight:700, color:'var(--text-primary)' }}>
             {proj.name}
           </div>
           {/* Step indicator */}
@@ -361,8 +361,8 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
             {['stages','form','preview'].map((s, i) => (
               <div key={s} style={{
                 width: step === s ? 20 : 6, height:6, borderRadius:3,
-                background: step === s ? '#2563EB' : (
-                  ['stages','form','preview'].indexOf(step) > i ? '#93C5FD' : '#DBEAFE'
+                background: step === s ? 'var(--accent)' : (
+                  ['stages','form','preview'].indexOf(step) > i ? 'var(--text-muted)' : 'var(--accent-border)'
                 ),
                 transition: 'width .2s',
               }} />
@@ -392,14 +392,14 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                   {/* Select all / none */}
                   <div style={{ display:'flex', gap:8, marginBottom:12 }}>
                     <button onClick={() => setSelectedStages(new Set(stageList))}
-                      style={{ padding:'4px 12px', borderRadius:6, border:'1.5px solid #BFDBFE',
-                        background: allSelected ? '#2563EB' : '#EFF6FF', color: allSelected ? '#fff' : '#2563EB',
+                      style={{ padding:'4px 12px', borderRadius:6, border:'1.5px solid var(--accent-border)',
+                        background: allSelected ? 'var(--accent)' : 'var(--accent-light)', color: allSelected ? '#fff' : 'var(--accent)',
                         fontSize:12, fontWeight:600, cursor:'pointer' }}>
                       Все этапы
                     </button>
                     <button onClick={() => setSelectedStages(new Set())}
-                      style={{ padding:'4px 12px', borderRadius:6, border:'1.5px solid #EAE3D8',
-                        background:'var(--surface-2,#FDFBF8)', color:'#7A6E66', fontSize:12, fontWeight:600, cursor:'pointer' }}>
+                      style={{ padding:'4px 12px', borderRadius:6, border:'1.5px solid var(--border-medium)',
+                        background:'var(--bg-subtle)', color:'#7A6E66', fontSize:12, fontWeight:600, cursor:'pointer' }}>
                       Снять всё
                     </button>
                   </div>
@@ -416,16 +416,16 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                           style={{
                             display:'flex', alignItems:'center', gap:12,
                             padding:'12px 14px', borderRadius:12, cursor:'pointer',
-                            border: `2px solid ${checked ? '#2563EB' : '#EAE3D8'}`,
-                            background: checked ? '#EFF6FF' : 'var(--surface,#fff)',
+                            border: `2px solid ${checked ? 'var(--accent)' : '#EAE3D8'}`,
+                            background: checked ? 'var(--accent-light)' : 'var(--surface,#fff)',
                             transition: 'all .15s',
                           }}
                         >
                           {/* Checkbox */}
                           <div style={{
                             width:20, height:20, borderRadius:6, flexShrink:0,
-                            border: `2px solid ${checked ? '#2563EB' : '#D1D5DB'}`,
-                            background: checked ? '#2563EB' : '#fff',
+                            border: `2px solid ${checked ? 'var(--accent)' : '#D1D5DB'}`,
+                            background: checked ? 'var(--accent)' : '#fff',
                             display:'flex', alignItems:'center', justifyContent:'center',
                           }}>
                             {checked && <Check size={12} weight="bold" color="#fff" />}
@@ -434,7 +434,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                           {/* Stage info */}
                           <div style={{ flex:1, minWidth:0 }}>
                             <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                              <span style={{ fontSize:14, fontWeight:700, color: checked ? '#1E40AF' : '#2E2420' }}>
+                              <span style={{ fontSize:14, fontWeight:700, color: checked ? 'var(--accent-hover)' : '#2E2420' }}>
                                 {stage === '—' ? 'Без этапа' : stage}
                               </span>
                               {wasInvoiced && (
@@ -451,7 +451,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
 
                           {/* Amount */}
                           <div style={{ textAlign:'right', flexShrink:0 }}>
-                            <div style={{ fontSize:15, fontWeight:700, color: checked ? '#1E40AF' : '#6B7280' }}>
+                            <div style={{ fontSize:15, fontWeight:700, color: checked ? 'var(--accent-hover)' : '#6B7280' }}>
                               {fmtMoney(info.total, info.currency)}
                             </div>
                           </div>
@@ -462,13 +462,13 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
 
                   {/* Running total */}
                   {selectedTasks.length > 0 && (
-                    <div style={{ marginTop:16, padding:'12px 16px', background:'#1E3A5F',
+                    <div style={{ marginTop:16, padding:'12px 16px', background:'var(--bg-subtle)',
                       borderRadius:12, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                       <div>
-                        <div style={{ fontSize:11, color:'#93C5FD', fontWeight:600, marginBottom:2 }}>
+                        <div style={{ fontSize:11, color:'var(--text-muted)', fontWeight:600, marginBottom:2 }}>
                           {isPartial ? <><File size={11} weight="bold" /> Промежуточный счёт</> : <><ClipboardText size={11} weight="bold" /> Полный счёт</>}
                         </div>
-                        <div style={{ fontSize:12, color:'#CBD5E1' }}>
+                        <div style={{ fontSize:12, color:'var(--text-secondary)' }}>
                           {selectedTasks.length} позиций · {selectedStages.size} из {stageList.length} этапов
                         </div>
                       </div>
@@ -487,15 +487,15 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                         {history.map((h, i) => (
                           <div key={i} style={{ display:'flex', alignItems:'center', gap:10,
                             padding:'8px 12px', background:'#F8FAFF', borderRadius:8,
-                            border:'1px solid #DBEAFE', fontSize:12 }}>
-                            <Receipt size={14} weight="bold" color="#2563EB" />
+                            border:'1px solid var(--accent-border)', fontSize:12 }}>
+                            <Receipt size={14} weight="bold" color="var(--accent)" />
                             <div style={{ flex:1, minWidth:0 }}>
-                              <div style={{ fontWeight:600, color:'#1E40AF' }}>{h.invoiceNumber}</div>
+                              <div style={{ fontWeight:600, color:'var(--accent-hover)' }}>{h.invoiceNumber}</div>
                               <div style={{ color:'#6B7280', fontSize:11 }}>
                                 {fmtDate(h.date)} · {(h.stages || []).join(', ') || 'Все этапы'}
                               </div>
                             </div>
-                            <div style={{ fontWeight:700, color:'#1E3A5F', flexShrink:0 }}>
+                            <div style={{ fontWeight:700, color:'var(--text-primary)', flexShrink:0 }}>
                               {fmtMoney(h.total, h.currency)}
                             </div>
                           </div>
@@ -513,9 +513,9 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
             <div style={{ paddingTop:4 }}>
 
               {/* Selected stages summary */}
-              <div style={{ margin:'8px 0 4px', padding:'10px 14px', background:'#EFF6FF',
-                borderRadius:10, border:'1px solid #BFDBFE', fontSize:12 }}>
-                <div style={{ fontWeight:700, color:'#1E40AF', marginBottom:4 }}>
+              <div style={{ margin:'8px 0 4px', padding:'10px 14px', background:'var(--accent-light)',
+                borderRadius:10, border:'1px solid var(--accent-border)', fontSize:12 }}>
+                <div style={{ fontWeight:700, color:'var(--accent-hover)', marginBottom:4 }}>
                   <span style={{ display:'flex', alignItems:'center', gap:5 }}>{isPartial ? <><File size={11} weight="bold" /> Промежуточный счёт</> : <><ClipboardText size={11} weight="bold" /> Полный счёт</>}</span> · {fmtMoney(subtotal, currency)}
                 </div>
                 <div style={{ color:'#374151' }}>
@@ -587,25 +587,25 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
             <div style={{ paddingTop:8 }}>
 
               {/* Invoice header preview */}
-              <div style={{ background:'#1E3A5F', color:'#fff', borderRadius:10, padding:'16px 18px',
+              <div style={{ background:'var(--bg-subtle)', color:'#fff', borderRadius:10, padding:'16px 18px',
                 display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:16 }}>
                 <div>
                   <div style={{ fontSize:18, fontWeight:800, marginBottom:4 }}>{form.contractorName || '—'}</div>
-                  <div style={{ fontSize:11, color:'#CBD5E1', lineHeight:1.7 }}>
+                  <div style={{ fontSize:11, color:'var(--text-secondary)', lineHeight:1.7 }}>
                     {[form.contractorAddress, form.contractorPhone, form.contractorEmail].filter(Boolean).join(' · ')}
                   </div>
                 </div>
                 <div style={{ textAlign:'right' }}>
-                  <div style={{ background:'#2563EB', fontSize:12, fontWeight:800, letterSpacing:'.08em',
+                  <div style={{ background:'var(--accent)', fontSize:12, fontWeight:800, letterSpacing:'.08em',
                     padding:'3px 12px', borderRadius:5, textTransform:'uppercase', marginBottom:4 }}>
                     {isPartial ? 'Partial Invoice' : 'Invoice'}
                   </div>
                   {isPartial && (
-                    <div style={{ fontSize:10, color:'#93C5FD', marginBottom:4 }}>
+                    <div style={{ fontSize:10, color:'var(--text-muted)', marginBottom:4 }}>
                       {selectedStageNames.map(s => s === '—' ? 'No stage' : s).join(', ')}
                     </div>
                   )}
-                  <div style={{ fontSize:11, color:'#CBD5E1', lineHeight:1.8 }}>
+                  <div style={{ fontSize:11, color:'var(--text-secondary)', lineHeight:1.8 }}>
                     <div>№ <strong style={{ color:'#fff' }}>{form.invoiceNumber}</strong></div>
                     <div>{t('invoice.date')}: <strong style={{ color:'#fff' }}>{fmtDate(form.invoiceDate)}</strong></div>
                     <div>{t('invoice.due')}: <strong style={{ color:'#fff' }}>{fmtDate(form.dueDate)}</strong></div>
@@ -615,9 +615,9 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
 
               {/* Bill to */}
               <div style={{ padding:'10px 14px', background:'#F8FAFF', borderRadius:8,
-                border:'1px solid #DBEAFE', marginBottom:14 }}>
+                border:'1px solid var(--accent-border)', marginBottom:14 }}>
                 <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase',
-                  letterSpacing:'.08em', color:'#2563EB', marginBottom:4 }}>Bill To</div>
+                  letterSpacing:'.08em', color:'var(--accent)', marginBottom:4 }}>Bill To</div>
                 <div style={{ fontWeight:700, color:'#1F2937' }}>{form.clientName || '—'}</div>
                 <div style={{ fontSize:12, color:'#6B7280', whiteSpace:'pre-line' }}>{form.clientAddress}</div>
               </div>
@@ -625,7 +625,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
               {/* Line items */}
               <div style={{ borderRadius:10, overflow:'hidden', border:'1px solid #E5E7EB', marginBottom:4 }}>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 110px 60px 60px 90px 90px',
-                  background:'#2563EB', color:'#fff', padding:'8px 12px', fontSize:10,
+                  background:'var(--accent)', color:'#fff', padding:'8px 12px', fontSize:10,
                   fontWeight:700, textTransform:'uppercase', letterSpacing:'.05em', gap:8 }}>
                   <span>{t('invoice.colDesc')}</span>
                   <span>{t('invoice.colStage')}</span>
@@ -664,10 +664,10 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
 
               {/* Notes */}
               {form.notes && (
-                <div style={{ padding:'12px 14px', background:'#EFF6FF',
-                  borderLeft:'4px solid #2563EB', borderRadius:'0 8px 8px 0', marginBottom:8 }}>
+                <div style={{ padding:'12px 14px', background:'var(--accent-light)',
+                  borderLeft:'4px solid var(--accent)', borderRadius:'0 8px 8px 0', marginBottom:8 }}>
                   <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase',
-                    letterSpacing:'.08em', color:'#2563EB', marginBottom:5 }}>
+                    letterSpacing:'.08em', color:'var(--accent)', marginBottom:5 }}>
                     {t('invoice.notes')}
                   </div>
                   <div style={{ fontSize:12, color:'#374151', whiteSpace:'pre-wrap', lineHeight:1.6 }}>
@@ -683,15 +683,15 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
         <div style={{ paddingTop:12, borderTop:'1.5px solid #EAE3D8', display:'flex', gap:8, flexShrink:0 }}>
           {step === 'stages' && (
             <>
-              <button onClick={onClose} style={{ padding:'8px 16px', borderRadius:8, border:'1.5px solid #EAE3D8',
-                background:'var(--surface-2,#FDFBF8)', color:'#7A6E66', fontSize:13, fontWeight:600, cursor:'pointer' }}>
+              <button onClick={onClose} style={{ padding:'8px 16px', borderRadius:8, border:'1.5px solid var(--border-medium)',
+                background:'var(--bg-subtle)', color:'#7A6E66', fontSize:13, fontWeight:600, cursor:'pointer' }}>
                 {t('common.cancel')}
               </button>
               <button
                 onClick={() => setStep('form')}
                 disabled={noneSelected || selectedTasks.length === 0}
                 style={{ flex:1, padding:'8px 16px', borderRadius:8, border:'none',
-                  background: (noneSelected || selectedTasks.length === 0) ? '#EAE3D8' : '#2563EB',
+                  background: (noneSelected || selectedTasks.length === 0) ? '#EAE3D8' : 'var(--accent)',
                   color: (noneSelected || selectedTasks.length === 0) ? '#B8AFA6' : '#fff',
                   fontSize:13, fontWeight:700,
                   cursor: (noneSelected || selectedTasks.length === 0) ? 'default' : 'pointer' }}>
@@ -702,12 +702,12 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
           {step === 'form' && (
             <>
               <button onClick={() => setStep('stages')} style={{ padding:'8px 16px', borderRadius:8,
-                border:'1.5px solid #EAE3D8', background:'var(--surface-2,#FDFBF8)', color:'#7A6E66',
+                border:'1.5px solid var(--border-medium)', background:'var(--bg-subtle)', color:'#7A6E66',
                 fontSize:13, fontWeight:600, cursor:'pointer' }}>
                 <ArrowLeft size={13} weight="bold" /> {t('invoice.stagesBtn')}
               </button>
               <button onClick={handlePreview} style={{ flex:1, padding:'8px 16px', borderRadius:8,
-                border:'none', background:'#2563EB', color:'#fff',
+                border:'none', background:'var(--accent)', color:'#fff',
                 fontSize:13, fontWeight:700, cursor:'pointer' }}>
                 {t('invoice.previewBtn')} <ArrowRight size={13} weight="bold" />
               </button>
@@ -716,12 +716,12 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
           {step === 'preview' && (
             <>
               <button onClick={() => setStep('form')} style={{ padding:'8px 16px', borderRadius:8,
-                border:'1.5px solid #EAE3D8', background:'var(--surface-2,#FDFBF8)', color:'#7A6E66',
+                border:'1.5px solid var(--border-medium)', background:'var(--bg-subtle)', color:'#7A6E66',
                 fontSize:13, fontWeight:600, cursor:'pointer' }}>
                 <ArrowLeft size={13} weight="bold" /> {t('invoice.backBtn')}
               </button>
               <button onClick={handlePrint} style={{ flex:1, padding:'8px 16px', borderRadius:8,
-                border:'none', background:'#2563EB', color:'#fff',
+                border:'none', background:'var(--accent)', color:'#fff',
                 fontSize:13, fontWeight:700, cursor:'pointer', display:'flex',
                 alignItems:'center', justifyContent:'center', gap:6 }}>
                 <File size={13} weight="bold" /> {t('invoice.downloadBtn')}

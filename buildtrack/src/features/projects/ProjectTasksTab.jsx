@@ -57,10 +57,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
     return 0
   })
 
-  const STAGE_COLORS = [
-    '#C96B3A','#5A9467','#4A7FC1','#D4A843','#9B6B9B',
-    '#E07B6A','#6BAA8E','#7B8EC8','#A67C52','#3A5FAB',
-  ]
+  const STAGE_COLORS = Array(10).fill('var(--accent)')
 
   // Group tasks by stage, ordered by proj.stages first, then any extra
   // stages found only in tasks, with no-stage tasks last. Used by both the

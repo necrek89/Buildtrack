@@ -129,7 +129,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
   const overdueTasks  = overdueList.length
   const pendingReview = tasks.filter(t => t.status === 'pending').length
 
-  const renderCard = (p, isCompleted = false) => {
+  const renderCard = (p, isCompleted = false, isFirst = false) => {
     const pTasks   = tasks.filter(tk => tk.project_id === p.id)
     const pDone    = pTasks.filter(tk => tk.status === 'approved').length
     const pPct     = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
@@ -137,13 +137,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
     const pOverdue = pTasks.filter(tk => tk.deadline && new Date(tk.deadline) < new Date() && tk.status !== 'approved').length
     const stages   = Array.isArray(p.stages) ? p.stages : []
 
-    // Color-code percentage by value
-    const accent = isCompleted ? '#5A9467'
-      : pPct === 0   ? '#9CA3AF'
-      : pPct < 25    ? '#D4A843'
-      : pPct < 70    ? '#C96B3A'
-      : pPct < 100   ? '#4A7FC1'
-      : '#5A9467'
+    const accent = isCompleted ? 'var(--success)' : 'var(--accent)'
 
     const MAX_PILLS = 3
     const shownStages = stages.slice(0, MAX_PILLS)
@@ -153,20 +147,22 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
       <div
         key={p.id}
         onClick={() => onSelect(p.id)}
+        className={isFirst && !isCompleted ? 'border-beam' : ''}
         style={{
-          background: 'var(--surface,#fff)',
-          border: `1.5px solid ${isCompleted ? '#C5DEC9' : 'var(--border,#EAE3D8)'}`,
+          background: 'var(--bg-card)',
+          border: `0.5px solid ${isCompleted ? 'var(--success-border)' : 'var(--border-medium)'}`,
           borderRadius: 16, overflow: 'hidden', cursor: 'pointer',
           boxShadow: 'none',
           opacity: isCompleted ? 0.85 : 1,
           display: 'flex', flexDirection: 'column',
+          transition: 'border-color 0.2s',
         }}
-        onMouseEnter={e => { e.currentTarget.style.opacity='0.9' }}
-        onMouseLeave={e => { e.currentTarget.style.opacity='1' }}
+        onMouseEnter={e => { if (!isFirst) e.currentTarget.style.borderColor = 'var(--accent)' }}
+        onMouseLeave={e => { if (!isFirst) e.currentTarget.style.borderColor = isCompleted ? 'var(--success-border)' : 'var(--border-medium)' }}
       >
         {/* Top progress line */}
-        <div style={{ height: 4, background: 'var(--border,#EAE3D8)', position: 'relative' }}>
-          <div style={{ position:'absolute', inset:0, width:`${pPct}%`, background: accent, transition:'width .4s', borderRadius:'0 2px 2px 0' }} />
+        <div style={{ height: 4, background: 'var(--border-medium)', position: 'relative' }}>
+          <div style={{ position:'absolute', inset:0, width:`${pPct}%`, background: `linear-gradient(90deg, ${accent}, var(--accent-hover))`, transition:'width .4s', borderRadius:'0 2px 2px 0' }} />
         </div>
 
         <div style={{ padding: '14px 14px 12px', display:'flex', flexDirection:'column', flex:1 }}>
@@ -255,9 +251,9 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                   <span key={s} style={{
                     display:'inline-flex', alignItems:'center', gap:4,
                     fontSize:11, fontWeight:500, borderRadius:20, padding:'3px 9px',
-                    background: full ? `${accent}22` : '#F2EDE6',
-                    color:      full ? accent         : '#7A6E66',
-                    border:     `1px solid ${full ? accent + '55' : '#EAE3D8'}`,
+                    background: full ? 'var(--accent-light)' : 'var(--bg-subtle)',
+                    color:      full ? 'var(--accent-hover)' : 'var(--text-muted)',
+                    border:     `1px solid ${full ? 'var(--accent-border)' : 'var(--border-medium)'}`,
                   }}>
                     {s}
                     {sAlert > 0 && (
@@ -275,7 +271,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
           )}
 
           {/* Meta: deadline + stages count */}
-          <div style={{ display:'flex', flexWrap:'wrap', gap:8, fontSize:11, color:'#B8AFA6', marginBottom: (pPending > 0 || pOverdue > 0 || (!isCompleted && onComplete)) ? 8 : 0 }}>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:8, fontSize:11, color:'var(--text-muted)', marginBottom: (pPending > 0 || pOverdue > 0 || (!isCompleted && onComplete)) ? 8 : 0 }}>
             {p.address  && <span style={{ display:'flex', alignItems:'center', gap:2 }}><MapPin size={11} weight="bold" /> {p.address}</span>}
             {p.deadline && <span style={{ display:'flex', alignItems:'center', gap:2 }}><CalendarBlank size={11} weight="bold" /> {p.deadline}</span>}
             {stages.length > 0 && <span>≡ {t('projects.stagesCount', { n: stages.length })}</span>}
@@ -365,7 +361,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
       {/* Active projects grid */}
       {active.length > 0 && (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:14, marginBottom:24 }}>
-          {active.map(p => renderCard(p, false))}
+          {active.map((p, i) => renderCard(p, false, i === 0))}
         </div>
       )}
 
