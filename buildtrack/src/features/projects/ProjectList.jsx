@@ -281,7 +281,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
           {(pPending > 0 || pOverdue > 0) && (
             <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
               {pPending > 0 && <span style={{ fontSize:10, background:'var(--warning-bg)', color:'var(--warning)', borderRadius:6, padding:'2px 7px', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}><Clock size={10} weight="bold" /> {pPending}</span>}
-              {pOverdue > 0 && <span style={{ fontSize:10, background:'#1C1108', color:'var(--accent-hover)', border:'0.5px solid rgba(234,88,12,0.3)', boxShadow:'0 0 8px rgba(234,88,12,0.1)', borderRadius:6, padding:'2px 7px', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}><Warning size={10} weight="bold" /> {pOverdue}</span>}
+              {pOverdue > 0 && <span style={{ fontSize:10, background:'var(--bg-accent)', color:'var(--accent-hover)', border:'0.5px solid var(--accent-border)', boxShadow:'0 0 8px rgba(234,88,12,0.1)', borderRadius:6, padding:'2px 7px', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}><Warning size={10} weight="bold" /> {pOverdue}</span>}
             </div>
           )}
         </div>
@@ -345,7 +345,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                     <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{task.text}</span>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                       {proj && <span style={{ fontSize: 11, color: 'var(--text-secondary)', background: 'var(--bg,#F9F6F0)', borderRadius: 6, padding: '1px 7px' }}>{proj.name}</span>}
-                      <span style={{ fontSize: 11, color: '#C0392B' }}>{t('projects.overdueByDays', { n: daysOverdue })}</span>
+                      <span style={{ fontSize: 11, color: 'var(--danger)' }}>{t('projects.overdueByDays', { n: daysOverdue })}</span>
                       <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('projects.deadlineColon')} {task.deadline}</span>
                     </div>
                   </button>
