@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { useT, LANGUAGES } from '../i18n/useLanguage'
 import translations from '../i18n/translations'
 import { supabase } from '../lib/supabase'
+import { useStore } from '../store/useStore'
 import './landing.css'
 
 function nav(to) { window.__navigate?.(to) }
 
-// ── Inline stroke icons (marquee + bento) ────────────────────────────────────
+// ── Inline stroke icons (marquee + bento + mockup nav) ───────────────────────
 const ICONS = {
   clipboard: <><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></>,
   tool: <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>,
@@ -76,129 +77,213 @@ function Ticker({ items }) {
   )
 }
 
-// ── Phone mockups (generic frame, screens at real app scale) ────────────────
+// ── Phone mockups ────────────────────────────────────────────────────────────
+// Screens replicate the real app UI (project view) at native 320px scale,
+// shrunk via transform:scale in CSS. All demo copy is intentionally English.
 function PhoneFrame({ secondary, children }) {
   return (
     <div className={`ld-phone ${secondary ? 'secondary' : ''}`}>
       <div className="ld-cam" />
-      <div className="ld-clip">
-        <div className="scr">{children}</div>
-      </div>
+      <div className="ld-clip">{children}</div>
     </div>
   )
 }
 
-function ScreenHeader() {
+function MStatus() {
   return (
-    <div className="s-hdr">
-      <div className="s-logo">tutuu<em>.</em></div>
-      <div className="s-av">ТБ</div>
+    <div className="m-status">
+      <span>9:41</span>
+      <span className="ic">
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><rect x="0" y="6" width="2.5" height="4" rx="0.8"/><rect x="3.7" y="4" width="2.5" height="6" rx="0.8"/><rect x="7.4" y="2" width="2.5" height="8" rx="0.8"/><rect x="11.1" y="0" width="2.5" height="10" rx="0.8"/></svg>
+        <svg width="13" height="10" viewBox="0 0 24 18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M2 6a15 15 0 0 1 20 0"/><path d="M6 10.5a9.5 9.5 0 0 1 12 0"/><path d="M10 15a3.5 3.5 0 0 1 4 0"/></svg>
+        <svg width="18" height="10" viewBox="0 0 25 12" fill="none" stroke="currentColor"><rect x="0.5" y="0.5" width="21" height="11" rx="3"/><rect x="2.5" y="2.5" width="12" height="7" rx="1.5" fill="currentColor" stroke="none"/><path d="M23.5 4v4" strokeWidth="1.6" strokeLinecap="round"/></svg>
+      </span>
     </div>
   )
 }
 
-function MaterialsScreen({ l }) {
+function MTopbar() {
+  return (
+    <div className="m-topbar">
+      <svg width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="#1C1917" strokeWidth="1.6" strokeLinecap="round"><path d="M1 1.5h12M1 5.5h12M1 9.5h12"/></svg>
+      <span className="m-logo">tutuu<em>.</em></span>
+      <span className="m-top-r">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span className="m-uname">John Smith</span>
+        <span className="m-uav">JS</span>
+      </span>
+    </div>
+  )
+}
+
+function MProjHeader({ tabs, active }) {
   return (
     <>
-      <ScreenHeader />
-      <div className="s-body">
-        <div className="s-card">
-          <div className="s-pname">Project A</div>
-          <div className="s-pbar"><div className="s-pbar-f" /></div>
-          <div className="s-stats">
-            <div className="s-stat"><div className="s-sv">41d</div><div className="s-sl">{l.scrDaysLeft}</div></div>
-            <div className="s-stat"><div className="s-sv">4/13</div><div className="s-sl">{l.scrTasksLabel}</div></div>
-          </div>
-        </div>
-        <div className="s-card">
-          <div className="s-sec-label">{l.scrMatTitle}</div>
-          <div className="s-row"><span>Cement M400</span><span style={{ color: '#F59E0B' }}>{l.scrStatusPending}</span></div>
-          <div className="s-row"><span>Tile adhesive</span><span style={{ color: '#16A34A' }}>{l.scrStatusDelivered}</span></div>
-          <div className="s-row"><span>Primer</span><span style={{ color: '#2563EB' }}>{l.scrStatusOrdered}</span></div>
-        </div>
+      <div className="m-projrow">
+        <span className="m-chip-back">← Back</span>
+        <span className="m-ptitle">Oak Street 89</span>
+        <span className="m-chip-invoice">Generate Invoice</span>
+      </div>
+      <div className="m-pbar"><div className="m-pbar-f" /></div>
+      <div className="m-tabs">
+        {tabs.map(t => <div key={t} className={`m-tab ${t === active ? 'on' : ''}`}>{t}</div>)}
       </div>
     </>
   )
 }
 
-function TasksScreen({ l, navL }) {
-  const tasks = [
-    { name: l.scrTask1, done: true,  count: '1/1' },
-    { name: l.scrTask2, done: false, count: '0/3' },
-    { name: l.scrTask3, done: false, count: '1/5' },
-    { name: l.scrTask4, done: true,  count: '2/2' },
-  ]
-  const navItems = [
-    { icon: 'grid', label: navL.projects, on: true },
-    { icon: 'box',  label: navL.materials },
-    { icon: 'tool', label: navL.tools },
-    { icon: 'user', label: navL.team },
-  ]
+function MStats() {
   return (
-    <>
-      <ScreenHeader />
-      <div className="s-body" style={{ flex: '0 0 auto' }}>
-        <div className="s-card">
-          <div className="s-pname">Project A</div>
-          <div className="s-pbar"><div className="s-pbar-f" /></div>
-          <div className="s-stats">
-            <div className="s-stat"><div className="s-sv">31%</div><div className="s-sl">{l.scrProgress}</div></div>
-            <div className="s-stat"><div className="s-sv">41d</div><div className="s-sl">{l.scrDaysLeft}</div></div>
-            <div className="s-stat"><div className="s-sv">4/13</div><div className="s-sl">{l.scrTasksLabel}</div></div>
-          </div>
-        </div>
-      </div>
-      <div className="s-tabs">
-        <div className="s-tab on">{l.scrTabTasks}</div>
-        <div className="s-tab">{l.scrTabMats}</div>
-        <div className="s-tab">{l.scrTabExp}</div>
-      </div>
-      <div className="s-tasks">
-        {tasks.map((task, i) => (
-          <div key={i} className="s-task">
-            {task.done ? <div className="s-chk-done">✓</div> : <div className="s-chk-todo" />}
-            <div className="s-tn">{task.name}</div>
-            <div className="s-tc">{task.count}</div>
-          </div>
-        ))}
-      </div>
-      <div className="s-nav">
-        {navItems.map((item, i) => (
-          <div key={i} className="s-ni">
-            <Ic name={item.icon} size={20} color={item.on ? 'var(--ld-orange)' : 'var(--ld-muted)'} />
-            <div className={`s-nl ${item.on ? 'on' : ''}`}>{item.label}</div>
-          </div>
-        ))}
-      </div>
-    </>
+    <div className="m-stats">
+      <div className="m-stat"><div className="m-stat-v orange">8%</div><div className="m-stat-l">Progress</div></div>
+      <div className="m-stat"><div className="m-stat-v">2</div><div className="m-stat-l">Workers</div></div>
+      <div className="m-stat"><div className="m-stat-v orange">0d</div><div className="m-stat-l">Days left</div></div>
+      <div className="m-stat"><div className="m-stat-v">1/13</div><div className="m-stat-l">Tasks</div></div>
+    </div>
   )
 }
 
-function TeamScreen({ l }) {
-  const workers = [
-    { initials: 'АФ', color: '#EA580C', name: 'Aleksei F.', shifts: 12, sum: '€540' },
-    { initials: 'ИС', color: '#6366F1', name: 'Ivan S.',    shifts: 10, sum: '€450' },
-    { initials: 'МК', color: '#0891B2', name: 'Maxim K.',   shifts: 8,  sum: '€400' },
+function MNav() {
+  const items = [
+    { icon: 'grid', label: 'Projects', on: true },
+    { icon: 'box',  label: 'Materials' },
+    { icon: 'tool', label: 'Tools' },
+    { icon: 'user', label: 'Team' },
   ]
   return (
-    <>
-      <ScreenHeader />
-      <div className="s-body">
-        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ld-ink)' }}>{l.scrTeamTitle} · {l.scrTeamTotal}</div>
-        <div>
-          {workers.map((w, i) => (
-            <div key={i} className="s-member">
-              <div className="s-mav" style={{ background: w.color }}>{w.initials}</div>
-              <div style={{ flex: 1 }}>
-                <div className="s-mname">{w.name}</div>
-                <div className="s-mshifts">{w.shifts} {l.shiftsWord}</div>
-              </div>
-              <div className="s-msum">{w.sum}</div>
+    <div className="m-nav">
+      {items.map((item, i) => (
+        <div key={i} className={`m-ni ${item.on ? 'on' : ''}`}>
+          <Ic name={item.icon} size={17} />
+          <span>{item.label}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const DRAG_DOTS = (
+  <svg width="7" height="11" viewBox="0 0 7 11" fill="currentColor"><circle cx="1.5" cy="1.5" r="1.2"/><circle cx="5.5" cy="1.5" r="1.2"/><circle cx="1.5" cy="5.5" r="1.2"/><circle cx="5.5" cy="5.5" r="1.2"/><circle cx="1.5" cy="9.5" r="1.2"/><circle cx="5.5" cy="9.5" r="1.2"/></svg>
+)
+
+function MTasksScreen() {
+  const stages = [
+    { n: 1, name: 'Panoramic window', count: '1/4', prog: 25 },
+    { n: 2, name: 'Tiling',           count: '0/2', prog: 0 },
+    { n: 3, name: 'Cleanup',          count: '0/0', prog: 0 },
+    { n: 4, name: 'Facade',           count: '0/1', prog: 0 },
+  ]
+  return (
+    <div className="mscr">
+      <MStatus />
+      <MTopbar />
+      <MProjHeader tabs={['Tasks', 'Materials', 'Expenses', 'Photos', 'Documents']} active="Tasks" />
+      <MStats />
+      <div className="m-controls">
+        <span className="m-chip-export">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export ▾
+        </span>
+        <span className="m-btn-accent">+ Task</span>
+      </div>
+      <div className="m-filters">
+        <span className="m-fchip on">All (13)</span>
+        <span className="m-fchip">Active</span>
+        <span className="m-fchip">In Review (0)</span>
+        <span className="m-fchip">Done</span>
+      </div>
+      <div className="m-cards">
+        {stages.map(s => (
+          <div key={s.n} className="m-card">
+            <div className="m-crow">
+              <span className="m-drag">{DRAG_DOTS}</span>
+              <span className="m-num">{s.n}</span>
+              <span className="m-cname">{s.name}</span>
+              <span className="m-ccount">{s.count}</span>
+              <span className="m-cicons">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </span>
             </div>
-          ))}
-        </div>
+            <div className="m-cbar"><div className="m-cbar-f" style={{ width: `${s.prog}%` }} /></div>
+          </div>
+        ))}
+        <div className="m-addstage">+ Add stage</div>
       </div>
-    </>
+      <MNav />
+    </div>
+  )
+}
+
+function MMaterialsScreen() {
+  const items = [
+    { name: 'Gloves × 10 pcs' },
+    { name: 'Paint roller × 4 pcs' },
+    { name: 'White bags × 20 pcs' },
+  ]
+  return (
+    <div className="mscr">
+      <MStatus />
+      <MTopbar />
+      <MProjHeader tabs={['Tasks', 'Materials', 'Expenses', 'Photos', 'Documents']} active="Materials" />
+      <MStats />
+      <div className="m-controls" style={{ justifyContent: 'flex-end' }}>
+        <span className="m-btn-accent">+ Report shortage</span>
+      </div>
+      <div className="m-statcards">
+        <div className="m-statcard red"><div className="v">0</div><div className="t">Open shortages</div></div>
+        <div className="m-statcard green"><div className="v">1</div><div className="t">Purchased this week</div></div>
+      </div>
+      <div className="m-filters">
+        <span className="m-fchip on">All (12)</span>
+        <span className="m-fchip">Open (0)</span>
+        <span className="m-fchip">Purchased</span>
+      </div>
+      <div className="m-mrows">
+        {items.map((item, i) => (
+          <div key={i} className="m-mrow">
+            <span className="m-mcheck">✓</span>
+            <span style={{ flex: 1 }}>
+              <div className="m-mname">{item.name}</div>
+              <div className="m-msub">John Smith · <span className="g">purchased May 28</span></div>
+            </span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#B8AFA3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </div>
+        ))}
+      </div>
+      <MNav />
+    </div>
+  )
+}
+
+function MTeamScreen() {
+  const members = [
+    { av: 'T', name: 'Tom Walker', role: 'worker' },
+    { av: 'E', name: 'Emma Davis', role: 'client' },
+    { av: 'A', name: 'Alex Brown', role: 'worker' },
+  ]
+  return (
+    <div className="mscr">
+      <MStatus />
+      <MTopbar />
+      <MProjHeader tabs={['Materials', 'Expenses', 'Photos', 'Documents', 'Team']} active="Team" />
+      <MStats />
+      <div className="m-trows">
+        {members.map((m, i) => (
+          <div key={i} className="m-trow">
+            <span className="m-tav">{m.av}</span>
+            <span>
+              <div className="m-tname">{m.name}</div>
+              <div className="m-trole">{m.role}</div>
+            </span>
+            <span className="m-badge">Active</span>
+          </div>
+        ))}
+      </div>
+      <MNav />
+    </div>
   )
 }
 
@@ -255,11 +340,19 @@ function BetaModal({ l, onClose }) {
   )
 }
 
+// Crew counter: grows by one per day, capped at 300.
+const CREW_START = Date.UTC(2026, 5, 1) // Jun 1, 2026
+const CREW_BASE = 220
+function crewCount() {
+  const days = Math.max(0, Math.floor((Date.now() - CREW_START) / 86400000))
+  return Math.min(300, CREW_BASE + days)
+}
+
 // ── MAIN LANDING PAGE ────────────────────────────────────────────────────────
 export default function LandingPage() {
   const { lang, setLang } = useT()
-  const l    = translations[lang]?.landing || translations.en.landing
-  const navL = translations[lang]?.nav     || translations.en.nav
+  const { theme, toggleTheme } = useStore()
+  const l = translations[lang]?.landing || translations.en.landing
   const [showPricing, setShowPricing] = useState(false)
   const [stats, setStats] = useState(null)
 
@@ -293,10 +386,10 @@ export default function LandingPage() {
   ]
 
   const avatars = [
-    { txt: 'АФ', color: '#3B82F6' },
-    { txt: 'ИС', color: '#10B981' },
-    { txt: 'МК', color: '#8B5CF6' },
-    { txt: 'ВП', color: '#F59E0B' },
+    { txt: 'JS', color: '#3B82F6' },
+    { txt: 'AK', color: '#10B981' },
+    { txt: 'MP', color: '#8B5CF6' },
+    { txt: 'TW', color: '#F59E0B' },
     { txt: '+',  color: '#EF4444' },
   ]
 
@@ -307,6 +400,12 @@ export default function LandingPage() {
       <nav className="ld-nav">
         <div className="ld-logo">tutuu<em>.</em></div>
         <div className="ld-nav-r">
+          <button className="ld-theme-btn" onClick={toggleTheme} title={theme === 'dark' ? 'Light mode' : 'Dark mode'}>
+            {theme === 'dark'
+              ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            }
+          </button>
           <select className="ld-lang" value={lang} onChange={e => setLang(e.target.value)}>
             {LANGUAGES.map(lg => <option key={lg.code} value={lg.code}>{lg.label}</option>)}
           </select>
@@ -338,7 +437,7 @@ export default function LandingPage() {
             {avatars.map((a, i) => (
               <div key={i} className="ld-av" style={{ background: a.color }}>{a.txt}</div>
             ))}
-            <span className="ld-av-label">{l.join1} <strong>{l.join2}</strong> {l.join3}</span>
+            <span className="ld-av-label">{l.join1} <strong>{crewCount()}+ {l.join2}</strong></span>
           </div>
 
           {/* Number ticker — live counts from the DB */}
@@ -381,9 +480,9 @@ export default function LandingPage() {
 
           {/* Phone mockups */}
           <div className="ld-phones">
-            <PhoneFrame secondary><MaterialsScreen l={l} /></PhoneFrame>
-            <PhoneFrame><TasksScreen l={l} navL={navL} /></PhoneFrame>
-            <PhoneFrame secondary><TeamScreen l={l} /></PhoneFrame>
+            <PhoneFrame secondary><MMaterialsScreen /></PhoneFrame>
+            <PhoneFrame><MTasksScreen /></PhoneFrame>
+            <PhoneFrame secondary><MTeamScreen /></PhoneFrame>
           </div>
         </div>
       </div>
@@ -435,9 +534,9 @@ export default function LandingPage() {
             <div className="ld-card-desc">{l.f3d}</div>
             <div className="ld-mini" style={{ marginTop: 16 }}>
               {[
-                { initials: 'АФ', color: '#EA580C', name: 'Aleksei', shifts: 12, sum: '€540' },
-                { initials: 'ИС', color: '#6366F1', name: 'Ivan',    shifts: 10, sum: '€450' },
-                { initials: 'МК', color: '#0891B2', name: 'Maxim',   shifts: 8,  sum: '€400' },
+                { initials: 'AF', color: '#EA580C', name: 'Aleksei', shifts: 12, sum: '€540' },
+                { initials: 'IS', color: '#6366F1', name: 'Ivan',    shifts: 10, sum: '€450' },
+                { initials: 'MK', color: '#0891B2', name: 'Maxim',   shifts: 8,  sum: '€400' },
               ].map((w, i) => (
                 <div key={i} className="ld-mini-row">
                   <div className="ld-mini-mav" style={{ background: w.color }}>{w.initials}</div>
