@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useT, LANGUAGES } from '../i18n/useLanguage'
 import translations from '../i18n/translations'
+import { supabase } from '../lib/supabase'
 import './landing.css'
 
 function nav(to) { window.__navigate?.(to) }
@@ -260,6 +261,18 @@ export default function LandingPage() {
   const l    = translations[lang]?.landing || translations.en.landing
   const navL = translations[lang]?.nav     || translations.en.nav
   const [showPricing, setShowPricing] = useState(false)
+  const [stats, setStats] = useState(null)
+
+  // Real aggregate numbers from the DB (landing_stats RPC, anon-accessible).
+  // The ticker is only rendered once real data arrives.
+  useEffect(() => {
+    let cancelled = false
+    supabase.rpc('landing_stats').then(({ data, error }) => {
+      if (cancelled || error || !data) return
+      setStats(data)
+    })
+    return () => { cancelled = true }
+  }, [])
 
   const onCardMove = (e) => {
     const card = e.currentTarget
@@ -328,12 +341,14 @@ export default function LandingPage() {
             <span className="ld-av-label">{l.join1} <strong>{l.join2}</strong> {l.join3}</span>
           </div>
 
-          {/* Number ticker */}
-          <Ticker items={[
-            { target: 12400, label: l.tick1 },
-            { target: 890,   label: l.tick2 },
-            { target: 3200,  label: l.tick3 },
-          ]} />
+          {/* Number ticker — live counts from the DB */}
+          {stats && (
+            <Ticker items={[
+              { target: stats.tasks    ?? 0, label: l.tick1 },
+              { target: stats.workers  ?? 0, label: l.tick2 },
+              { target: stats.projects ?? 0, label: l.tick3 },
+            ]} />
+          )}
 
           {/* Platforms */}
           <div className="ld-platforms">
