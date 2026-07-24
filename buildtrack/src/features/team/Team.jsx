@@ -5,7 +5,7 @@ import { useStore, currencySymbol } from '../../store/useStore'
 import { supabase } from '../../lib/supabase'
 import AttendanceModal from '../../components/AttendanceModal'
 import { generateMonthlyReport, generateAnnualReport } from './SalaryReportGenerator'
-import { DownloadSimple, FileXls, CalendarBlank, ChartBar, CheckCircle, ClipboardText, Lightning, Wrench, Clock, Trash, CaretUp, CaretDown, File, X } from '@phosphor-icons/react'
+import { DownloadSimple, Phone, TelegramLogo, FileXls, CalendarBlank, ChartBar, CheckCircle, ClipboardText, Lightning, Wrench, Clock, Trash, CaretUp, CaretDown, File, X } from '@phosphor-icons/react'
 import * as XLSX from 'xlsx'
 import TimesheetModal from './TimesheetModal'
 import { todayStr } from '../../lib/date'
@@ -252,9 +252,9 @@ export default function Team() {
               <button onClick={() => setShowAttendance(true)} style={{
                 display:'flex', alignItems:'center', gap:5,
                 padding:'6px 12px', borderRadius:8,
-                background: todayDone ? '#F0FDF4' : 'var(--accent-light)',
-                color: todayDone ? '#16A34A' : 'var(--accent)',
-                border: `0.5px solid ${todayDone ? '#86EFAC' : 'var(--accent-border)'}`,
+                background: todayDone ? 'var(--success-bg)' : 'var(--accent-light)',
+                color: todayDone ? 'var(--success)' : 'var(--accent)',
+                border: `0.5px solid ${todayDone ? 'var(--success-border)' : 'var(--accent-border)'}`,
                 cursor:'pointer', fontSize:12, fontWeight:500,
               }}>
                 {todayDone ? <><CheckCircle size={12} weight="bold" /> {t('team.attendanceDone')}</> : <><ClipboardText size={12} weight="bold" /> {t('team.attendanceBtn')}</>}
@@ -351,11 +351,11 @@ export default function Team() {
         <div className="card card-body" style={{ marginBottom:12 }}>
 
           {/* Рабочий по email */}
-          <div style={{ paddingBottom:14, borderBottom:'1px solid #EAE3D8' }}>
-            <div style={{ fontSize:12, fontWeight:700, color:'#7A6E66', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
+          <div style={{ paddingBottom:14, borderBottom:'1px solid var(--border-medium)' }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'var(--text-secondary)', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
               {t('team.emailMethod')}
             </div>
-            <div style={{ fontSize:12, color:'#7A6E66', marginBottom:8 }}>{t('team.emailDesc')}</div>
+            <div style={{ fontSize:12, color:'var(--text-secondary)', marginBottom:8 }}>{t('team.emailDesc')}</div>
             <div style={{ display:'flex', gap:8 }}>
               <input className="form-input" placeholder={t('team.emailPlaceholder')}
                 value={email} onChange={e => setEmail(e.target.value)}
@@ -371,10 +371,10 @@ export default function Team() {
 
           {/* Заказчик по email + проект */}
           <div style={{ paddingTop:14 }}>
-            <div style={{ fontSize:12, fontWeight:700, color:'#7A6E66', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'var(--text-secondary)', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
               {t('team.clientMethod')}
             </div>
-            <div style={{ fontSize:12, color:'#7A6E66', marginBottom:8 }}>{t('team.clientDesc')}</div>
+            <div style={{ fontSize:12, color:'var(--text-secondary)', marginBottom:8 }}>{t('team.clientDesc')}</div>
             <select className="form-input" value={clientProjId} onChange={e => setClientProjId(e.target.value)} style={{ marginBottom:8 }}>
               <option value="">{t('team.clientProjectSelect')}</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -397,12 +397,12 @@ export default function Team() {
       {/* ── Pending join requests ── */}
       {profile?.role === 'foreman' && joinRequests.length > 0 && (
         <div className="card" style={{ marginBottom:12, padding:0 }}>
-          <div style={{ padding:'10px 14px', borderBottom:'1px solid #EAE3D8', display:'flex', alignItems:'center', gap:8 }}>
+          <div style={{ padding:'10px 14px', borderBottom:'1px solid var(--border-medium)', display:'flex', alignItems:'center', gap:8 }}>
             <div style={{ fontSize:11, fontWeight:700, color:'var(--accent)', letterSpacing:'.08em', textTransform:'uppercase' }}>{t('team.joinRequests')}</div>
             <div style={{ background:'var(--accent-light,var(--accent-light))', color:'var(--accent)', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:10 }}>{joinRequests.length}</div>
           </div>
           {joinRequests.map(r => (
-            <div key={r.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', borderBottom:'1px solid #EAE3D8' }}>
+            <div key={r.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', borderBottom:'1px solid var(--border-medium)' }}>
               <div style={{ width:36, height:36, borderRadius:'50%', background:'var(--accent-light,var(--accent-light))', color:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, flexShrink:0 }}>
                 {r.worker?.name?.charAt(0)?.toUpperCase()}
               </div>
@@ -444,7 +444,7 @@ export default function Team() {
           return (
             <div key={m.id} style={{
               background: 'var(--surface,#fff)',
-              border: `1.5px solid ${isOpen ? 'var(--accent)' : '#EAE3D8'}`,
+              border: `1.5px solid ${isOpen ? 'var(--accent)' : 'var(--border-medium)'}`,
               borderRadius: 14, overflow: 'hidden',
               boxShadow: isOpen ? '0 3px 10px rgba(201,107,58,0.10)' : 'none',
               transition: 'border-color .15s, box-shadow .15s',
@@ -463,7 +463,7 @@ export default function Team() {
                 <div style={{ position:'relative', flexShrink:0 }}>
                   <div style={{
                     width:40, height:40, borderRadius:'50%',
-                    background: isOpen ? 'var(--accent)' : '#F2EDE4',
+                    background: isOpen ? 'var(--accent)' : 'var(--bg-accent)',
                     color: isOpen ? '#fff' : 'var(--accent)',
                     display:'flex', alignItems:'center', justifyContent:'center',
                     fontSize:15, fontWeight:700,
@@ -473,13 +473,13 @@ export default function Team() {
                   <div style={{
                     position:'absolute', bottom:0, right:0,
                     width:11, height:11, borderRadius:'50%',
-                    background: stCfg.dot, border:'2px solid #fff',
+                    background: stCfg.dot, border:'2px solid var(--bg-card)',
                   }} />
                   {(() => {
                     const today = todayStr()
                     const rec = attendance.find(a => a.worker_id === m.id && a.date === today)
                     if (!rec) return null
-                    const dotColor = rec.status === 'present' ? '#16A34A' : rec.status === 'absent' ? '#DC2626' : rec.status === 'sick' ? '#7C3AED' : '#0891B2'
+                    const dotColor = rec.status === 'present' ? 'var(--success)' : rec.status === 'absent' ? 'var(--danger)' : rec.status === 'sick' ? 'var(--violet)' : 'var(--info)'
                     return (
                       <div style={{
                         position:'absolute', bottom:0, left:0,
@@ -501,7 +501,7 @@ export default function Team() {
                       <span style={{ fontSize:10, color:'var(--accent)', fontWeight:600, display:'flex', alignItems:'center', gap:2 }}><Lightning size={10} weight="bold" /> {workerTasks.length} tasks</span>
                     )}
                     {workerTools.length > 0 && (
-                      <span style={{ fontSize:10, color:'#7A6E66', display:'flex', alignItems:'center', gap:2 }}><Wrench size={10} weight="bold" /> {workerTools.length}</span>
+                      <span style={{ fontSize:10, color:'var(--text-secondary)', display:'flex', alignItems:'center', gap:2 }}><Wrench size={10} weight="bold" /> {workerTools.length}</span>
                     )}
                     {m.phone && (
                       <a
@@ -509,7 +509,7 @@ export default function Team() {
                         onClick={e => e.stopPropagation()}
                         style={{ fontSize:10, color:'var(--accent)', textDecoration:'none', display:'flex', alignItems:'center', gap:2 }}
                       >
-                        📞 {m.phone}
+                        <Phone size={11} weight="bold" /> {m.phone}
                       </a>
                     )}
                   </div>
@@ -619,7 +619,7 @@ export default function Team() {
                       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
                         {m.phone ? (
                           <a href={`tel:${m.phone}`} style={{ fontSize:12, color:'var(--accent)', textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>
-                            📞 {m.phone}
+                            <Phone size={11} weight="bold" /> {m.phone}
                           </a>
                         ) : null}
                         {m.telegram ? (
@@ -629,7 +629,7 @@ export default function Team() {
                             rel="noopener noreferrer"
                             style={{ fontSize:12, color:'#229ED9', textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}
                           >
-                            ✈️ {m.telegram.startsWith('@') ? m.telegram : `@${m.telegram}`}
+                            <TelegramLogo size={12} weight="bold" /> {m.telegram.startsWith('@') ? m.telegram : `@${m.telegram}`}
                           </a>
                         ) : null}
                         {!m.phone && !m.telegram && (
@@ -659,7 +659,7 @@ export default function Team() {
                       ? <span style={{ fontSize:11, color:'var(--text-muted)' }}>{t('team.noTools')}</span>
                       : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
                           {workerTools.map(t => (
-                            <span key={t.id} style={{ fontSize:11, fontWeight:500, background:'var(--bg-accent,#F2EDE4)', color:'#7A6E66', borderRadius:8, padding:'3px 10px', border:'1px solid #EAE3D8' }}>{t.name}</span>
+                            <span key={t.id} style={{ fontSize:11, fontWeight:500, background:'var(--bg-accent,#F2EDE4)', color:'var(--text-secondary)', borderRadius:8, padding:'3px 10px', border:'1px solid var(--border-medium)' }}>{t.name}</span>
                           ))}
                         </div>
                     }
@@ -673,7 +673,7 @@ export default function Team() {
                         <span style={{ fontSize:11, fontWeight:600, color:'var(--accent)', display:'flex', alignItems:'center', gap:2 }}><Lightning size={11} weight="bold" /> {workerTasks.filter(t=>['new','rejected'].includes(t.status)).length} active</span>
                       )}
                       {workerTasks.filter(t=>t.status==='pending').length > 0 && (
-                        <span style={{ fontSize:11, fontWeight:600, color:'#D4A843', display:'flex', alignItems:'center', gap:2 }}><Clock size={11} weight="bold" /> {workerTasks.filter(t=>t.status==='pending').length} in review</span>
+                        <span style={{ fontSize:11, fontWeight:600, color:'var(--warning)', display:'flex', alignItems:'center', gap:2 }}><Clock size={11} weight="bold" /> {workerTasks.filter(t=>t.status==='pending').length} in review</span>
                       )}
                       {workerDone > 0 && (
                         <span style={{ fontSize:11, fontWeight:600, color:'var(--success)', display:'flex', alignItems:'center', gap:2 }}><CheckCircle size={11} weight="bold" /> {workerDone} done</span>
@@ -710,11 +710,11 @@ export default function Team() {
                             <div style={{ fontSize:9, color:'var(--text-muted)' }}>{t('team.earned')}</div>
                           </div>
                           <div style={{ flex:1, background:'var(--bg-subtle,#F9F8F6)', borderRadius:8, padding:'7px 10px', textAlign:'center' }}>
-                            <div style={{ fontSize:11, fontWeight:600, color:'#16A34A' }}>{paid.toLocaleString()} {currSym}</div>
+                            <div style={{ fontSize:11, fontWeight:600, color:'var(--success)' }}>{paid.toLocaleString()} {currSym}</div>
                             <div style={{ fontSize:9, color:'var(--text-muted)' }}>{t('team.paidOut')}</div>
                           </div>
-                          <div style={{ flex:1, background: balance > 0 ? 'var(--accent-light,#FFF7ED)' : '#F0FDF4', borderRadius:8, padding:'7px 10px', textAlign:'center', border:`0.5px solid ${balance > 0 ? '#FED7AA' : '#BBF7D0'}` }}>
-                            <div style={{ fontSize:11, fontWeight:600, color: balance > 0 ? 'var(--accent)' : '#16A34A' }}>{balance.toLocaleString()} {currSym}</div>
+                          <div style={{ flex:1, background: balance > 0 ? 'var(--accent-light,#FFF7ED)' : 'var(--success-bg)', borderRadius:8, padding:'7px 10px', textAlign:'center', border:`0.5px solid ${balance > 0 ? 'var(--accent-border)' : 'var(--success-border)'}` }}>
+                            <div style={{ fontSize:11, fontWeight:600, color: balance > 0 ? 'var(--accent)' : 'var(--success)' }}>{balance.toLocaleString()} {currSym}</div>
                             <div style={{ fontSize:9, color:'var(--text-muted)' }}>{t('team.balance')}</div>
                           </div>
                         </div>
@@ -757,7 +757,7 @@ export default function Team() {
                             <div style={{ flex:1, minWidth:0 }}>
                               <div style={{ fontSize:11, color:'var(--text-primary)' }}>
                                 {p.paid_at}
-                                <span style={{ fontWeight:600, color:'#16A34A', marginLeft:8 }}>−{parseFloat(p.amount).toLocaleString()} {currSym}</span>
+                                <span style={{ fontWeight:600, color:'var(--success)', marginLeft:8 }}>−{parseFloat(p.amount).toLocaleString()} {currSym}</span>
                               </div>
                               {p.notes && <div style={{ fontSize:10, color:'var(--text-muted)' }}>{p.notes}</div>}
                             </div>
@@ -1030,9 +1030,9 @@ export default function Team() {
               const isOpen = openId === m.id
               const workerProjects = (m.project_ids || []).map(pid => projects.find(p => p.id === pid)).filter(Boolean)
               return (
-                <div key={m.id} style={{ background:'var(--surface,#fff)', border:`1.5px solid ${isOpen ? 'var(--accent)' : '#EAE3D8'}`, borderRadius:14, overflow:'hidden' }}>
+                <div key={m.id} style={{ background:'var(--surface,#fff)', border:`1.5px solid ${isOpen ? 'var(--accent)' : 'var(--border-medium)'}`, borderRadius:14, overflow:'hidden' }}>
                   <div onClick={() => setOpenId(isOpen ? null : m.id)} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', cursor:'pointer', background: isOpen ? 'var(--accent-light,var(--accent-light))' : 'var(--surface,#fff)' }}>
-                    <div style={{ width:40, height:40, borderRadius:'50%', background: isOpen ? 'var(--accent)' : '#F2EDE4', color: isOpen ? '#fff' : 'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:700, flexShrink:0 }}>
+                    <div style={{ width:40, height:40, borderRadius:'50%', background: isOpen ? 'var(--accent)' : 'var(--bg-accent)', color: isOpen ? '#fff' : 'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:700, flexShrink:0 }}>
                       {m.name?.charAt(0)?.toUpperCase()}
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
@@ -1040,18 +1040,18 @@ export default function Team() {
                       <div style={{ fontSize:10, color:'var(--text-muted)' }}>{t('team.clientRole')}</div>
                     </div>
                     {m.phone && (
-                      <a href={`tel:${m.phone}`} onClick={e => e.stopPropagation()} style={{ fontSize:10, color:'var(--accent)', textDecoration:'none' }}>📞 {m.phone}</a>
+                      <a href={`tel:${m.phone}`} onClick={e => e.stopPropagation()} style={{ fontSize:10, color:'var(--accent)', textDecoration:'none' }}><Phone size={11} weight="bold" /> {m.phone}</a>
                     )}
                     <span style={{ fontSize:10, color:'var(--text-muted)', display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
                   </div>
                   {isOpen && (
-                    <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'var(--surface-2,#FDFBF8)' }}>
+                    <div style={{ borderTop:'1px solid var(--border-medium)', padding:'12px 14px', background:'var(--surface-2,#FDFBF8)' }}>
                       {/* Contacts */}
                       <div style={{ marginBottom:10 }}>
                         <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:5 }}>{t('team.contacts')}</div>
                         <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-                          {m.phone ? <a href={`tel:${m.phone}`} style={{ fontSize:12, color:'var(--accent)', textDecoration:'none' }}>📞 {m.phone}</a> : null}
-                          {m.telegram ? <a href={`https://t.me/${m.telegram.replace(/^@/,'')}`} target="_blank" rel="noopener noreferrer" style={{ fontSize:12, color:'#229ED9', textDecoration:'none' }}>✈️ {m.telegram.startsWith('@') ? m.telegram : `@${m.telegram}`}</a> : null}
+                          {m.phone ? <a href={`tel:${m.phone}`} style={{ fontSize:12, color:'var(--accent)', textDecoration:'none' }}><Phone size={11} weight="bold" /> {m.phone}</a> : null}
+                          {m.telegram ? <a href={`https://t.me/${m.telegram.replace(/^@/,'')}`} target="_blank" rel="noopener noreferrer" style={{ fontSize:12, color:'#229ED9', textDecoration:'none' }}><TelegramLogo size={12} weight="bold" /> {m.telegram.startsWith('@') ? m.telegram : `@${m.telegram}`}</a> : null}
                           {!m.phone && !m.telegram && <span style={{ fontSize:11, color:'var(--text-muted)' }}>{t('team.notSpecified')}</span>}
                         </div>
                       </div>

@@ -10,10 +10,10 @@ const STATUS_ORDER = ['present', 'absent', 'sick', 'vacation']
 const STATUS_ICON = { present: CheckCircle, absent: X, sick: FirstAid, vacation: Umbrella }
 
 const STATUS_COLORS = {
-  present:  { color: '#fff',     bg: 'var(--accent)',   border: 'var(--accent)',        dot: '#16A34A', chipBg: '#F0FDF4' },
-  absent:   { color: '#DC2626',  bg: 'var(--bg)',       border: '#FCA5A5',              dot: '#DC2626', chipBg: '#FEF2F2' },
-  sick:     { color: '#7C3AED',  bg: 'var(--bg)',       border: '#C4B5FD',              dot: '#7C3AED', chipBg: '#F5F3FF' },
-  vacation: { color: '#0891B2',  bg: 'var(--bg)',       border: '#A5F3FC',              dot: '#0891B2', chipBg: '#ECFEFF' },
+  present:  { color: '#fff',            bg: 'var(--accent)', border: 'var(--accent)',        dot: 'var(--success)', chipBg: 'var(--success-bg)' },
+  absent:   { color: 'var(--danger)',   bg: 'var(--bg)',     border: 'var(--danger-border)', dot: 'var(--danger)',  chipBg: 'var(--danger-bg)'  },
+  sick:     { color: 'var(--violet)',   bg: 'var(--bg)',     border: 'var(--violet-border)', dot: 'var(--violet)',  chipBg: 'var(--violet-bg)'  },
+  vacation: { color: 'var(--info)',     bg: 'var(--bg)',     border: 'var(--info-border)',   dot: 'var(--info)',    chipBg: 'var(--info-bg)'    },
 }
 
 function formatDate(d, lang) {
@@ -151,8 +151,8 @@ export default function AttendanceModal({ onClose }) {
               {Object.entries(counts).map(([s, v]) => (
                 <span key={s} style={{
                   fontSize:11, fontWeight:500, padding:'3px 8px', borderRadius:20,
-                  background: STATUS_COLORS[s]?.chipBg || '#f5f5f5',
-                  color: STATUS_COLORS[s]?.dot || '#333',
+                  background: STATUS_COLORS[s]?.chipBg || 'var(--bg-subtle)',
+                  color: STATUS_COLORS[s]?.dot || 'var(--text-secondary)',
                 }}>
                   {(() => { const IC = STATUS_ICON[s]; return <IC size={13} weight="bold" /> })()} {v}
                 </span>
@@ -160,7 +160,7 @@ export default function AttendanceModal({ onClose }) {
             </div>
             <button onClick={handleSave} disabled={saving} style={{
               padding:'8px 18px', borderRadius:8, flexShrink:0,
-              background: saved ? '#16A34A' : 'var(--accent)', color:'#fff',
+              background: saved ? 'var(--success)' : 'var(--accent)', color:'#fff',
               border:'none', cursor:'pointer', fontSize:13, fontWeight:500,
             }}>
               {saving ? '...' : saved ? '✓' : t('common.save')}
@@ -181,10 +181,10 @@ export default function AttendanceModal({ onClose }) {
                     {/* Avatar */}
                     <div style={{
                       width:36, height:36, borderRadius:'50%', flexShrink:0,
-                      background: row.status === 'present' ? '#F0FDF4' : row.status === 'absent' ? '#FEF2F2' : row.status === 'sick' ? '#F5F3FF' : '#ECFEFF',
+                      background: cfg.chipBg,
                       color: cfg.dot,
                       display:'flex', alignItems:'center', justifyContent:'center',
-                      fontSize:13, fontWeight:500, border:`1.5px solid ${row.status === 'present' ? '#86EFAC' : row.status === 'absent' ? '#FCA5A5' : row.status === 'sick' ? '#C4B5FD' : '#A5F3FC'}`,
+                      fontSize:13, fontWeight:500, border:`1.5px solid ${row.status === 'present' ? 'var(--success-border)' : cfg.border}`,
                       transition:'all .15s',
                     }}>
                       {row.name?.charAt(0)?.toUpperCase()}
@@ -244,10 +244,10 @@ export default function AttendanceModal({ onClose }) {
             {rows.length > 0 && (
               <div style={{ margin:'16px 14px 0', padding:'10px 14px', background:'var(--bg-subtle,#FAFAF9)', borderRadius:10, border:'0.5px solid var(--border)', fontSize:12, color:'var(--text-secondary)' }}>
                 {t('team.attendToday')}{' '}
-                <strong style={{ color:'#16A34A' }}>{counts.present || 0} {t('team.attendPresent')}</strong>
-                {(counts.absent || 0) > 0 && <> · <strong style={{ color:'#DC2626' }}>{counts.absent} {t('team.attendAbsent')}</strong></>}
-                {(counts.sick || 0) > 0 && <> · <strong style={{ color:'#7C3AED' }}>{counts.sick} {t('team.attendSick')}</strong></>}
-                {(counts.vacation || 0) > 0 && <> · <strong style={{ color:'#0891B2' }}>{counts.vacation} {t('team.attendVacation')}</strong></>}
+                <strong style={{ color:'var(--success)' }}>{counts.present || 0} {t('team.attendPresent')}</strong>
+                {(counts.absent || 0) > 0 && <> · <strong style={{ color:'var(--danger)' }}>{counts.absent} {t('team.attendAbsent')}</strong></>}
+                {(counts.sick || 0) > 0 && <> · <strong style={{ color:'var(--violet)' }}>{counts.sick} {t('team.attendSick')}</strong></>}
+                {(counts.vacation || 0) > 0 && <> · <strong style={{ color:'var(--info)' }}>{counts.vacation} {t('team.attendVacation')}</strong></>}
               </div>
             )}
           </div>
