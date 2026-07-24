@@ -500,6 +500,50 @@
 .ldg .ld-footer-links span { cursor: pointer }
 .ldg .ld-footer-links span:hover { color: var(--ld-ink) }
 
+/* ── Install guide page (/install) ── */
+.ldg .ld-inst { max-width: 720px; margin: 0 auto; padding: 56px 24px 72px; text-align: center }
+.ldg .ld-inst-title {
+  font-size: 34px; font-weight: 500; color: var(--ld-ink);
+  letter-spacing: -1.2px; margin: 0 0 14px; line-height: 1.15;
+  text-wrap: balance;
+}
+.ldg .ld-inst-sub {
+  font-size: 15px; color: var(--ld-muted); line-height: 1.65;
+  max-width: 480px; margin: 0 auto 36px;
+}
+.ldg .ld-inst-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; text-align: left }
+.ldg .ld-inst-card {
+  border: 0.5px solid var(--ld-border); background: var(--ld-surface);
+  border-radius: 16px; padding: 22px;
+}
+.ldg .ld-inst-plat {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 500; color: var(--ld-ink);
+  margin-bottom: 14px;
+}
+.ldg .ld-inst-plat svg { color: var(--ld-muted) }
+.ldg .ld-inst-step {
+  display: flex; gap: 11px; align-items: flex-start;
+  padding: 9px 0; border-bottom: 0.5px solid var(--ld-border);
+}
+.ldg .ld-inst-step:last-child { border-bottom: none; padding-bottom: 0 }
+.ldg .ld-inst-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--ld-orange); color: #fff;
+  font-size: 11px; font-weight: 500;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ldg .ld-inst-txt { font-size: 13px; color: var(--ld-ink); line-height: 1.5; padding-top: 2px; flex: 1 }
+.ldg .ld-inst-ic { color: var(--ld-muted); flex-shrink: 0; padding-top: 2px; display: flex }
+.ldg .ld-inst-note {
+  display: flex; gap: 10px; text-align: left;
+  background: var(--ld-sand); border-radius: 12px;
+  padding: 14px 18px; margin-top: 14px;
+  font-size: 13px; color: var(--ld-muted); line-height: 1.6;
+}
+.ldg .ld-plat.click { cursor: pointer; transition: border-color 0.15s }
+.ldg .ld-plat.click:hover { border-color: var(--ld-orange) }
+
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   .ldg .ld-marquee-track,
@@ -533,4 +577,7 @@
   .ldg .ld-step-line { display: none }
   .ldg .ld-cta { padding: 48px 20px }
   .ldg .ld-footer { flex-direction: column; text-align: center; justify-content: center }
+  .ldg .ld-inst { padding: 40px 20px 56px }
+  .ldg .ld-inst-title { font-size: 27px }
+  .ldg .ld-inst-grid { grid-template-columns: 1fr }
 }
