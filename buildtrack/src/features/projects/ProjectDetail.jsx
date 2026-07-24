@@ -74,7 +74,7 @@ export default function ProjectDetail({ proj, onBack, onEdit, canDelete = true, 
 
       {/* ── Progress strip ── */}
       <div style={{ height:4, background:'var(--border, #EAE3D8)', borderRadius:4, overflow:'hidden', marginBottom:0 }}>
-        <div style={{ height:4, borderRadius:4, background:'#C96B3A', width:`${pct}%`, transition:'width .4s' }} />
+        <div style={{ height:4, borderRadius:4, background:'var(--accent)', width:`${pct}%`, transition:'width .4s' }} />
       </div>
 
       {/* ── Inner tab bar ── */}

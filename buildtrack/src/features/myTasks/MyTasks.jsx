@@ -47,7 +47,7 @@ function JoinCrewCard({ t }) {
         </Button>
       </div>
       {msg && (
-        <div style={{ marginTop:12, fontSize:13, color: ok ? '#3D7A52' : '#A32D2D', background: ok ? '#F0FAF4' : '#FCEBEB', padding:'8px 14px', borderRadius:8, maxWidth:340, margin:'12px auto 0' }}>
+        <div style={{ marginTop:12, fontSize:13, color: ok ? 'var(--success)' : 'var(--danger)', background: ok ? '#F0FAF4' : 'var(--danger-bg)', padding:'8px 14px', borderRadius:8, maxWidth:340, margin:'12px auto 0' }}>
           {msg}
         </div>
       )}
@@ -122,7 +122,7 @@ export default function MyTasks() {
   const toggleStage = (stage) => setOpenStages(prev => ({ ...prev, [stage]: !prev[stage] }))
 
   const STAGE_COLORS = [
-    '#C96B3A','#5A9467','#4A7FC1','#D4A843','#9B6B9B',
+    'var(--accent)','var(--success)','#4A7FC1','#D4A843','#9B6B9B',
     '#E07B6A','#6BAA8E','#7B8EC8','#A67C52','#3A5FAB',
   ]
 
@@ -185,8 +185,8 @@ export default function MyTasks() {
                     <span style={{ fontSize:13, fontWeight:700, color:'var(--text-1,#2E2420)', textTransform:'uppercase', letterSpacing:'.04em' }}>
                       {stage}
                     </span>
-                    {hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600, display:'flex', alignItems:'center', gap:2 }}><Lightning size={11} weight="bold" /> требует внимания</span>}
-                    <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', fontWeight:500, flexShrink:0 }}>
+                    {hasAlert && <span style={{ fontSize:11, color:'var(--danger)', fontWeight:600, display:'flex', alignItems:'center', gap:2 }}><Lightning size={11} weight="bold" /> требует внимания</span>}
+                    <span style={{ marginLeft:'auto', fontSize:11, color:'var(--text-muted)', fontWeight:500, flexShrink:0 }}>
                       {done}/{total}
                     </span>
                   </div>
@@ -195,13 +195,13 @@ export default function MyTasks() {
                     <div style={{
                       height:'100%', borderRadius:3,
                       width: `${pct}%`,
-                      background: pct === 100 ? '#5A9467' : color,
+                      background: pct === 100 ? 'var(--success)' : color,
                       transition: 'width .4s ease',
                     }} />
                   </div>
                 </div>
 
-                <span style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4, display:'flex', alignItems:'center' }}>
+                <span style={{ fontSize:11, color:'var(--text-muted)', flexShrink:0, marginLeft:4, display:'flex', alignItems:'center' }}>
                   {isOpen ? <CaretUp size={11} weight="bold" /> : <CaretDown size={11} weight="bold" />}
                 </span>
               </div>
@@ -214,7 +214,7 @@ export default function MyTasks() {
                     return (
                       <div key={tk.id} style={{
                         borderTop: ti > 0 ? '1px solid #F2EDE6' : 'none',
-                        background: isTaskOpen ? 'var(--accent-light,#FAECE4)' : 'var(--surface,#fff)',
+                        background: isTaskOpen ? 'var(--accent-light,var(--accent-light))' : 'var(--surface,#fff)',
                         transition: 'background .15s',
                       }}>
                         <div onClick={() => setOpenId(prev => prev === tk.id ? null : tk.id)}
@@ -222,26 +222,26 @@ export default function MyTasks() {
                           {/* Left accent line */}
                           <div style={{ width:3, height:36, borderRadius:2, background: color, flexShrink:0, opacity: isTaskOpen ? 1 : 0.35 }} />
                           <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ fontSize:13, fontWeight:600, color: isTaskOpen ? '#C96B3A' : 'var(--text-1,#2E2420)', marginBottom:4, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                            <div style={{ fontSize:13, fontWeight:600, color: isTaskOpen ? 'var(--accent)' : 'var(--text-1,#2E2420)', marginBottom:4, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                               {tk.text}
                             </div>
                             <div style={{ display:'flex', flexWrap:'wrap', gap:5, alignItems:'center' }}>
                               <Badge variant={STATUS_BADGE[tk.status]?.replace('badge-','')}>{STATUS_LABEL[tk.status]}</Badge>
                               {tk.priority && tk.priority !== 'normal' && <Badge variant={PRIORITY_BADGE[tk.priority]}>{PRIORITY_LABEL[tk.priority]}</Badge>}
-                              {tk.deadline && <span style={{ fontSize:10, color:'#B8AFA6', display:'flex', alignItems:'center', gap:2 }}><CalendarBlank size={10} weight="bold" /> {tk.deadline}</span>}
+                              {tk.deadline && <span style={{ fontSize:10, color:'var(--text-muted)', display:'flex', alignItems:'center', gap:2 }}><CalendarBlank size={10} weight="bold" /> {tk.deadline}</span>}
                             </div>
                           </div>
-                          <span style={{ fontSize:10, color:'#B8AFA6', flexShrink:0, display:'flex', alignItems:'center' }}>{isTaskOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
+                          <span style={{ fontSize:10, color:'var(--text-muted)', flexShrink:0, display:'flex', alignItems:'center' }}>{isTaskOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
                         </div>
                         {isTaskOpen && (
                           <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'var(--surface-2,#FDFBF8)' }}>
                             {tk.description
                               ? <div style={{ fontSize:13, color:'var(--text-1,#2E2420)', lineHeight:1.65, whiteSpace:'pre-wrap', marginBottom:10 }}>{tk.description}</div>
-                              : <div style={{ fontSize:12, color:'#B8AFA6', marginBottom:10 }}>{t('tasks.noDesc')}</div>
+                              : <div style={{ fontSize:12, color:'var(--text-muted)', marginBottom:10 }}>{t('tasks.noDesc')}</div>
                             }
                             <TaskMedia urls={tk.photo_url} />
                             {tk.status === 'rejected' && tk.reject_comment && (
-                              <div style={{ marginTop:10, fontSize:12, color:'#A32D2D', background:'#FCEBEB', padding:'6px 10px', borderRadius:7 }}>
+                              <div style={{ marginTop:10, fontSize:12, color:'var(--danger)', background:'var(--danger-bg)', padding:'6px 10px', borderRadius:7 }}>
                                 <ArrowCounterClockwise size={12} weight="bold" /> {tk.reject_comment}
                               </div>
                             )}
@@ -275,19 +275,19 @@ export default function MyTasks() {
         if (myShortages.length === 0) return null
         return (
           <div style={{ marginTop:20 }}>
-            <div style={{ fontSize:12, fontWeight:700, color:'#A32D2D', letterSpacing:'.06em', textTransform:'uppercase', marginBottom:8 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'var(--danger)', letterSpacing:'.06em', textTransform:'uppercase', marginBottom:8 }}>
               {t('tasks.myOpenShortages')}
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
               {myShortages.map(m => (
-                <div key={m.id} style={{ background:'#FCEBEB', border:'1px solid #F0AAAA', borderRadius:10, padding:'10px 12px' }}>
-                  <div style={{ fontSize:13, fontWeight:600, color:'#A32D2D' }}>
+                <div key={m.id} style={{ background:'var(--danger-bg)', border:'1px solid var(--danger-border)', borderRadius:10, padding:'10px 12px' }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:'var(--danger)' }}>
                     {m.name} <span style={{ fontSize:12, fontWeight:700 }}>× {m.qty} {m.unit}</span>
                   </div>
                   <div style={{ fontSize:11, color:'#7A6E66', marginTop:3 }}>
-                    {timeAgo(m.createdAt)} · <span style={{ color:'#B8AFA6' }}>{t('tasks.waitingForeman')}</span>
+                    {timeAgo(m.createdAt)} · <span style={{ color:'var(--text-muted)' }}>{t('tasks.waitingForeman')}</span>
                   </div>
-                  {m.note && <div style={{ fontSize:11, color:'#B8AFA6', fontStyle:'italic', marginTop:2 }}>"{m.note}"</div>}
+                  {m.note && <div style={{ fontSize:11, color:'var(--text-muted)', fontStyle:'italic', marginTop:2 }}>"{m.note}"</div>}
                 </div>
               ))}
             </div>

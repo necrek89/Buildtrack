@@ -35,7 +35,7 @@ function EditStages({ stages, onChange, placeholder }) {
   const row = { display:'flex', alignItems:'center', gap:6, padding:'7px 10px', borderBottom:'1px solid var(--border,#EAE3D8)' }
   const arrowStyle = (dis) => ({
     background:'none', border:'none', cursor: dis ? 'default' : 'pointer',
-    fontSize:12, color: dis ? '#D9D0C7' : '#B8AFA6', padding:'2px 4px', lineHeight:1,
+    fontSize:12, color: dis ? '#D9D0C7' : 'var(--text-muted)', padding:'2px 4px', lineHeight:1,
   })
   const iconStyle = (col='#7A6E66') => ({
     background:'none', border:'none', cursor:'pointer',
@@ -45,7 +45,7 @@ function EditStages({ stages, onChange, placeholder }) {
   return (
     <div style={{ border:'1.5px solid var(--border,#EAE3D8)', borderRadius:10, overflow:'hidden' }}>
       {safe.length === 0 && (
-        <div style={{ padding:'10px 12px', fontSize:12, color:'#B8AFA6' }}>—</div>
+        <div style={{ padding:'10px 12px', fontSize:12, color:'var(--text-muted)' }}>—</div>
       )}
       {safe.map((s, i) => (
         <div key={i} style={row}>
@@ -71,13 +71,13 @@ function EditStages({ stages, onChange, placeholder }) {
           <div style={{ display:'flex', gap:2, flexShrink:0 }}>
             {editingIdx === i ? (
               <>
-                <button type="button" style={iconStyle('#3D7A52')} onClick={() => confirmEdit(i)}>✓</button>
-                <button type="button" style={iconStyle('#A32D2D')} onClick={() => setEditingIdx(null)}>✕</button>
+                <button type="button" style={iconStyle('var(--success)')} onClick={() => confirmEdit(i)}>✓</button>
+                <button type="button" style={iconStyle('var(--danger)')} onClick={() => setEditingIdx(null)}>✕</button>
               </>
             ) : (
               <>
                 <button type="button" style={iconStyle()} onClick={() => startEdit(i)}>✏️</button>
-                <button type="button" style={iconStyle('#A32D2D')} onClick={() => remove(i)}>✕</button>
+                <button type="button" style={iconStyle('var(--danger)')} onClick={() => remove(i)}>✕</button>
               </>
             )}
           </div>
@@ -96,8 +96,8 @@ function EditStages({ stages, onChange, placeholder }) {
         <button
           type="button" onClick={add} disabled={!newName.trim()}
           style={{
-            width:42, flexShrink:0, background: newName.trim() ? '#C96B3A' : 'var(--bg-accent,#F2EDE4)',
-            color: newName.trim() ? '#fff' : '#B8AFA6',
+            width:42, flexShrink:0, background: newName.trim() ? 'var(--accent)' : 'var(--bg-accent,#F2EDE4)',
+            color: newName.trim() ? '#fff' : 'var(--text-muted)',
             border:'none', fontSize:22, cursor: newName.trim() ? 'pointer' : 'default',
             transition:'background .15s, color .15s',
           }}
@@ -168,8 +168,8 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
         <div style={{ padding: '14px 14px 12px', display:'flex', flexDirection:'column', flex:1 }}>
           {/* Name + actions */}
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:8 }}>
-            <div style={{ fontSize:14, fontWeight:500, color: isCompleted ? '#5A9467' : 'var(--text-1,#1C1917)', lineHeight:1.3, flex:1, minWidth:0 }}>
-              <div style={{ display:'flex', alignItems:'center', gap:5 }}>{isCompleted && <CheckCircle size={14} weight="bold" color="#5A9467" />}{p.name}</div>
+            <div style={{ fontSize:14, fontWeight:500, color: isCompleted ? 'var(--success)' : 'var(--text-1,#1C1917)', lineHeight:1.3, flex:1, minWidth:0 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:5 }}>{isCompleted && <CheckCircle size={14} weight="bold" color="var(--success)" />}{p.name}</div>
             </div>
             {(onEdit || onDelete || onComplete || onReopen) && (
               <div style={{ position:'relative', flexShrink:0 }} data-card-menu>
@@ -201,7 +201,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                     {!isCompleted && onComplete && (
                       <button
                         onClick={e => { e.stopPropagation(); setMenuOpenId(null); onComplete(p.id) }}
-                        style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:9, padding:'10px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#3D7A52', fontFamily:'inherit' }}
+                        style={{ width:'100%', textAlign:'left', display:'flex', alignItems:'center', gap:9, padding:'10px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'var(--success)', fontFamily:'inherit' }}
                         onMouseEnter={e => e.currentTarget.style.background='#F0FAF2'}
                         onMouseLeave={e => e.currentTarget.style.background='none'}
                       ><CheckCircle size={13} weight="bold" /> {t('projects.completeBtn')}</button>
@@ -234,7 +234,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
           {/* Percentage + subtitle */}
           <div style={{ marginBottom: 10 }}>
             <span style={{ fontSize:22, fontWeight:500, color:accent, fontFamily:'monospace', lineHeight:1 }}>{pPct}%</span>
-            <div style={{ fontSize:10, color:'#B8AFA6', marginTop:3 }}>
+            <div style={{ fontSize:10, color:'var(--text-muted)', marginTop:3 }}>
               {t('projects.tasksOf', { done: pDone, total: pTasks.length })}
             </div>
           </div>
@@ -257,7 +257,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                   }}>
                     {s}
                     {sAlert > 0 && (
-                      <span style={{ background:'#FEE2E2', color:'#991B1B', borderRadius:10, padding:'0 5px', fontSize:10, fontWeight:500 }}>
+                      <span style={{ background:'var(--danger-bg)', color:'var(--danger)', borderRadius:10, padding:'0 5px', fontSize:10, fontWeight:500 }}>
                         <Warning size={10} weight="bold" />{sAlert}
                       </span>
                     )}
@@ -265,7 +265,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
                 )
               })}
               {extraCount > 0 && (
-                <span style={{ fontSize:11, color:'#B8AFA6', fontWeight:500 }}>+{extraCount}</span>
+                <span style={{ fontSize:11, color:'var(--text-muted)', fontWeight:500 }}>+{extraCount}</span>
               )}
             </div>
           )}
@@ -280,7 +280,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
           {/* Alert chips */}
           {(pPending > 0 || pOverdue > 0) && (
             <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-              {pPending > 0 && <span style={{ fontSize:10, background:'#FEF3C7', color:'#92400E', borderRadius:6, padding:'2px 7px', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}><Clock size={10} weight="bold" /> {pPending}</span>}
+              {pPending > 0 && <span style={{ fontSize:10, background:'var(--warning-bg)', color:'var(--warning)', borderRadius:6, padding:'2px 7px', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}><Clock size={10} weight="bold" /> {pPending}</span>}
               {pOverdue > 0 && <span style={{ fontSize:10, background:'#1C1108', color:'var(--accent-hover)', border:'0.5px solid rgba(234,88,12,0.3)', boxShadow:'0 0 8px rgba(234,88,12,0.1)', borderRadius:6, padding:'2px 7px', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}><Warning size={10} weight="bold" /> {pOverdue}</span>}
             </div>
           )}
@@ -376,9 +376,9 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
               borderTop:'1.5px solid var(--border,#EAE3D8)',
             }}
           >
-            <span style={{ fontSize:13, fontWeight:500, color:'#5A9467', display:'flex', alignItems:'center', gap:5 }}><CheckCircle size={13} weight="bold" color="#5A9467" /> {t('projects.completedSection')}</span>
-            <span style={{ fontSize:12, color:'#B8AFA6', background:'#E8F2EB', borderRadius:12, padding:'1px 8px', fontWeight:500 }}>{completed.length}</span>
-            <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', display:'flex', alignItems:'center' }}>{showCompleted ? <CaretUp size={11} weight="bold" /> : <CaretDown size={11} weight="bold" />}</span>
+            <span style={{ fontSize:13, fontWeight:500, color:'var(--success)', display:'flex', alignItems:'center', gap:5 }}><CheckCircle size={13} weight="bold" color="var(--success)" /> {t('projects.completedSection')}</span>
+            <span style={{ fontSize:12, color:'var(--text-muted)', background:'var(--success-bg)', borderRadius:12, padding:'1px 8px', fontWeight:500 }}>{completed.length}</span>
+            <span style={{ marginLeft:'auto', fontSize:11, color:'var(--text-muted)', display:'flex', alignItems:'center' }}>{showCompleted ? <CaretUp size={11} weight="bold" /> : <CaretDown size={11} weight="bold" />}</span>
           </button>
           {showCompleted && (
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:14, marginTop:10 }}>

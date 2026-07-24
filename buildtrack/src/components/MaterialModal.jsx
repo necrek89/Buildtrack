@@ -146,7 +146,7 @@ export default function MaterialModal({ open, onClose, defaultProjectId, default
 
         {/* Error */}
         {err && (
-          <div style={{ fontSize: 12, color: '#A32D2D', background: '#FCEBEB', padding: '6px 10px', borderRadius: 6, marginBottom: 8, flexShrink: 0 }}>
+          <div style={{ fontSize: 12, color: 'var(--danger)', background: 'var(--danger-bg)', padding: '6px 10px', borderRadius: 6, marginBottom: 8, flexShrink: 0 }}>
             {err}
           </div>
         )}

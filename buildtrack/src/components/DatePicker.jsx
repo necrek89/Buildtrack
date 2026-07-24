@@ -119,14 +119,14 @@ export default function DatePicker({ value, onChange, placeholder }) {
         style={{
           cursor: 'pointer', display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', userSelect: 'none',
-          color: displayValue ? 'var(--text-1,#2E2420)' : '#B8AFA6',
+          color: displayValue ? 'var(--text-1,#2E2420)' : 'var(--text-muted)',
           minHeight: 38,
         }}
       >
         <span style={{ fontSize: 13 }}>
           {displayValue || (placeholder ?? t('calendar.noDate'))}
         </span>
-        <span style={{ fontSize: 13, color: '#C96B3A', display:'flex', alignItems:'center' }}><CalendarBlank size={13} weight="bold" /></span>
+        <span style={{ fontSize: 13, color: 'var(--accent)', display:'flex', alignItems:'center' }}><CalendarBlank size={13} weight="bold" /></span>
       </div>
 
       {/* Dropdown via portal */}
@@ -155,7 +155,7 @@ export default function DatePicker({ value, onChange, placeholder }) {
           {/* Day-of-week headers */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 4 }}>
             {dayHeaders.map((h, i) => (
-              <div key={i} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#B8AFA6', padding: '2px 0', textTransform: 'uppercase' }}>
+              <div key={i} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', padding: '2px 0', textTransform: 'uppercase' }}>
                 {h}
               </div>
             ))}
@@ -175,12 +175,12 @@ export default function DatePicker({ value, onChange, placeholder }) {
                   style={{
                     border: 'none', borderRadius: 8, cursor: 'pointer',
                     padding: '6px 0', fontSize: 12, fontWeight: isSel || isToday ? 700 : 400,
-                    background: isSel ? '#C96B3A' : isToday ? '#FAECE4' : 'transparent',
-                    color: isSel ? '#fff' : isToday ? '#C96B3A' : 'var(--text-1,#2E2420)',
+                    background: isSel ? 'var(--accent)' : isToday ? 'var(--accent-light)' : 'transparent',
+                    color: isSel ? '#fff' : isToday ? 'var(--accent)' : 'var(--text-1,#2E2420)',
                     transition: 'background .1s',
                   }}
                   onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = '#F2EDE4' }}
-                  onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = isToday ? '#FAECE4' : 'transparent' }}
+                  onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = isToday ? 'var(--accent-light)' : 'transparent' }}
                 >
                   {day}
                 </button>
@@ -190,8 +190,8 @@ export default function DatePicker({ value, onChange, placeholder }) {
 
           {/* Footer: Clear + Today */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, paddingTop: 8, borderTop: '1px solid #EAE3D8' }}>
-            <button onClick={clearDate} style={footBtn('#A32D2D')}>{t('calendar.clear')}</button>
-            <button onClick={goToday}  style={footBtn('#C96B3A')}>{t('calendar.today')}</button>
+            <button onClick={clearDate} style={footBtn('var(--danger)')}>{t('calendar.clear')}</button>
+            <button onClick={goToday}  style={footBtn('var(--accent)')}>{t('calendar.today')}</button>
           </div>
         </div>,
         document.body
@@ -202,7 +202,7 @@ export default function DatePicker({ value, onChange, placeholder }) {
 
 const navBtn = {
   background: 'none', border: 'none', fontSize: 20, cursor: 'pointer',
-  color: '#C96B3A', padding: '0 8px', lineHeight: 1, fontWeight: 700,
+  color: 'var(--accent)', padding: '0 8px', lineHeight: 1, fontWeight: 700,
 }
 const footBtn = (color) => ({
   background: 'none', border: 'none', fontSize: 12, fontWeight: 600,

@@ -50,7 +50,7 @@ function TaskSearch({ onClose, onNavigate }) {
     onClose()
   }
 
-  const STATUS_COLOR = { approved:'#3D7A52', pending:'#C96B3A', rejected:'#A32D2D', new:'#4A7FC1' }
+  const STATUS_COLOR = { approved:'var(--success)', pending:'var(--accent)', rejected:'var(--danger)', new:'#4A7FC1' }
   const STATUS_ICON = { approved: CheckCircle, pending: Clock, rejected: ArrowCounterClockwise, new: Note }
 
   return (
@@ -81,19 +81,19 @@ function TaskSearch({ onClose, onNavigate }) {
               background:'transparent', color:'var(--text-1,#2E2420)',
             }}
           />
-          {loading && <span style={{ fontSize:12, color:'#B8AFA6' }}>…</span>}
-          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#B8AFA6', padding:0, display:'flex', alignItems:'center' }}><X size={18} weight="bold" /></button>
+          {loading && <span style={{ fontSize:12, color:'var(--text-muted)' }}>…</span>}
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', fontSize:18, color:'var(--text-muted)', padding:0, display:'flex', alignItems:'center' }}><X size={18} weight="bold" /></button>
         </div>
 
         {/* Results */}
         <div style={{ maxHeight:360, overflowY:'auto' }}>
           {!query.trim() && (
-            <div style={{ padding:'24px 16px', textAlign:'center', color:'#B8AFA6', fontSize:13 }}>
+            <div style={{ padding:'24px 16px', textAlign:'center', color:'var(--text-muted)', fontSize:13 }}>
               Start typing to search tasks
             </div>
           )}
           {query.trim() && !loading && results.length === 0 && (
-            <div style={{ padding:'24px 16px', textAlign:'center', color:'#B8AFA6', fontSize:13 }}>
+            <div style={{ padding:'24px 16px', textAlign:'center', color:'var(--text-muted)', fontSize:13 }}>
               No tasks found
             </div>
           )}
@@ -116,7 +116,7 @@ function TaskSearch({ onClose, onNavigate }) {
                   </div>
                   <div style={{ display:'flex', gap:6, marginTop:3, flexWrap:'wrap' }}>
                     {proj && (
-                      <span style={{ fontSize:11, color:'#C96B3A', fontWeight:600, display:'flex', alignItems:'center', gap:2 }}><MapPin size={11} weight="bold" /> {proj.name}</span>
+                      <span style={{ fontSize:11, color:'var(--accent)', fontWeight:600, display:'flex', alignItems:'center', gap:2 }}><MapPin size={11} weight="bold" /> {proj.name}</span>
                     )}
                     {task.stage && (
                       <span style={{ fontSize:11, color:'#7A6E66', background:'var(--bg-accent,#F2EDE4)', borderRadius:5, padding:'1px 6px' }}>
@@ -297,7 +297,7 @@ export default function App() {
 
   const avatarStyle = {
     width: 32, height: 32, borderRadius: '50%',
-    background: profile?.avatar_color || '#C96B3A',
+    background: profile?.avatar_color || 'var(--accent)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 11, fontWeight: 600, color: '#fff',
     flexShrink: 0, cursor: 'pointer', overflow: 'hidden'
@@ -395,7 +395,7 @@ export default function App() {
           </div>
 
           <div className="nav-signout">
-            <div className="nav-item" style={{ color:'#A32D2D' }} onClick={handleSignOut}>
+            <div className="nav-item" style={{ color:'var(--danger)' }} onClick={handleSignOut}>
               <span className="nav-icon">
                 <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>

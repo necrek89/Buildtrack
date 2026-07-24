@@ -110,17 +110,17 @@ function TaskMaterialSection({ task }) {
     <>
       <div style={{ height:1, background:'var(--border,#EAE3D8)', margin:'10px 0 8px' }} />
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-        <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', display:'flex', alignItems:'center', gap:6 }}>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', display:'flex', alignItems:'center', gap:6 }}>
           <Package size={11} weight="bold" /> {t('materials.title')}
           {openCount > 0 && (
-            <span style={{ background:'#FCEBEB', color:'#A32D2D', fontSize:10, fontWeight:700, padding:'1px 6px', borderRadius:8 }}>
+            <span style={{ background:'var(--danger-bg)', color:'var(--danger)', fontSize:10, fontWeight:700, padding:'1px 6px', borderRadius:8 }}>
               {t('materials.needed', { n: openCount })}
             </span>
           )}
         </div>
         <button
           onClick={e => { e.stopPropagation(); setShowModal(true) }}
-          style={{ fontSize:11, fontWeight:600, color:'#C96B3A', background:'var(--accent-light,#FAECE4)', border:'none', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
+          style={{ fontSize:11, fontWeight:600, color:'var(--accent)', background:'var(--accent-light)', border:'none', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
         >
           {t('materials.reportShortage')}
         </button>
@@ -174,49 +174,49 @@ export default function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApp
   return (
     <div id={`task-card-${t.id}`} style={{
       background: 'var(--surface, #fff)',
-      border: `1.5px solid ${isOpen ? '#C96B3A' : 'var(--border, #EAE3D8)'}`,
+      border: `1.5px solid ${isOpen ? 'var(--accent)' : 'var(--border-medium)'}`,
       borderRadius: 10, overflow: 'hidden',
       boxShadow: isOpen ? '0 3px 10px rgba(201,107,58,0.10)' : 'none',
       transition: 'border-color .15s, box-shadow .15s',
     }}>
       <div onClick={() => setOpenId(prev => prev === t.id ? null : t.id)}
-        style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 12px', cursor:'pointer', background: isOpen ? '#FAECE4' : 'var(--surface, #fff)' }}>
+        style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 12px', cursor:'pointer', background: isOpen ? 'var(--accent-light)' : 'var(--bg-card)' }}>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : 'var(--text-1, #2E2420)', marginBottom:4, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+          <div style={{ fontSize:13, fontWeight:600, color: isOpen ? 'var(--accent)' : 'var(--text-primary)', marginBottom:4, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
             {t.text}
           </div>
           <div style={{ display:'flex', flexWrap:'wrap', gap:4, alignItems:'center' }}>
             {t.stage    && <Badge variant="gray">{t.stage}</Badge>}
             {t.quantity != null && t.unit && (
-              <span style={{ fontSize:10, background:'#EEF3FD', color:'#4A7FC1', borderRadius:5, padding:'1px 6px', fontWeight:600 }}>
+              <span style={{ fontSize:10, background:'var(--info-bg)', color:'var(--info)', borderRadius:5, padding:'1px 6px', fontWeight:600 }}>
                 {t.quantity} {t.unit}
               </span>
             )}
             {t.cost != null && (
-              <span style={{ fontSize:10, background:'#EDFAF2', color:'#2E7D52', borderRadius:5, padding:'1px 6px', fontWeight:600 }}>
+              <span style={{ fontSize:10, background:'var(--success-bg)', color:'var(--success)', borderRadius:5, padding:'1px 6px', fontWeight:600 }}>
                 {t.currency || currencySymbol(profile?.currency)} {Number(t.cost).toLocaleString('ru-RU')}
               </span>
             )}
-            {t.deadline && <span style={{ fontSize:10, color:'#B8AFA6', display:'flex', alignItems:'center', gap:2 }}><CalendarBlank size={10} weight="bold" /> {t.deadline}</span>}
-            {t.worker   && <span style={{ fontSize:10, color:'#B8AFA6', display:'flex', alignItems:'center', gap:2 }}><HardHat size={10} weight="bold" /> {t.worker.name}</span>}
-            {projName   && <span style={{ fontSize:10, color:'#B8AFA6', display:'flex', alignItems:'center', gap:2 }}><Buildings size={10} weight="bold" /> {projName}</span>}
+            {t.deadline && <span style={{ fontSize:10, color:'var(--text-muted)', display:'flex', alignItems:'center', gap:2 }}><CalendarBlank size={10} weight="bold" /> {t.deadline}</span>}
+            {t.worker   && <span style={{ fontSize:10, color:'var(--text-muted)', display:'flex', alignItems:'center', gap:2 }}><HardHat size={10} weight="bold" /> {t.worker.name}</span>}
+            {projName   && <span style={{ fontSize:10, color:'var(--text-muted)', display:'flex', alignItems:'center', gap:2 }}><Buildings size={10} weight="bold" /> {projName}</span>}
           </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:3, flexShrink:0 }}>
           {onEdit   && <IconButton onClick={e => { e.stopPropagation(); onEdit(t) }}><PencilSimple size={13} weight="bold" /></IconButton>}
           {onDelete && <IconButton className="danger" onClick={e => { e.stopPropagation(); onDelete(t.id) }}><Trash size={13} weight="bold" /></IconButton>}
-          <span style={{ fontSize:10, color:'#B8AFA6', marginLeft:2, display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
+          <span style={{ fontSize:10, color:'var(--text-muted)', marginLeft:2, display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
         </div>
       </div>
       {isOpen && (
         <div style={{ borderTop:'1px solid var(--border, #EAE3D8)', padding:'12px 13px', background:'var(--surface-2, #FDFBF8)' }}>
           {t.description
             ? <div style={{ fontSize:13, color:'var(--text-1, #2E2420)', lineHeight:1.65, whiteSpace:'pre-wrap', marginBottom:10 }}>{t.description}</div>
-            : <div style={{ fontSize:12, color:'#B8AFA6', marginBottom:10 }}>{tr('tasks.noDesc')}</div>
+            : <div style={{ fontSize:12, color:'var(--text-muted)', marginBottom:10 }}>{tr('tasks.noDesc')}</div>
           }
           <TaskMedia urls={t.photo_url} />
           {t.status === 'rejected' && t.reject_comment && (
-            <div style={{ marginTop:10, fontSize:12, color:'#A32D2D', background:'#FCEBEB', padding:'6px 10px', borderRadius:7, display:'flex', alignItems:'center', gap:4 }}><ArrowCounterClockwise size={12} weight="bold" /> {t.reject_comment}</div>
+            <div style={{ marginTop:10, fontSize:12, color:'var(--danger)', background:'var(--danger-bg)', padding:'6px 10px', borderRadius:7, display:'flex', alignItems:'center', gap:4 }}><ArrowCounterClockwise size={12} weight="bold" /> {t.reject_comment}</div>
           )}
           {/* Foreman actions */}
           <div style={{ marginTop:12, display:'flex', gap:8, flexWrap:'wrap' }}>
@@ -231,7 +231,7 @@ export default function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApp
                 onClick={() => onMarkDone(t.id)}
                 style={{
                   fontSize:12, fontWeight:600, padding:'5px 12px', borderRadius:8,
-                  background:'#E8F2EB', color:'#3D7A52', border:'1px solid #A8D4B4',
+                  background:'var(--success-bg)', color:'var(--success)', border:'1px solid var(--success-border)',
                   cursor:'pointer',
                 }}
               >
@@ -248,9 +248,9 @@ export default function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApp
                 onClick={e => { e.stopPropagation(); setShowReqModal(true) }}
                 style={{
                   fontSize: 12, fontWeight: 600, padding: '5px 12px', borderRadius: 8,
-                  background: reqSent ? '#E8F2EB' : '#EEF3FD',
-                  color:      reqSent ? '#3D7A52' : '#4A7FC1',
-                  border:     `1px solid ${reqSent ? '#A8D4B4' : '#B8D0F0'}`,
+                  background: reqSent ? 'var(--success-bg)' : 'var(--info-bg)',
+                  color:      reqSent ? 'var(--success)' : 'var(--info)',
+                  border:     `1px solid ${reqSent ? 'var(--success-border)' : 'var(--info-border)'}`,
                   cursor: 'pointer', transition: 'all .15s',
                 }}
               >

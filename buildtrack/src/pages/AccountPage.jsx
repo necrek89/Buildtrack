@@ -8,7 +8,7 @@ import { useAsyncGuard } from '../lib/useAsyncGuard'
 import { subscribeToPush, unsubscribeFromPush, isSubscribed, isPushSupported } from '../lib/push'
 
 const AVATAR_COLORS = [
-  '#C96B3A','#5A9467','#D4A843','#4A7FC1','#9B6B9B',
+  'var(--accent)','var(--success)','#D4A843','#4A7FC1','#9B6B9B',
   '#E07B6A','#6BAA8E','#C4A35A','#7B8EC8','#A67C52'
 ]
 
@@ -47,7 +47,7 @@ export default function AccountPage() {
   const { profile, fetchProfile } = useStore()
   const { t } = useT()
   const [form,    setForm]    = useState({ name:'', phone:'', company:'', currency:'USD' })
-  const [avatarColor, setAvatarColor] = useState('#C96B3A')
+  const [avatarColor, setAvatarColor] = useState('var(--accent)')
   const [uploadingPhoto, photoGuard] = useAsyncGuard()
   const [avatarUrl, setAvatarUrl] = useState(null)
   const [pwForm,  setPwForm]  = useState({ current:'', newPw:'', confirm:'' })
@@ -92,7 +92,7 @@ export default function AccountPage() {
   useEffect(() => {
     if (profile) {
       setForm({ name: profile.name||'', phone: profile.phone||'', company: profile.company||'', currency: profile.currency || 'USD' })
-      setAvatarColor(profile.avatar_color || '#C96B3A')
+      setAvatarColor(profile.avatar_color || 'var(--accent)')
       setAvatarUrl(profile.avatar_url || null)
     }
   }, [profile])
@@ -273,16 +273,16 @@ export default function AccountPage() {
         {!pushSupported ? (
           <div style={{ fontSize:12, color:'var(--text-muted)' }}>{t('account.notificationsUnsupported')}</div>
         ) : pushDenied ? (
-          <div style={{ fontSize:12, color:'#A32D2D', background:'#FCEBEB', padding:'8px 12px', borderRadius:8 }}>
+          <div style={{ fontSize:12, color:'var(--danger)', background:'var(--danger-bg)', padding:'8px 12px', borderRadius:8 }}>
             {t('account.notificationsBlocked')}
           </div>
         ) : pushEnabled ? (
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
-            <span style={{ fontSize:13, color:'#3D7A52', fontWeight:500 }}>{t('account.notificationsOn')}</span>
+            <span style={{ fontSize:13, color:'var(--success)', fontWeight:500 }}>{t('account.notificationsOn')}</span>
             <button
               onClick={togglePush}
               disabled={pushLoading}
-              style={{ fontSize:12, padding:'6px 14px', borderRadius:8, background:'#FCEBEB', color:'#A32D2D', border:'0.5px solid #F0AAAA', cursor:'pointer', fontWeight:500 }}
+              style={{ fontSize:12, padding:'6px 14px', borderRadius:8, background:'var(--danger-bg)', color:'var(--danger)', border:'0.5px solid var(--danger-border)', cursor:'pointer', fontWeight:500 }}
             >
               {pushLoading ? '...' : t('account.notificationsDisable')}
             </button>

@@ -5,11 +5,11 @@ import { useStore } from '../store/useStore'
 import { subscribeToPush, isPushSupported } from '../lib/push'
 
 const SLIDE_META = [
-  { Icon: Buildings,  color: '#C96B3A', bg: 'linear-gradient(160deg, #FFF5EF 0%, #FAE8D8 100%)', circleBg: '#FAECE4', key: 'slide1' },
+  { Icon: Buildings,  color: 'var(--accent)', bg: 'linear-gradient(160deg, #FFF5EF 0%, #FAE8D8 100%)', circleBg: 'var(--accent-light)', key: 'slide1' },
   { Icon: HardHat,    color: '#2E6B4A', bg: 'linear-gradient(160deg, #F0F9F4 0%, #D8EFDF 100%)', circleBg: '#E0F2E8', key: 'slide2' },
   { Icon: Hammer,     color: '#3A5FAB', bg: 'linear-gradient(160deg, #EEF3FD 0%, #D8E4FA 100%)', circleBg: '#E0E9FA', key: 'slide3' },
   { Icon: UserCircle, color: '#7A3FAA', bg: 'linear-gradient(160deg, #F6EFFE 0%, #E8D8FA 100%)', circleBg: '#EEE0FA', key: 'slide4' },
-  { Icon: Bell,       color: '#C96B3A', bg: 'linear-gradient(160deg, #FFF5EF 0%, #FAE8D8 100%)', circleBg: '#FAECE4', key: 'slide5' },
+  { Icon: Bell,       color: 'var(--accent)', bg: 'linear-gradient(160deg, #FFF5EF 0%, #FAE8D8 100%)', circleBg: 'var(--accent-light)', key: 'slide5' },
 ]
 
 function PushSlide({ t, onDone }) {
@@ -25,13 +25,13 @@ function PushSlide({ t, onDone }) {
     else setState('on')
   }
 
-  const color = '#C96B3A'
+  const color = 'var(--accent)'
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px', textAlign: 'center' }}>
-      <div style={{ width: 130, height: 130, borderRadius: '50%', background: '#FAECE4', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 32, boxShadow: `0 8px 32px ${color}22` }}>
+      <div style={{ width: 130, height: 130, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 32, boxShadow: `0 8px 32px ${color}22` }}>
         {state === 'on'
-          ? <CheckCircle size={60} weight="bold" color="#3D7A52" />
+          ? <CheckCircle size={60} weight="bold" color="var(--success)" />
           : <Bell size={60} weight="bold" color={color} />
         }
       </div>
@@ -44,12 +44,12 @@ function PushSlide({ t, onDone }) {
       </div>
 
       {state === 'on' && (
-        <div style={{ fontSize: 15, fontWeight: 600, color: '#3D7A52', marginBottom: 16 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--success)', marginBottom: 16 }}>
           {t('onboarding.slide5On')}
         </div>
       )}
       {state === 'denied' || state === 'unsupported' ? (
-        <div style={{ fontSize: 13, color: '#A32D2D', background: '#FCEBEB', padding: '10px 16px', borderRadius: 10, marginBottom: 16 }}>
+        <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-bg)', padding: '10px 16px', borderRadius: 10, marginBottom: 16 }}>
           {t('onboarding.slide5Denied')}
         </div>
       ) : state !== 'on' && (
@@ -62,7 +62,7 @@ function PushSlide({ t, onDone }) {
         </button>
       )}
 
-      <button onClick={onDone} style={{ background: 'none', border: 'none', fontSize: 13, color: '#B8AFA6', cursor: 'pointer', fontWeight: 500, padding: '4px 8px' }}>
+      <button onClick={onDone} style={{ background: 'none', border: 'none', fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 500, padding: '4px 8px' }}>
         {state === 'on' ? t('onboarding.start') : t('onboarding.slide5Skip')}
       </button>
     </div>
@@ -115,7 +115,7 @@ export default function OnboardingScreen({ onDone }) {
       {/* Skip — only on info slides */}
       {!isPushSlide && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '20px 24px 0' }}>
-          <button onClick={finish} style={{ background: 'none', border: 'none', fontSize: 13, color: '#B8AFA6', cursor: 'pointer', fontWeight: 500, padding: '4px 8px' }}>
+          <button onClick={finish} style={{ background: 'none', border: 'none', fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 500, padding: '4px 8px' }}>
             {t('onboarding.skip')}
           </button>
         </div>
@@ -167,7 +167,7 @@ export default function OnboardingScreen({ onDone }) {
           </button>
 
           {idx > 0 && (
-            <button onClick={prev} style={{ background: 'none', border: 'none', fontSize: 13, color: '#B8AFA6', cursor: 'pointer', fontWeight: 500 }}>
+            <button onClick={prev} style={{ background: 'none', border: 'none', fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 500 }}>
               <ArrowLeft size={13} weight="bold" /> {t('onboarding.back')}
             </button>
           )}

@@ -73,10 +73,10 @@ export default function LoginPage({ onLogin }) {
 
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{ fontSize: 32, fontWeight: 800, color: '#C96B3A', marginBottom: 6, letterSpacing: '-0.5px' }}>
+          <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--accent)', marginBottom: 6, letterSpacing: '-0.5px' }}>
             Tutuu
           </div>
-          <div style={{ fontSize: 13, color: '#B8AFA6' }}>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             {mode === 'login'    && t('auth.signinTitle')}
             {mode === 'register' && t('auth.signupTitle')}
             {mode === 'forgot'   && t('auth.resetDesc')}
@@ -120,7 +120,7 @@ export default function LoginPage({ onLogin }) {
 
             <div style={{ textAlign: 'center', marginTop: 16 }}>
               <span
-                style={{ fontSize: 13, color: '#C96B3A', cursor: 'pointer', fontWeight: 500 }}
+                style={{ fontSize: 13, color: 'var(--accent)', cursor: 'pointer', fontWeight: 500 }}
                 onClick={() => switchMode('login')}
               >
                 {t('auth.backToLogin')}
@@ -161,7 +161,7 @@ export default function LoginPage({ onLogin }) {
                 <label className="form-label" style={{ margin: 0 }}>{t('auth.passwordLabel')}</label>
                 {mode === 'login' && (
                   <span
-                    style={{ fontSize: 12, color: '#C96B3A', cursor: 'pointer', fontWeight: 500 }}
+                    style={{ fontSize: 12, color: 'var(--accent)', cursor: 'pointer', fontWeight: 500 }}
                     onClick={() => { switchMode('forgot'); setResetEmail(form.email) }}
                   >
                     {t('auth.forgotPassword')}
@@ -182,11 +182,11 @@ export default function LoginPage({ onLogin }) {
               {loading ? t('auth.loadingBtn') : mode === 'login' ? t('auth.signinBtn') : t('auth.signupBtn')}
             </button>
 
-            <div style={{ textAlign: 'center', marginTop: 16, fontSize: 13, color: '#B8AFA6' }}>
+            <div style={{ textAlign: 'center', marginTop: 16, fontSize: 13, color: 'var(--text-muted)' }}>
               {mode === 'login' ? (
                 <>
                   {t('auth.noAccount')}{' '}
-                  <span style={{ color: '#C96B3A', cursor: 'pointer', fontWeight: 500 }}
+                  <span style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: 500 }}
                     onClick={() => switchMode('register')}>
                     {t('auth.signupLink')}
                   </span>
@@ -194,7 +194,7 @@ export default function LoginPage({ onLogin }) {
               ) : (
                 <>
                   {t('auth.haveAccount')}{' '}
-                  <span style={{ color: '#C96B3A', cursor: 'pointer', fontWeight: 500 }}
+                  <span style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: 500 }}
                     onClick={() => switchMode('login')}>
                     {t('auth.signinLink')}
                   </span>

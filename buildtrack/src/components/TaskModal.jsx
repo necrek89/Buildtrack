@@ -262,8 +262,8 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
                   fontSize:12, color:'var(--text-muted)', background:'var(--bg-accent,#F2EDE4)',
                   borderRadius:6, padding:'4px 8px',
                 }}>
-                  <span style={{ color:'#B8AFA6' }}>{form.quantity} × {unitPrice} =</span>
-                  <span style={{ fontWeight:700, color:'var(--accent,#C96B3A)' }}>
+                  <span style={{ color:'var(--text-muted)' }}>{form.quantity} × {unitPrice} =</span>
+                  <span style={{ fontWeight:700, color:'var(--accent,var(--accent))' }}>
                     {(parseFloat(form.quantity) * parseFloat(unitPrice)).toLocaleString()} {currSym}
                   </span>
                 </div>
@@ -315,7 +315,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
               />
               <span style={{ fontSize:13, color:'var(--text-secondary)', flexShrink:0 }}>{currSym}</span>
             </div>
-            <div style={{ fontSize:11, color:'#B8AFA6', marginTop:4 }}>
+            <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:4 }}>
               Заполни «Цена за единицу» выше — сумма посчитается сама. Или введи итог вручную.
             </div>
           </FormGroup>
@@ -371,7 +371,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
                       style={{
                         position:'absolute', top:-6, right:-6,
                         width:20, height:20, borderRadius:'50%',
-                        background:'#A32D2D', color:'#fff',
+                        background:'var(--danger)', color:'#fff',
                         border:'none', fontSize:11, cursor:'pointer',
                         display:'flex', alignItems:'center', justifyContent:'center',
                         lineHeight:1,
@@ -395,7 +395,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
         </div>
 
         {saveError && (
-          <div style={{ margin:'8px 0 0', padding:'8px 12px', background:'#FEE2E2', color:'#991B1B', borderRadius:8, fontSize:12 }}>
+          <div style={{ margin:'8px 0 0', padding:'8px 12px', background:'var(--danger-bg)', color:'var(--danger)', borderRadius:8, fontSize:12 }}>
             <Warning size={13} weight="bold" /> {saveError}
           </div>
         )}

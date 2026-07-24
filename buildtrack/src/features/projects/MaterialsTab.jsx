@@ -61,13 +61,13 @@ export default function MaterialsTab({ proj, canEdit = true }) {
 
       {/* Stat mini-cards */}
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:12 }}>
-        <div style={{ background:'#FCEBEB', border:'1px solid #F0AAAA', borderRadius:10, padding:'10px 12px', textAlign:'center' }}>
-          <div style={{ fontSize:20, fontWeight:700, color:'#A32D2D' }}>{openCount}</div>
-          <div style={{ fontSize:10, color:'#B8AFA6', marginTop:2 }}>{t('materials.statOpen')}</div>
+        <div style={{ background:'var(--danger-bg)', border:'1px solid var(--danger-border)', borderRadius:10, padding:'10px 12px', textAlign:'center' }}>
+          <div style={{ fontSize:20, fontWeight:700, color:'var(--danger)' }}>{openCount}</div>
+          <div style={{ fontSize:10, color:'var(--text-muted)', marginTop:2 }}>{t('materials.statOpen')}</div>
         </div>
-        <div style={{ background:'#E8F2EB', border:'1px solid #A8D4B4', borderRadius:10, padding:'10px 12px', textAlign:'center' }}>
-          <div style={{ fontSize:20, fontWeight:700, color:'#3D7A52' }}>{purchasedWeek}</div>
-          <div style={{ fontSize:10, color:'#B8AFA6', marginTop:2 }}>{t('materials.statWeek')}</div>
+        <div style={{ background:'var(--success-bg)', border:'1px solid var(--success-border)', borderRadius:10, padding:'10px 12px', textAlign:'center' }}>
+          <div style={{ fontSize:20, fontWeight:700, color:'var(--success)' }}>{purchasedWeek}</div>
+          <div style={{ fontSize:10, color:'var(--text-muted)', marginTop:2 }}>{t('materials.statWeek')}</div>
         </div>
       </div>
 
@@ -111,7 +111,7 @@ export default function MaterialsTab({ proj, canEdit = true }) {
         </div>
 
         {projRequests.length === 0 && (
-          <div style={{ fontSize: 13, color: '#B8AFA6', textAlign: 'center', padding: '16px 0' }}>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: '16px 0' }}>
             {t('matReq.empty')}
           </div>
         )}
@@ -138,7 +138,7 @@ export default function MaterialsTab({ proj, canEdit = true }) {
                       {req.task.text}
                     </span>
                   )}
-                  <span style={{ fontSize: 11, color: '#B8AFA6', marginLeft: 'auto' }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
                     {timeAgo(req.created_at)}
                   </span>
                 </div>
@@ -159,8 +159,8 @@ export default function MaterialsTab({ proj, canEdit = true }) {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
                 <span style={{
                   fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
-                  background: req.status === 'closed' ? '#E8F2EB' : '#FEF3CD',
-                  color:      req.status === 'closed' ? '#3D7A52' : '#C96B3A',
+                  background: req.status === 'closed' ? 'var(--success-bg)' : '#FEF3CD',
+                  color:      req.status === 'closed' ? 'var(--success)' : 'var(--accent)',
                 }}>
                   {req.status === 'closed' ? t('matReq.statusClosed') : t('matReq.statusOpen')}
                 </span>
@@ -178,7 +178,7 @@ export default function MaterialsTab({ proj, canEdit = true }) {
                   onClick={() => deleteMaterialRequest(req.id)}
                   style={{
                     fontSize: 11, padding: '3px 8px', borderRadius: 7, cursor: 'pointer',
-                    background: '#FCEBEB', border: '1px solid #F0AAAA', color: '#A32D2D',
+                    background: 'var(--danger-bg)', border: '1px solid var(--danger-border)', color: 'var(--danger)',
                   }}
                 >
                   {t('common.delete')}

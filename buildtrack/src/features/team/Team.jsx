@@ -363,7 +363,7 @@ export default function Team() {
               <Button variant="primary" size="sm" onClick={invite} disabled={loading}>{loading ? '...' : t('common.add')}</Button>
             </div>
             {msg && (
-              <div style={{ marginTop:8, fontSize:12, padding:'6px 10px', borderRadius:6, background: msg.includes('added') || msg.includes('!') ? '#E8F2EB' : '#FCEBEB', color: msg.includes('added') || msg.includes('!') ? '#3D7A52' : '#A32D2D' }}>
+              <div style={{ marginTop:8, fontSize:12, padding:'6px 10px', borderRadius:6, background: msg.includes('added') || msg.includes('!') ? 'var(--success-bg)' : 'var(--danger-bg)', color: msg.includes('added') || msg.includes('!') ? 'var(--success)' : 'var(--danger)' }}>
                 {msg}
               </div>
             )}
@@ -386,7 +386,7 @@ export default function Team() {
               <Button variant="primary" size="sm" onClick={inviteClient} disabled={clientLoading}>{clientLoading ? '...' : t('common.add')}</Button>
             </div>
             {clientMsg && (
-              <div style={{ marginTop:8, fontSize:12, padding:'6px 10px', borderRadius:6, background: clientMsg.includes('added') ? '#E8F2EB' : '#FCEBEB', color: clientMsg.includes('added') ? '#3D7A52' : '#A32D2D' }}>
+              <div style={{ marginTop:8, fontSize:12, padding:'6px 10px', borderRadius:6, background: clientMsg.includes('added') ? 'var(--success-bg)' : 'var(--danger-bg)', color: clientMsg.includes('added') ? 'var(--success)' : 'var(--danger)' }}>
                 {clientMsg}
               </div>
             )}
@@ -398,17 +398,17 @@ export default function Team() {
       {profile?.role === 'foreman' && joinRequests.length > 0 && (
         <div className="card" style={{ marginBottom:12, padding:0 }}>
           <div style={{ padding:'10px 14px', borderBottom:'1px solid #EAE3D8', display:'flex', alignItems:'center', gap:8 }}>
-            <div style={{ fontSize:11, fontWeight:700, color:'#C96B3A', letterSpacing:'.08em', textTransform:'uppercase' }}>{t('team.joinRequests')}</div>
-            <div style={{ background:'var(--accent-light,#FAECE4)', color:'#C96B3A', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:10 }}>{joinRequests.length}</div>
+            <div style={{ fontSize:11, fontWeight:700, color:'var(--accent)', letterSpacing:'.08em', textTransform:'uppercase' }}>{t('team.joinRequests')}</div>
+            <div style={{ background:'var(--accent-light,var(--accent-light))', color:'var(--accent)', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:10 }}>{joinRequests.length}</div>
           </div>
           {joinRequests.map(r => (
             <div key={r.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', borderBottom:'1px solid #EAE3D8' }}>
-              <div style={{ width:36, height:36, borderRadius:'50%', background:'var(--accent-light,#FAECE4)', color:'#C96B3A', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, flexShrink:0 }}>
+              <div style={{ width:36, height:36, borderRadius:'50%', background:'var(--accent-light,var(--accent-light))', color:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, flexShrink:0 }}>
                 {r.worker?.name?.charAt(0)?.toUpperCase()}
               </div>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:13, fontWeight:600, color:'var(--text-1,#2E2420)' }}>{r.worker?.name}</div>
-                <div style={{ fontSize:11, color:'#B8AFA6' }}>{t('team.wantsToJoin')}</div>
+                <div style={{ fontSize:11, color:'var(--text-muted)' }}>{t('team.wantsToJoin')}</div>
               </div>
               <div style={{ display:'flex', gap:6 }}>
                 <Button size="sm" variant="primary" onClick={() => approveJoinRequest(r.id, r.worker.id)}>{t('team.accept')}</Button>
@@ -444,7 +444,7 @@ export default function Team() {
           return (
             <div key={m.id} style={{
               background: 'var(--surface,#fff)',
-              border: `1.5px solid ${isOpen ? '#C96B3A' : '#EAE3D8'}`,
+              border: `1.5px solid ${isOpen ? 'var(--accent)' : '#EAE3D8'}`,
               borderRadius: 14, overflow: 'hidden',
               boxShadow: isOpen ? '0 3px 10px rgba(201,107,58,0.10)' : 'none',
               transition: 'border-color .15s, box-shadow .15s',
@@ -457,14 +457,14 @@ export default function Team() {
                   if (newId && !workLogs[newId]) fetchWorkLogs(newId)
                   if (newId && !payments[newId]) fetchPayments(newId)
                 }}
-                style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', cursor:'pointer', background: isOpen ? 'var(--accent-light,#FAECE4)' : 'var(--surface,#fff)' }}
+                style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', cursor:'pointer', background: isOpen ? 'var(--accent-light,var(--accent-light))' : 'var(--surface,#fff)' }}
               >
                 {/* Avatar with status dot */}
                 <div style={{ position:'relative', flexShrink:0 }}>
                   <div style={{
                     width:40, height:40, borderRadius:'50%',
-                    background: isOpen ? '#C96B3A' : '#F2EDE4',
-                    color: isOpen ? '#fff' : '#C96B3A',
+                    background: isOpen ? 'var(--accent)' : '#F2EDE4',
+                    color: isOpen ? '#fff' : 'var(--accent)',
                     display:'flex', alignItems:'center', justifyContent:'center',
                     fontSize:15, fontWeight:700,
                   }}>
@@ -492,13 +492,13 @@ export default function Team() {
 
                 {/* Name + quick info */}
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : 'var(--text-1,#2E2420)', marginBottom:3 }}>{m.name}</div>
+                  <div style={{ fontSize:13, fontWeight:600, color: isOpen ? 'var(--accent)' : 'var(--text-1,#2E2420)', marginBottom:3 }}>{m.name}</div>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:5, alignItems:'center' }}>
                     <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:10, background: stCfg.bg, color: stCfg.color, border:`1px solid ${stCfg.border}` }}>
                       {t('team.ws_' + st)}
                     </span>
                     {workerTasks.length > 0 && (
-                      <span style={{ fontSize:10, color:'#C96B3A', fontWeight:600, display:'flex', alignItems:'center', gap:2 }}><Lightning size={10} weight="bold" /> {workerTasks.length} tasks</span>
+                      <span style={{ fontSize:10, color:'var(--accent)', fontWeight:600, display:'flex', alignItems:'center', gap:2 }}><Lightning size={10} weight="bold" /> {workerTasks.length} tasks</span>
                     )}
                     {workerTools.length > 0 && (
                       <span style={{ fontSize:10, color:'#7A6E66', display:'flex', alignItems:'center', gap:2 }}><Wrench size={10} weight="bold" /> {workerTools.length}</span>
@@ -531,7 +531,7 @@ export default function Team() {
                   </button>
                 )}
 
-                <span style={{ fontSize:10, color:'#B8AFA6', display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
+                <span style={{ fontSize:10, color:'var(--text-muted)', display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
               </div>
 
               {/* ── Expanded detail ── */}
@@ -541,7 +541,7 @@ export default function Team() {
                   {/* Status picker row */}
                   {profile?.role === 'foreman' && (
                     <div style={{ marginBottom:12 }}>
-                      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:6 }}>{t('team.statusHeader')}</div>
+                      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:6 }}>{t('team.statusHeader')}</div>
                       <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
                         {STATUS_CYCLE.map(s => {
                           const cfg = WORKER_STATUS[s]
@@ -568,7 +568,7 @@ export default function Team() {
                   {/* Contacts */}
                   <div style={{ marginBottom:12 }}>
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
-                      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6' }}>{t('team.contacts')}</div>
+                      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)' }}>{t('team.contacts')}</div>
                       {(profile?.role === 'foreman' || profile?.id === m.id) && (
                         <button
                           onClick={() => {
@@ -633,7 +633,7 @@ export default function Team() {
                           </a>
                         ) : null}
                         {!m.phone && !m.telegram && (
-                          <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('team.notSpecified')}</span>
+                          <span style={{ fontSize:11, color:'var(--text-muted)' }}>{t('team.notSpecified')}</span>
                         )}
                       </div>
                     )}
@@ -641,12 +641,12 @@ export default function Team() {
 
                   {/* Projects */}
                   <div style={{ marginBottom:10 }}>
-                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>{t('team.projectsHeader')}</div>
+                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:5 }}>{t('team.projectsHeader')}</div>
                     {workerProjects.length === 0
-                      ? <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('common.none')}</span>
+                      ? <span style={{ fontSize:11, color:'var(--text-muted)' }}>{t('common.none')}</span>
                       : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
                           {workerProjects.map(p => (
-                            <span key={p.id} style={{ fontSize:11, fontWeight:600, background:'var(--accent-light,#FAECE4)', color:'#C96B3A', borderRadius:8, padding:'3px 10px' }}>{p.name}</span>
+                            <span key={p.id} style={{ fontSize:11, fontWeight:600, background:'var(--accent-light,var(--accent-light))', color:'var(--accent)', borderRadius:8, padding:'3px 10px' }}>{p.name}</span>
                           ))}
                         </div>
                     }
@@ -654,9 +654,9 @@ export default function Team() {
 
                   {/* Tools */}
                   <div style={{ marginBottom:10 }}>
-                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>{t('team.toolsHeader')}</div>
+                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:5 }}>{t('team.toolsHeader')}</div>
                     {workerTools.length === 0
-                      ? <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('team.noTools')}</span>
+                      ? <span style={{ fontSize:11, color:'var(--text-muted)' }}>{t('team.noTools')}</span>
                       : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
                           {workerTools.map(t => (
                             <span key={t.id} style={{ fontSize:11, fontWeight:500, background:'var(--bg-accent,#F2EDE4)', color:'#7A6E66', borderRadius:8, padding:'3px 10px', border:'1px solid #EAE3D8' }}>{t.name}</span>
@@ -667,19 +667,19 @@ export default function Team() {
 
                   {/* Task summary */}
                   <div>
-                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>{t('team.tasksHeader')}</div>
+                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:5 }}>{t('team.tasksHeader')}</div>
                     <div style={{ display:'flex', gap:10 }}>
                       {workerTasks.filter(t=>['new','rejected'].includes(t.status)).length > 0 && (
-                        <span style={{ fontSize:11, fontWeight:600, color:'#C96B3A', display:'flex', alignItems:'center', gap:2 }}><Lightning size={11} weight="bold" /> {workerTasks.filter(t=>['new','rejected'].includes(t.status)).length} active</span>
+                        <span style={{ fontSize:11, fontWeight:600, color:'var(--accent)', display:'flex', alignItems:'center', gap:2 }}><Lightning size={11} weight="bold" /> {workerTasks.filter(t=>['new','rejected'].includes(t.status)).length} active</span>
                       )}
                       {workerTasks.filter(t=>t.status==='pending').length > 0 && (
                         <span style={{ fontSize:11, fontWeight:600, color:'#D4A843', display:'flex', alignItems:'center', gap:2 }}><Clock size={11} weight="bold" /> {workerTasks.filter(t=>t.status==='pending').length} in review</span>
                       )}
                       {workerDone > 0 && (
-                        <span style={{ fontSize:11, fontWeight:600, color:'#3D7A52', display:'flex', alignItems:'center', gap:2 }}><CheckCircle size={11} weight="bold" /> {workerDone} done</span>
+                        <span style={{ fontSize:11, fontWeight:600, color:'var(--success)', display:'flex', alignItems:'center', gap:2 }}><CheckCircle size={11} weight="bold" /> {workerDone} done</span>
                       )}
                       {workerTasks.length === 0 && workerDone === 0 && (
-                        <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('team.noTasks')}</span>
+                        <span style={{ fontSize:11, color:'var(--text-muted)' }}>{t('team.noTasks')}</span>
                       )}
                     </div>
                   </div>
@@ -777,8 +777,8 @@ export default function Team() {
                       <button
                         onClick={() => removeWorker(m.id, m.name)}
                         style={{
-                          fontSize:12, color:'#A32D2D', background:'#FCEBEB',
-                          border:'0.5px solid #F0AAAA', borderRadius:7,
+                          fontSize:12, color:'var(--danger)', background:'var(--danger-bg)',
+                          border:'0.5px solid var(--danger-border)', borderRadius:7,
                           padding:'5px 14px', cursor:'pointer', fontWeight:500,
                         }}
                       >
@@ -1030,42 +1030,42 @@ export default function Team() {
               const isOpen = openId === m.id
               const workerProjects = (m.project_ids || []).map(pid => projects.find(p => p.id === pid)).filter(Boolean)
               return (
-                <div key={m.id} style={{ background:'var(--surface,#fff)', border:`1.5px solid ${isOpen ? '#C96B3A' : '#EAE3D8'}`, borderRadius:14, overflow:'hidden' }}>
-                  <div onClick={() => setOpenId(isOpen ? null : m.id)} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', cursor:'pointer', background: isOpen ? 'var(--accent-light,#FAECE4)' : 'var(--surface,#fff)' }}>
-                    <div style={{ width:40, height:40, borderRadius:'50%', background: isOpen ? '#C96B3A' : '#F2EDE4', color: isOpen ? '#fff' : '#C96B3A', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:700, flexShrink:0 }}>
+                <div key={m.id} style={{ background:'var(--surface,#fff)', border:`1.5px solid ${isOpen ? 'var(--accent)' : '#EAE3D8'}`, borderRadius:14, overflow:'hidden' }}>
+                  <div onClick={() => setOpenId(isOpen ? null : m.id)} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', cursor:'pointer', background: isOpen ? 'var(--accent-light,var(--accent-light))' : 'var(--surface,#fff)' }}>
+                    <div style={{ width:40, height:40, borderRadius:'50%', background: isOpen ? 'var(--accent)' : '#F2EDE4', color: isOpen ? '#fff' : 'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:700, flexShrink:0 }}>
                       {m.name?.charAt(0)?.toUpperCase()}
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:600, color: isOpen ? '#C96B3A' : 'var(--text-1,#2E2420)' }}>{m.name}</div>
+                      <div style={{ fontSize:13, fontWeight:600, color: isOpen ? 'var(--accent)' : 'var(--text-1,#2E2420)' }}>{m.name}</div>
                       <div style={{ fontSize:10, color:'var(--text-muted)' }}>{t('team.clientRole')}</div>
                     </div>
                     {m.phone && (
                       <a href={`tel:${m.phone}`} onClick={e => e.stopPropagation()} style={{ fontSize:10, color:'var(--accent)', textDecoration:'none' }}>📞 {m.phone}</a>
                     )}
-                    <span style={{ fontSize:10, color:'#B8AFA6', display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
+                    <span style={{ fontSize:10, color:'var(--text-muted)', display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
                   </div>
                   {isOpen && (
                     <div style={{ borderTop:'1px solid #EAE3D8', padding:'12px 14px', background:'var(--surface-2,#FDFBF8)' }}>
                       {/* Contacts */}
                       <div style={{ marginBottom:10 }}>
-                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>{t('team.contacts')}</div>
+                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:5 }}>{t('team.contacts')}</div>
                         <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
                           {m.phone ? <a href={`tel:${m.phone}`} style={{ fontSize:12, color:'var(--accent)', textDecoration:'none' }}>📞 {m.phone}</a> : null}
                           {m.telegram ? <a href={`https://t.me/${m.telegram.replace(/^@/,'')}`} target="_blank" rel="noopener noreferrer" style={{ fontSize:12, color:'#229ED9', textDecoration:'none' }}>✈️ {m.telegram.startsWith('@') ? m.telegram : `@${m.telegram}`}</a> : null}
-                          {!m.phone && !m.telegram && <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('team.notSpecified')}</span>}
+                          {!m.phone && !m.telegram && <span style={{ fontSize:11, color:'var(--text-muted)' }}>{t('team.notSpecified')}</span>}
                         </div>
                       </div>
                       {/* Projects */}
                       <div style={{ marginBottom:10 }}>
-                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:5 }}>{t('team.projectsHeader')}</div>
+                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:5 }}>{t('team.projectsHeader')}</div>
                         {workerProjects.length === 0
-                          ? <span style={{ fontSize:11, color:'#B8AFA6' }}>{t('common.none')}</span>
+                          ? <span style={{ fontSize:11, color:'var(--text-muted)' }}>{t('common.none')}</span>
                           : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
-                              {workerProjects.map(p => <span key={p.id} style={{ fontSize:11, fontWeight:600, background:'var(--accent-light,#FAECE4)', color:'#C96B3A', borderRadius:8, padding:'3px 10px' }}>{p.name}</span>)}
+                              {workerProjects.map(p => <span key={p.id} style={{ fontSize:11, fontWeight:600, background:'var(--accent-light,var(--accent-light))', color:'var(--accent)', borderRadius:8, padding:'3px 10px' }}>{p.name}</span>)}
                             </div>
                         }
                       </div>
-                      <button onClick={() => removeWorker(m.id, m.name)} style={{ fontSize:11, color:'#A32D2D', background:'#FCEBEB', border:'none', borderRadius:8, padding:'6px 14px', cursor:'pointer', fontWeight:500 }}>
+                      <button onClick={() => removeWorker(m.id, m.name)} style={{ fontSize:11, color:'var(--danger)', background:'var(--danger-bg)', border:'none', borderRadius:8, padding:'6px 14px', cursor:'pointer', fontWeight:500 }}>
                         {t('team.removeFromTeam')}
                       </button>
                     </div>

@@ -8,11 +8,11 @@ import { useStore } from '../../store/useStore'
 
 const ACTIVITY_CFG = {
   task_created:       { icon: Note,                  color:'#2E6FB5', bg:'#E4EEFA', border:'#A3C2E8', darkBg:'#162238', darkBorder:'#1E3A5F', group:'tasks'     },
-  task_submitted:     { icon: Clock,                 color:'#C96B3A', bg:'#FBF3DC', border:'#F0D897', darkBg:'#261A0A', darkBorder:'#3D2A0E', group:'tasks'     },
-  task_approved:      { icon: CheckCircle,           color:'#3D7A52', bg:'#E8F2EB', border:'#A8D4B4', darkBg:'#0F2018', darkBorder:'#1A3525', group:'tasks'     },
-  task_rejected:      { icon: ArrowCounterClockwise, color:'#EF4444', bg:'#FCEBEB', border:'#F0AAAA', darkBg:'#2A1010', darkBorder:'#431515', group:'tasks'     },
-  material_added:     { icon: Package,               color:'#C96B3A', bg:'#FBF3DC', border:'#F0D897', darkBg:'#261A0A', darkBorder:'#3D2A0E', group:'materials' },
-  material_purchased: { icon: ShoppingCart,          color:'#3D7A52', bg:'#E8F2EB', border:'#A8D4B4', darkBg:'#0F2018', darkBorder:'#1A3525', group:'materials' },
+  task_submitted:     { icon: Clock,                 color:'var(--accent)', bg:'#FBF3DC', border:'#F0D897', darkBg:'#261A0A', darkBorder:'#3D2A0E', group:'tasks'     },
+  task_approved:      { icon: CheckCircle,           color:'var(--success)', bg:'var(--success-bg)', border:'var(--success-border)', darkBg:'#0F2018', darkBorder:'#1A3525', group:'tasks'     },
+  task_rejected:      { icon: ArrowCounterClockwise, color:'#EF4444', bg:'var(--danger-bg)', border:'var(--danger-border)', darkBg:'#2A1010', darkBorder:'#431515', group:'tasks'     },
+  material_added:     { icon: Package,               color:'var(--accent)', bg:'#FBF3DC', border:'#F0D897', darkBg:'#261A0A', darkBorder:'#3D2A0E', group:'materials' },
+  material_purchased: { icon: ShoppingCart,          color:'var(--success)', bg:'var(--success-bg)', border:'var(--success-border)', darkBg:'#0F2018', darkBorder:'#1A3525', group:'materials' },
   tool_added:         { icon: Wrench,                color:'#2E6FB5', bg:'#E4EEFA', border:'#A3C2E8', darkBg:'#162238', darkBorder:'#1E3A5F', group:'tools'     },
   worker_joined:      { icon: HardHat,               color:'#9B6FD4', bg:'#F0EAF8', border:'#C4AADF', darkBg:'#1E1530', darkBorder:'#31245C', group:'team'      },
   comment_added:      { icon: ChatCircle,            color:'#7A6E66', bg:'#F2EDE4', border:'#D9D0C7', darkBg:'#2A2520', darkBorder:'#3D342B', group:'tasks'     },

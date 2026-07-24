@@ -15,7 +15,7 @@ export default function MaterialList({
 
   if (materials.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '28px 0', color: '#B8AFA6' }}>
+      <div style={{ textAlign: 'center', padding: '28px 0', color: 'var(--text-muted)' }}>
         <div style={{ fontSize: 30, marginBottom: 6, display:'flex', justifyContent:'center' }}><Package size={30} weight="bold" /></div>
         <div style={{ fontSize: 12 }}>{t('materials.none')}</div>
       </div>
@@ -39,8 +39,8 @@ export default function MaterialList({
               title={canCheck ? (isPurchased ? t('materials.markOpen') : t('materials.markPurchased')) : undefined}
               style={{
                 width: 18, height: 18, borderRadius: 4, flexShrink: 0, marginTop: 2,
-                border: `2px solid ${isPurchased ? '#5A9467' : '#C96B3A'}`,
-                background: isPurchased ? '#5A9467' : '#fff',
+                border: `2px solid ${isPurchased ? 'var(--success)' : 'var(--accent)'}`,
+                background: isPurchased ? 'var(--success)' : 'transparent',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: canCheck ? 'pointer' : 'default',
                 transition: 'background .15s, border-color .15s',
@@ -55,7 +55,7 @@ export default function MaterialList({
                 {m.name}
                 <span style={{
                   fontWeight: 700,
-                  color: isPurchased ? '#7A6E66' : '#C96B3A',
+                  color: isPurchased ? 'var(--text-secondary)' : 'var(--accent)',
                   marginLeft: 6,
                 }}>
                   × {m.qty} {m.unit}
@@ -67,8 +67,8 @@ export default function MaterialList({
                 <div style={{ marginTop: 4, marginBottom: 2 }}>
                   <span style={{
                     fontSize: 10, fontWeight: 600,
-                    background: '#FAECE4', color: '#C96B3A',
-                    border: '1px solid #E8C9B4',
+                    background: 'var(--accent-light)', color: 'var(--accent)',
+                    border: '1px solid var(--accent-border)',
                     borderRadius: 6, padding: '2px 8px',
                   }}>
                     <Buildings size={10} weight="bold" /> {projName}
@@ -80,7 +80,7 @@ export default function MaterialList({
                 {m.reportedBy}
                 {m.stage && <> · {m.stage}</>}
                 {isPurchased
-                  ? <> · <span style={{ color: '#5A9467', fontWeight: 600 }}>{t('materials.purchased', { time: timeAgo(m.purchasedAt) })}</span></>
+                  ? <> · <span style={{ color: 'var(--success)', fontWeight: 600 }}>{t('materials.purchased', { time: timeAgo(m.purchasedAt) })}</span></>
                   : <> · {timeAgo(m.createdAt)}</>
                 }
               </div>
@@ -96,7 +96,7 @@ export default function MaterialList({
                 onClick={() => onDelete(m.id)}
                 title={t('common.remove')}
                 style={{
-                  background: 'none', border: 'none', color: '#C8B8B0',
+                  background: 'none', border: 'none', color: 'var(--text-muted)',
                   cursor: 'pointer', fontSize: 14, padding: '0 2px', flexShrink: 0,
                   lineHeight: 1,
                 }}

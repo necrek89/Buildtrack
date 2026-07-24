@@ -26,8 +26,8 @@ function RequestCard({ req, t }) {
         </div>
         <span style={{
           fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
-          background: req.status === 'closed' ? '#E8F2EB' : '#FEF3CD',
-          color:      req.status === 'closed' ? '#3D7A52' : '#C96B3A',
+          background: req.status === 'closed' ? 'var(--success-bg)' : '#FEF3CD',
+          color:      req.status === 'closed' ? 'var(--success)' : 'var(--accent)',
           flexShrink: 0,
         }}>
           {req.status === 'closed' ? t('matReq.statusClosed') : t('matReq.statusOpen')}
@@ -36,7 +36,7 @@ function RequestCard({ req, t }) {
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
         {req.project?.name && (
-          <span style={{ fontSize: 11, color: '#C96B3A', fontWeight: 600, display:'flex', alignItems:'center', gap:2 }}>
+          <span style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 600, display:'flex', alignItems:'center', gap:2 }}>
             <MapPin size={11} weight="bold" /> {req.project.name}
           </span>
         )}
@@ -45,7 +45,7 @@ function RequestCard({ req, t }) {
             {req.task.text}
           </span>
         )}
-        <span style={{ fontSize: 11, color: '#B8AFA6', marginLeft: 'auto' }}>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>
           {timeAgo(req.created_at)}
         </span>
       </div>
@@ -121,14 +121,14 @@ export default function WorkerMaterials() {
       </div>
 
       {materialRequests.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '48px 24px', color: '#B8AFA6', fontSize: 14 }}>
+        <div style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-muted)', fontSize: 14 }}>
           {t('matReq.emptyWorker')}
         </div>
       )}
 
       {open.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#B8AFA6', letterSpacing: '.08em',
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.08em',
             textTransform: 'uppercase', marginBottom: 8 }}>
             {t('matReq.statusOpen')} ({open.length})
           </div>
@@ -138,7 +138,7 @@ export default function WorkerMaterials() {
 
       {closed.length > 0 && (
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#B8AFA6', letterSpacing: '.08em',
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '.08em',
             textTransform: 'uppercase', marginBottom: 8 }}>
             {t('matReq.statusClosed')} ({closed.length})
           </div>

@@ -599,13 +599,13 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
               />
               <Button variant="primary" size="sm" onClick={addStage}>{t('common.add')}</Button>
               <button onClick={() => { setAddingStage(false); setNewStageName('') }}
-                style={{ background:'none', border:'none', fontSize:18, color:'#B8AFA6', cursor:'pointer', lineHeight:1, display:'flex', alignItems:'center' }}><X size={18} weight="bold" /></button>
+                style={{ background:'none', border:'none', fontSize:18, color:'var(--text-muted)', cursor:'pointer', lineHeight:1, display:'flex', alignItems:'center' }}><X size={18} weight="bold" /></button>
             </div>
           ) : (
             <button onClick={() => setAddingStage(true)} style={{
               display:'flex', alignItems:'center', gap:6, padding:'10px 14px',
               background:'none', border:'1.5px dashed var(--border,#D9D0C7)',
-              borderRadius:14, cursor:'pointer', fontSize:13, color:'#B8AFA6',
+              borderRadius:14, cursor:'pointer', fontSize:13, color:'var(--text-muted)',
               fontWeight:500, width:'100%',
             }}>
               <span style={{ fontSize:16, lineHeight:1 }}>＋</span> {t('tasks.addStage')}
@@ -617,7 +617,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
       {/* ── Tools on site ── */}
       {projTools.length > 0 && (
         <div style={{ marginTop:16 }}>
-          <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'#B8AFA6', marginBottom:8, display:'flex', alignItems:'center', gap:5 }}>
+          <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:8, display:'flex', alignItems:'center', gap:5 }}>
             <Wrench size={11} weight="bold" /> {t('detail.toolsOnSite')}
           </div>
           <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>

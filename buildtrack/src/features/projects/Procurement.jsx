@@ -364,7 +364,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
           )}
         </div>
       </div>
-      <p style={{ fontSize:12, color:'#B8AFA6', marginTop:-8, marginBottom:12 }}>
+      <p style={{ fontSize:12, color:'var(--text-muted)', marginTop:-8, marginBottom:12 }}>
         {t('materials.desc')}
       </p>
 
@@ -380,7 +380,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
           {t('materials.totalChip', { n: allItems.length })}
         </div>
         {openRequests > 0 && (
-          <div className="summary-chip" style={{ background:'#FEF3C7', color:'#92400E', border:'1px solid #FDE68A' }}>
+          <div className="summary-chip" style={{ background:'var(--warning-bg)', color:'var(--warning)', border:'1px solid var(--warning-bg)' }}>
             <HardHat size={11} weight="bold" /> {openRequests} {t('matReq.statusOpen').toLowerCase()}
           </div>
         )}
@@ -401,9 +401,9 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
 
       {/* Empty state */}
       {filtered.length === 0 && (
-        <div style={{ textAlign:'center', padding:'48px 0', color:'#B8AFA6' }}>
-          <div style={{ fontSize:40, marginBottom:10, display:'flex', justifyContent:'center' }}><CheckCircle size={40} weight="bold" color="#5A9467" /></div>
-          <div style={{ fontSize:15, fontWeight:700, color:'#5A9467' }}>{t('materials.allCaughtUp')}</div>
+        <div style={{ textAlign:'center', padding:'48px 0', color:'var(--text-muted)' }}>
+          <div style={{ fontSize:40, marginBottom:10, display:'flex', justifyContent:'center' }}><CheckCircle size={40} weight="bold" color="var(--success)" /></div>
+          <div style={{ fontSize:15, fontWeight:700, color:'var(--success)' }}>{t('materials.allCaughtUp')}</div>
           <div style={{ fontSize:12, marginTop:6 }}>{t('materials.noOpen')}</div>
         </div>
       )}
@@ -415,7 +415,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
             <span style={{ display:'flex', alignItems:'center' }}>{groupByDate ? <CalendarBlank size={13} weight="bold" /> : g.key === '__none__' ? <ClipboardText size={13} weight="bold" /> : <Buildings size={13} weight="bold" />}</span>
             <h3>{g.label}</h3>
             {groupByDate && (
-              <span style={{ fontSize:11, color:'#B8AFA6', marginLeft:4 }}>
+              <span style={{ fontSize:11, color:'var(--text-muted)', marginLeft:4 }}>
                 {g.items.length} {t('procurement.itemsSuffix')}
               </span>
             )}
@@ -427,8 +427,8 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
             {canEdit && !groupByDate && (
               <button
                 onClick={() => { setModalProj(g.proj?.id || null); setShowModal(true) }}
-                style={{ marginLeft:'auto', fontSize:11, fontWeight:600, color:'#C96B3A',
-                  background:'var(--accent-light,#FAECE4)', border:'none', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
+                style={{ marginLeft:'auto', fontSize:11, fontWeight:600, color:'var(--accent)',
+                  background:'var(--accent-light,var(--accent-light))', border:'none', borderRadius:8, padding:'4px 10px', cursor:'pointer' }}
               >
                 + {t('common.add')}
               </button>
@@ -450,8 +450,8 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
                   onClick={() => toggleItem(item)}
                   style={{
                     width:20, height:20, borderRadius:5, flexShrink:0, marginTop:1,
-                    border:`2px solid ${item.isPurchased ? '#3D7A52' : item.type === 'request' ? '#C96B3A' : '#D1D5DB'}`,
-                    background: item.isPurchased ? '#3D7A52' : 'transparent',
+                    border:`2px solid ${item.isPurchased ? 'var(--success)' : item.type === 'request' ? 'var(--accent)' : '#D1D5DB'}`,
+                    background: item.isPurchased ? 'var(--success)' : 'transparent',
                     display:'flex', alignItems:'center', justifyContent:'center',
                     cursor:'pointer', transition:'all .15s',
                   }}
@@ -462,7 +462,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
                 {/* Content */}
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontSize:13, fontWeight:600,
-                    color: item.isPurchased ? '#B8AFA6' : 'var(--text-1,#2E2420)',
+                    color: item.isPurchased ? 'var(--text-muted)' : 'var(--text-1,#2E2420)',
                     textDecoration: item.isPurchased ? 'line-through' : 'none',
                   }}>
                     {item.name}
@@ -473,15 +473,15 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
                     )}
                     {/* Worker badge */}
                     {item.type === 'request' && (
-                      <span style={{ marginLeft:8, fontSize:10, background:'#FEF3C7',
-                        color:'#92400E', borderRadius:5, padding:'1px 6px', fontWeight:700 }}>
+                      <span style={{ marginLeft:8, fontSize:10, background:'var(--warning-bg)',
+                        color:'var(--warning)', borderRadius:5, padding:'1px 6px', fontWeight:700 }}>
                         <HardHat size={10} weight="bold" /> {item.reportedBy}
                       </span>
                     )}
                   </div>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginTop:3, alignItems:'center' }}>
                     {item.reportedBy && item.type === 'material' && (
-                      <span style={{ fontSize:11, color:'#B8AFA6' }}>{item.reportedBy}</span>
+                      <span style={{ fontSize:11, color:'var(--text-muted)' }}>{item.reportedBy}</span>
                     )}
                     {item.taskName && (
                       <span style={{ fontSize:11, background:'var(--bg-accent,#F2EDE4)',
@@ -490,12 +490,12 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
                       </span>
                     )}
                     {item.notes && (
-                      <span style={{ fontSize:11, color:'#B8AFA6', fontStyle:'italic' }}>
+                      <span style={{ fontSize:11, color:'var(--text-muted)', fontStyle:'italic' }}>
                         {item.notes}
                       </span>
                     )}
                     {item.isPurchased && item.purchasedAt ? (
-                      <span style={{ fontSize:11, color:'#3D7A52', marginLeft:'auto', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}>
+                      <span style={{ fontSize:11, color:'var(--success)', marginLeft:'auto', fontWeight:500, display:'flex', alignItems:'center', gap:2 }}>
                         <Check size={11} weight="bold" /> {new Date(item.purchasedAt).toLocaleDateString(lang, { day:'numeric', month:'short' })}
                       </span>
                     ) : (
@@ -535,7 +535,7 @@ export default function Procurement({ canDelete = true, canEdit = true }) {
         <div style={{ textAlign:'center', paddingTop:8 }}>
           <button
             onClick={() => { setModalProj(null); setShowModal(true) }}
-            style={{ fontSize:13, fontWeight:600, color:'#C96B3A', background:'var(--accent-light,#FAECE4)',
+            style={{ fontSize:13, fontWeight:600, color:'var(--accent)', background:'var(--accent-light,var(--accent-light))',
               border:'1.5px dashed #E8C9B4', borderRadius:12, padding:'12px 24px',
               cursor:'pointer', width:'100%' }}
           >

@@ -61,7 +61,7 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
         {/* Drag handle */}
         {canEdit && (
           <div {...attributes} {...listeners} style={{
-            cursor:'grab', color:'#C8C0B8', fontSize:16, flexShrink:0,
+            cursor:'grab', color:'var(--text-faint)', fontSize:16, flexShrink:0,
             padding:'2px 4px', touchAction:'none', lineHeight:1,
           }}>⠿</div>
         )}
@@ -91,7 +91,7 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
                 onClick={e => e.stopPropagation()}
                 style={{
                   flex:1, fontSize:13, fontWeight:700, color:'var(--text-1,#2E2420)',
-                  border:'none', borderBottom:'2px solid #C96B3A', outline:'none',
+                  border:'none', borderBottom:'2px solid var(--accent)', outline:'none',
                   background:'transparent', padding:'0 2px', minWidth:0,
                 }}
               />
@@ -102,14 +102,14 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
                 title={canEdit ? t('tasks.stageRename') : undefined}
                 style={{
                   fontSize:13, fontWeight:700, letterSpacing:'.02em', cursor:'pointer', flex:1, minWidth:0,
-                  color: stage === '—' ? '#B8AFA6' : 'var(--text-1,#2E2420)',
+                  color: stage === '—' ? 'var(--text-muted)' : 'var(--text-primary)',
                   fontStyle: stage === '—' ? 'italic' : 'normal',
                 }}
               >{stage === '—' ? 'Без этапа' : stage}</span>
             )}
-            {!editing && hasAlert && <span style={{ fontSize:11, color:'#A32D2D', fontWeight:600, display:'flex', alignItems:'center' }}><Lightning size={11} weight="bold" /></span>}
-            {!editing && hasPend  && <span style={{ fontSize:11, color:'#9A6E10', fontWeight:600, display:'flex', alignItems:'center' }}><Clock size={11} weight="bold" /></span>}
-            <span style={{ marginLeft:'auto', fontSize:11, color:'#B8AFA6', fontWeight:500, flexShrink:0 }}>{done}/{total}</span>
+            {!editing && hasAlert && <span style={{ fontSize:11, color:'var(--danger)', fontWeight:600, display:'flex', alignItems:'center' }}><Lightning size={11} weight="bold" /></span>}
+            {!editing && hasPend  && <span style={{ fontSize:11, color:'var(--warning)', fontWeight:600, display:'flex', alignItems:'center' }}><Clock size={11} weight="bold" /></span>}
+            <span style={{ marginLeft:'auto', fontSize:11, color:'var(--text-muted)', fontWeight:500, flexShrink:0 }}>{done}/{total}</span>
             {/* ✏️ rename button — visible on hover, always present for "—" stage */}
             {canEdit && !editing && (
               <button
@@ -117,11 +117,11 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
                 title="Переименовать этап"
                 style={{
                   background:'none', border:'none', cursor:'pointer', padding:'2px 5px',
-                  fontSize:12, color: stage === '—' ? '#C96B3A' : '#C8C0B8', lineHeight:1, flexShrink:0,
+                  fontSize:12, color: stage === '—' ? 'var(--accent)' : 'var(--text-faint)', lineHeight:1, flexShrink:0,
                   borderRadius:4,
                 }}
-                onMouseEnter={e => e.currentTarget.style.color='#C96B3A'}
-                onMouseLeave={e => e.currentTarget.style.color = stage === '—' ? '#C96B3A' : '#C8C0B8'}
+                onMouseEnter={e => e.currentTarget.style.color='var(--accent)'}
+                onMouseLeave={e => e.currentTarget.style.color = stage === '—' ? 'var(--accent)' : 'var(--text-faint)'}
               ><PencilSimple size={12} weight="bold" /></button>
             )}
           </div>
@@ -129,18 +129,18 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
             <div style={{ height:'100%', borderRadius:3, width:`${pct}%`, background: isDone ? 'var(--success)' : 'var(--accent)', transition:'width .4s ease' }} />
           </div>
         </div>
-        <span onClick={() => toggleStage(stage)} style={{ fontSize:11, color:'#B8AFA6', flexShrink:0, marginLeft:4, cursor:'pointer', display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={11} weight="bold" /> : <CaretDown size={11} weight="bold" />}</span>
+        <span onClick={() => toggleStage(stage)} style={{ fontSize:11, color:'var(--text-muted)', flexShrink:0, marginLeft:4, cursor:'pointer', display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={11} weight="bold" /> : <CaretDown size={11} weight="bold" />}</span>
         {canEdit && onDeleteStage && (
           <button
             onClick={e => { e.stopPropagation(); onDeleteStage(stage) }}
             title={t('tasks.stageDelete')}
             style={{
               background:'none', border:'none', cursor:'pointer', padding:'2px 4px',
-              fontSize:13, color:'#C8C0B8', lineHeight:1, flexShrink:0,
+              fontSize:13, color:'var(--text-faint)', lineHeight:1, flexShrink:0,
               borderRadius:4,
             }}
-            onMouseEnter={e => e.currentTarget.style.color='#A32D2D'}
-            onMouseLeave={e => e.currentTarget.style.color='#C8C0B8'}
+            onMouseEnter={e => e.currentTarget.style.color='var(--danger)'}
+            onMouseLeave={e => e.currentTarget.style.color='var(--text-faint)'}
           ><X size={13} weight="bold" /></button>
         )}
       </div>
@@ -148,7 +148,7 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
       {isOpen && (
         <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
           {items.length === 0 && (
-            <div style={{ padding:'12px 14px', fontSize:12, color:'#B8AFA6', textAlign:'center' }}>{t('tasks.noTasksStage')}</div>
+            <div style={{ padding:'12px 14px', fontSize:12, color:'var(--text-muted)', textAlign:'center' }}>{t('tasks.noTasksStage')}</div>
           )}
           {items.map((tk, ti) => (
             <div key={tk.id} style={{ borderTop: ti > 0 ? '1px solid var(--border,#F2EDE6)' : 'none' }}>
@@ -240,10 +240,10 @@ export function SortableStageList({ stageGroups, projStages, openStages, toggleS
           if (!g) return null
           return (
             <div style={{
-              borderRadius:14, border:'2px solid #C96B3A',
-              background:'var(--accent-light,#FAECE4)', padding:'12px 14px',
+              borderRadius:14, border:'2px solid var(--accent)',
+              background:'var(--accent-light,var(--accent-light))', padding:'12px 14px',
               boxShadow:'0 8px 24px rgba(201,107,58,0.25)',
-              fontSize:13, fontWeight:700, color:'#C96B3A',
+              fontSize:13, fontWeight:700, color:'var(--accent)',
             }}>
               ⠿ {activeId}
             </div>

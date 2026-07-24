@@ -24,7 +24,7 @@ export default function ClientDashboard() {
           <strong style={{ color:'#A04B22' }}>{proj.name}</strong>
           <Badge variant="blue">{proj.stage}</Badge>
         </div>
-        {proj.deadline && <div style={{ fontSize:12, color:'#C96B3A', marginBottom:6 }}>{t('client.deadlineLabel')} {proj.deadline}</div>}
+        {proj.deadline && <div style={{ fontSize:12, color:'var(--accent)', marginBottom:6 }}>{t('client.deadlineLabel')} {proj.deadline}</div>}
         <ProgressBar value={proj.progress||0} />
       </div>
       <div className="stat-grid" style={{ gridTemplateColumns:'1fr 1fr' }}>

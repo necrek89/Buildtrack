@@ -17,7 +17,7 @@ export default function ProjectTeamTab({ proj }) {
             <div className="member-avatar">{m.name?.charAt(0)?.toUpperCase()}</div>
             <div style={{ flex:1 }}>
               <div style={{ fontSize:13, fontWeight:500 }}>{m.name}</div>
-              <div style={{ fontSize:11, color:'#B8AFA6' }}>{m.role}</div>
+              <div style={{ fontSize:11, color:'var(--text-muted)' }}>{m.role}</div>
             </div>
             <Badge variant="green">{t('detail.active')}</Badge>
           </div>

@@ -111,9 +111,9 @@ export default function Tools({ canAdd, canDelete = true }) {
                 <div className="tool-name">{tool.name}</div>
                 {tool.location && <div className="tool-loc">{tool.location}</div>}
                 <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginTop:5 }}>
-                  {pName && <span style={{ fontSize:10, background:'var(--accent-light,#FAECE4)', color:'#C96B3A', borderRadius:6, padding:'2px 8px', fontWeight:600 }}>{pName}</span>}
-                  {wName && <span style={{ fontSize:10, background:'#E8F2EB', color:'#3D7A52', borderRadius:6, padding:'2px 8px', fontWeight:600 }}>{wName}</span>}
-                  {!pName && !wName && <span style={{ fontSize:10, color:'#B8AFA6' }}>{t('tools.notAssigned')}</span>}
+                  {pName && <span style={{ fontSize:10, background:'var(--accent-light,var(--accent-light))', color:'var(--accent)', borderRadius:6, padding:'2px 8px', fontWeight:600 }}>{pName}</span>}
+                  {wName && <span style={{ fontSize:10, background:'var(--success-bg)', color:'var(--success)', borderRadius:6, padding:'2px 8px', fontWeight:600 }}>{wName}</span>}
+                  {!pName && !wName && <span style={{ fontSize:10, color:'var(--text-muted)' }}>{t('tools.notAssigned')}</span>}
                 </div>
                 {isAssigned && tool.assigned_at && (
                   <div style={{ marginTop:5, display:'flex', flexWrap:'wrap', gap:5 }}>
@@ -153,7 +153,7 @@ export default function Tools({ canAdd, canDelete = true }) {
               <input className="form-input" placeholder={t('tools.serialPlaceholder')}
                 value={form.location} onChange={setF('location')} />
             </FormGroup>
-            {formErr && <div style={{ fontSize:12, color:'#A32D2D', background:'#FCEBEB', padding:'6px 10px', borderRadius:6, marginBottom:8 }}>{formErr}</div>}
+            {formErr && <div style={{ fontSize:12, color:'var(--danger)', background:'var(--danger-bg)', padding:'6px 10px', borderRadius:6, marginBottom:8 }}>{formErr}</div>}
             <div className="modal-actions">
               <Button size="sm" onClick={() => { setShowAdd(false); setFormErr('') }}>{t('common.cancel')}</Button>
               <Button variant="primary" size="sm" onClick={create} disabled={saving}>{saving ? t('common.adding') : t('common.add')}</Button>
@@ -180,7 +180,7 @@ export default function Tools({ canAdd, canDelete = true }) {
                 {team.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
             </FormGroup>
-            {assignErr && <div style={{ fontSize:12, color:'#A32D2D', background:'#FCEBEB', padding:'6px 10px', borderRadius:6, marginBottom:8 }}>{assignErr}</div>}
+            {assignErr && <div style={{ fontSize:12, color:'var(--danger)', background:'var(--danger-bg)', padding:'6px 10px', borderRadius:6, marginBottom:8 }}>{assignErr}</div>}
             <div className="modal-actions">
               <Button size="sm" onClick={() => setAssigning(null)}>{t('common.cancel')}</Button>
               <Button variant="primary" size="sm" onClick={saveAssign}>{t('common.save')}</Button>

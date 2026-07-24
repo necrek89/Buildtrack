@@ -134,7 +134,7 @@ export default function TimesheetModal({ onClose }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
                   <div style={{
                     width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                    background: 'var(--accent-light,#FAECE4)', color: 'var(--accent)',
+                    background: 'var(--accent-light,var(--accent-light))', color: 'var(--accent)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 12, fontWeight: 700,
                   }}>{w.name?.charAt(0)?.toUpperCase()}</div>

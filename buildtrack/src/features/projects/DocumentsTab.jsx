@@ -112,7 +112,7 @@ export default function DocumentsTab({ proj }) {
                     whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                     {doc.name}
                   </div>
-                  <div style={{ fontSize:11, color:'#B8AFA6', marginTop:2, display:'flex', gap:8 }}>
+                  <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:2, display:'flex', gap:8 }}>
                     {doc.size && <span>{formatBytes(doc.size)}</span>}
                     {doc.type && <span style={{ textTransform:'uppercase' }}>{doc.type}</span>}
                     {doc.created_at && (
@@ -128,7 +128,7 @@ export default function DocumentsTab({ proj }) {
                       onClick={e => e.stopPropagation()}
                       style={{
                         padding:'5px 10px', borderRadius:8, fontSize:12, fontWeight:600,
-                        background:'#C96B3A', color:'#fff',
+                        background:'var(--accent)', color:'#fff',
                         textDecoration:'none', whiteSpace:'nowrap',
                       }}>
                       {t('detail.docsOpen')}
@@ -147,7 +147,7 @@ export default function DocumentsTab({ proj }) {
                     onClick={e => { e.stopPropagation(); if (window.confirm(t('detail.docsDeleteConfirm'))) deleteDocument(doc.id) }}
                     style={{
                       width:30, height:30, borderRadius:8, border:'none',
-                      background:'#FEE2E2', color:'#991B1B', fontSize:14,
+                      background:'var(--danger-bg)', color:'var(--danger)', fontSize:14,
                       cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
                     }}><X size={14} weight="bold" /></button>
                 </div>

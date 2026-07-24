@@ -142,7 +142,7 @@ export default function MaterialRequestModal({ projectId, taskId, taskName, task
                   style={{
                     position: 'absolute', top: -6, right: -6,
                     width: 20, height: 20, borderRadius: '50%',
-                    background: '#A32D2D', color: '#fff',
+                    background: 'var(--danger)', color: '#fff',
                     border: 'none', fontSize: 11, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}><X size={11} weight="bold" /></button>
@@ -153,8 +153,8 @@ export default function MaterialRequestModal({ projectId, taskId, taskName, task
         </div>
 
         {saveError && (
-          <div style={{ margin: '8px 0 0', padding: '8px 12px', background: '#FEE2E2',
-            color: '#991B1B', borderRadius: 8, fontSize: 12 }}>
+          <div style={{ margin: '8px 0 0', padding: '8px 12px', background: 'var(--danger-bg)',
+            color: 'var(--danger)', borderRadius: 8, fontSize: 12 }}>
             <Warning size={13} weight="bold" /> {saveError}
           </div>
         )}

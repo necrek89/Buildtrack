@@ -80,7 +80,7 @@ export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
     fontFamily: 'inherit', background: 'var(--surface,#fff)',
     color: 'var(--text-1,#2E2420)', transition: 'border-color .15s',
   }
-  const focus = (e) => (e.target.style.borderColor = 'var(--accent,#C96B3A)')
+  const focus = (e) => (e.target.style.borderColor = 'var(--accent,var(--accent))')
   const blur  = (e) => (e.target.style.borderColor = 'var(--border,#EAE3D8)')
 
   // ── Trigger button ───────────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
           borderTop:'1px solid var(--border,#F2EDE6)',
           textAlign:'left', fontFamily:'inherit',
         }}
-        onMouseEnter={e => { e.currentTarget.style.color='var(--accent,#C96B3A)'; e.currentTarget.style.background='var(--accent-light,#FAECE4)' }}
+        onMouseEnter={e => { e.currentTarget.style.color='var(--accent,var(--accent))'; e.currentTarget.style.background='var(--accent-light,var(--accent-light))' }}
         onMouseLeave={e => { e.currentTarget.style.color='var(--text-2,#7A6E66)';  e.currentTarget.style.background='none' }}
       >
         <Plus size={12} weight="bold" />
@@ -109,7 +109,7 @@ export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
   return (
     <div ref={rowRef} style={{
       padding:'8px 10px 10px',
-      background:'var(--accent-light,#FAECE4)',
+      background:'var(--accent-light,var(--accent-light))',
       borderTop:'1px solid var(--border,#EAE3D8)',
       display:'flex', flexDirection:'column', gap:6,
     }}>
@@ -167,9 +167,9 @@ export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
         {totalCost !== null && (
           <span style={{
             flexShrink:0, fontSize:11, fontWeight:700,
-            color:'var(--accent,#C96B3A)',
+            color:'var(--accent,var(--accent))',
             background:'var(--surface,#fff)',
-            border:'1px solid var(--accent,#C96B3A)',
+            border:'1px solid var(--accent,var(--accent))',
             borderRadius:7, padding:'3px 8px', whiteSpace:'nowrap',
           }}>
             = {totalCost.toLocaleString()} {currSym}
@@ -182,7 +182,7 @@ export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
           title="Добавить (Enter)"
           style={{
             flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center',
-            background: name.trim() && !busy ? 'var(--accent,#C96B3A)' : '#D1C8C0',
+            background: name.trim() && !busy ? 'var(--accent,var(--accent))' : '#D1C8C0',
             color:'#fff', border:'none', borderRadius:6,
             padding:'6px 10px',
             cursor: name.trim() && !busy ? 'pointer' : 'default',

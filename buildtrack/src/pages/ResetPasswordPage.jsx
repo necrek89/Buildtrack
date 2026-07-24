@@ -41,13 +41,13 @@ export default function ResetPasswordPage({ onDone }) {
 
         {/* Logo + title */}
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{ fontSize: 32, fontWeight: 800, color: '#C96B3A', marginBottom: 6, letterSpacing: '-0.5px' }}>
+          <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--accent)', marginBottom: 6, letterSpacing: '-0.5px' }}>
             Tutuu
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, color: '#2E2420', marginBottom: 4 }}>
             {t('auth.newPwTitle')}
           </div>
-          <div style={{ fontSize: 13, color: '#B8AFA6' }}>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             {t('auth.newPwDesc')}
           </div>
         </div>
@@ -57,8 +57,8 @@ export default function ResetPasswordPage({ onDone }) {
           <div style={{
             textAlign: 'center', padding: '24px 0',
           }}>
-            <div style={{ width:48, height:48, borderRadius:'50%', background:'#3D7A52', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px', fontSize:22, fontWeight:700 }}>✓</div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#3D7A52', marginBottom: 6 }}>
+            <div style={{ width:48, height:48, borderRadius:'50%', background:'var(--success)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px', fontSize:22, fontWeight:700 }}>✓</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--success)', marginBottom: 6 }}>
               {t('auth.newPwSuccess')}
             </div>
           </div>
@@ -99,7 +99,7 @@ export default function ResetPasswordPage({ onDone }) {
                   <div style={{
                     height: 3, borderRadius: 4, transition: 'width .3s, background .3s',
                     width: pw.length < 6 ? '25%' : pw.length < 10 ? '60%' : '100%',
-                    background: pw.length < 6 ? '#E07B6A' : pw.length < 10 ? '#D4A843' : '#5A9467',
+                    background: pw.length < 6 ? '#E07B6A' : pw.length < 10 ? '#D4A843' : 'var(--success)',
                   }} />
                 </div>
               </div>

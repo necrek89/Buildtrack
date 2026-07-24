@@ -81,9 +81,9 @@ export default function LanguagePicker({ compact = false }) {
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
                 width: '100%',
-                background: lang === l.code ? '#FAECE4' : 'transparent',
+                background: lang === l.code ? 'var(--accent-light)' : 'transparent',
                 border: 'none', padding: '10px 14px', cursor: 'pointer',
-                fontSize: 13, color: lang === l.code ? '#C96B3A' : 'var(--text-1,#2E2420)',
+                fontSize: 13, color: lang === l.code ? 'var(--accent)' : 'var(--text-1,#2E2420)',
                 fontWeight: lang === l.code ? 600 : 400,
                 textAlign: 'left', transition: 'background .1s',
               }}
@@ -91,7 +91,7 @@ export default function LanguagePicker({ compact = false }) {
               <span style={{ fontSize: 18, lineHeight: 1 }}>{l.flag}</span>
               <span style={{ flex: 1 }}>{l.label}</span>
               {lang === l.code && (
-                <span style={{ fontSize: 11, color: '#C96B3A', display:'flex', alignItems:'center' }}><Check size={11} weight="bold" /></span>
+                <span style={{ fontSize: 11, color: 'var(--accent)', display:'flex', alignItems:'center' }}><Check size={11} weight="bold" /></span>
               )}
             </button>
           ))}

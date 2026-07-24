@@ -77,7 +77,7 @@ export function StatCard({ label, value, danger }) {
   return (
     <div className="stat-card">
       <div className="stat-label">{label}</div>
-      <div className="stat-value" style={danger ? { color: '#A32D2D' } : {}}>{value}</div>
+      <div className="stat-value" style={danger ? { color: 'var(--danger)' } : {}}>{value}</div>
     </div>
   )
 }

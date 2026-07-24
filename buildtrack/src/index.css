@@ -46,6 +46,9 @@
   --amber-bg: rgba(245,158,11,0.1);
   --overlay: rgba(0,0,0,0.5);
   --shadow: rgba(0,0,0,0.25);
+  --info: #60A5FA;
+  --info-bg: rgba(59,130,246,0.12);
+  --info-border: rgba(59,130,246,0.3);
   /* expense categories (dark) */
   --cat-materials-bg: rgba(59,130,246,0.12);
   --cat-materials-fg: #60A5FA;
@@ -110,6 +113,9 @@
   --amber-bg: #FFFBEB;
   --overlay: rgba(0,0,0,0.4);
   --shadow: rgba(0,0,0,0.04);
+  --info: #2563EB;
+  --info-bg: #EEF3FD;
+  --info-border: #B8D0F0;
   /* expense categories (light) */
   --cat-materials-bg: #EFF6FF;
   --cat-materials-fg: #1E40AF;
