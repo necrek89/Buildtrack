@@ -19,11 +19,11 @@ function fmtDate(iso) {
 const CATEGORIES = ['materials', 'labor', 'equipment', 'transport', 'other']
 
 const CAT_COLORS = {
-  materials: { bg: '#EFF6FF', color: '#1E40AF', border: '#BFDBFE', bar: '#3B82F6' },
-  labor:     { bg: '#F0FDF4', color: '#166534', border: '#BBF7D0', bar: '#22C55E' },
-  equipment: { bg: '#FFF7ED', color: '#9A3412', border: '#FED7AA', bar: '#F97316' },
-  transport: { bg: '#F5F3FF', color: '#5B21B6', border: '#DDD6FE', bar: '#8B5CF6' },
-  other:     { bg: '#F9FAFB', color: '#374151', border: '#E5E7EB', bar: '#9CA3AF' },
+  materials: { bg: 'var(--cat-materials-bg)', color: 'var(--cat-materials-fg)', border: 'var(--cat-materials-bd)', bar: 'var(--cat-materials-bar)' },
+  labor:     { bg: 'var(--cat-labor-bg)',     color: 'var(--cat-labor-fg)',     border: 'var(--cat-labor-bd)',     bar: 'var(--cat-labor-bar)'     },
+  equipment: { bg: 'var(--cat-equipment-bg)', color: 'var(--cat-equipment-fg)', border: 'var(--cat-equipment-bd)', bar: 'var(--cat-equipment-bar)' },
+  transport: { bg: 'var(--cat-transport-bg)', color: 'var(--cat-transport-fg)', border: 'var(--cat-transport-bd)', bar: 'var(--cat-transport-bar)' },
+  other:     { bg: 'var(--cat-other-bg)',     color: 'var(--cat-other-fg)',     border: 'var(--cat-other-bd)',     bar: 'var(--cat-other-bar)'     },
 }
 
 // ── Category Breakdown Chart ────────────────────────────────────────────────
@@ -87,9 +87,9 @@ function CategoryBreakdown({ expenses, onSelect, selected, t }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
                   <span style={{ fontSize: 12, fontWeight: 600, color: isActive ? c.color : 'var(--text-1,#2E2420)' }}>
                     {t(`expenses.cat_${g.cat}`)}
-                    <span style={{ fontSize: 10, color: '#B8AFA6', marginLeft: 5 }}>({g.count})</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 5 }}>({g.count})</span>
                   </span>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: isActive ? c.color : '#A32D2D', flexShrink: 0 }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: isActive ? c.color : 'var(--danger)', flexShrink: 0 }}>
                     {fmtMoney(g.amt, g.cur)}
                   </span>
                 </div>
@@ -104,7 +104,7 @@ function CategoryBreakdown({ expenses, onSelect, selected, t }) {
               </div>
 
               {/* Percent */}
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#B8AFA6', flexShrink: 0, minWidth: 32, textAlign: 'right' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', flexShrink: 0, minWidth: 32, textAlign: 'right' }}>
                 {g.pct}%
               </div>
             </div>
@@ -142,15 +142,15 @@ function ExpenseCard({ exp, canEdit, onEdit, onDelete, onLightbox, deleting, t }
             <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-1,#2E2420)', lineHeight: 1.3 }}>
               {exp.title}
             </div>
-            <div style={{ fontWeight: 800, fontSize: 15, color: '#A32D2D', flexShrink: 0 }}>
+            <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--danger)', flexShrink: 0 }}>
               {fmtMoney(exp.amount, exp.currency)}
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 11, color: '#B8AFA6', display:'flex', alignItems:'center', gap:2 }}><CalendarBlank size={11} weight="bold" /> {fmtDate(exp.date)}</span>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', display:'flex', alignItems:'center', gap:2 }}><CalendarBlank size={11} weight="bold" /> {fmtDate(exp.date)}</span>
           </div>
           {exp.notes && (
-            <div style={{ fontSize: 12, color: '#7A6E66', marginTop: 5, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 5, lineHeight: 1.5 }}>
               {exp.notes}
             </div>
           )}
@@ -176,11 +176,11 @@ function ExpenseCard({ exp, canEdit, onEdit, onDelete, onLightbox, deleting, t }
           <button onClick={() => onEdit(exp)} style={{
             flex: 1, padding: '5px', borderRadius: 7, fontSize: 12, fontWeight: 600,
             border: '1.5px solid var(--border,#EAE3D8)',
-            background: 'var(--surface,#fff)', color: '#7A6E66', cursor: 'pointer',
+            background: 'var(--surface,#fff)', color: 'var(--text-secondary)', cursor: 'pointer',
           }}><PencilSimple size={12} weight="bold" /> {t('common.edit')}</button>
           <button onClick={() => onDelete(exp)} disabled={deleting === exp.id} style={{
             flex: 1, padding: '5px', borderRadius: 7, fontSize: 12, fontWeight: 600,
-            border: '1.5px solid #FECACA', background: '#FEF2F2', color: '#991B1B', cursor: 'pointer',
+            border: '1.5px solid var(--danger-border)', background: 'var(--danger-bg)', color: 'var(--danger)', cursor: 'pointer',
           }}><Trash size={12} weight="bold" /> {t('common.delete')}</button>
         </div>
       )}
@@ -246,17 +246,17 @@ export default function ExpensesTab({ proj, canEdit = true }) {
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, marginTop: 8 }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 11, color: '#B8AFA6', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>
             {t('expenses.totalLabel')}
           </div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#A32D2D', lineHeight: 1.2, marginTop: 2 }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--danger)', lineHeight: 1.2, marginTop: 2 }}>
             {totalStr}
           </div>
         </div>
         {canEdit && (
           <button onClick={() => setShowAdd(true)} style={{
             padding: '8px 14px', borderRadius: 10, border: 'none',
-            background: '#C96B3A', color: '#fff', fontSize: 13,
+            background: 'var(--accent)', color: '#fff', fontSize: 13,
             fontWeight: 700, cursor: 'pointer', flexShrink: 0,
           }}>
             + {t('expenses.addBtn')}
@@ -308,7 +308,7 @@ export default function ExpensesTab({ proj, canEdit = true }) {
                       ({items.length})
                     </span>
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: '#A32D2D', flexShrink: 0 }}>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--danger)', flexShrink: 0 }}>
                     {fmtMoney(total, cur)}
                   </span>
                   <span style={{ fontSize: 11, color: c.color, opacity: .7, marginLeft: 4, display:'flex', alignItems:'center' }}>

@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase'
 import TaskModal from '../../components/TaskModal'
 import ConfirmModal from '../../components/ConfirmModal'
 import { SortableStageList } from '../tasks/SortableStage'
-import { FileText, UploadSimple, DownloadSimple, Printer, ChatCircle, MapPin, CalendarBlank, Wrench, X } from '@phosphor-icons/react'
+import { FileText, UploadSimple, DownloadSimple, Printer, ChatCircle, Wrench, X } from '@phosphor-icons/react'
 import * as XLSX from 'xlsx'
 import { todayStr } from '../../lib/date'
 import { buildReportHtml } from '../../lib/printReport'
@@ -30,9 +30,6 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
   useEffect(() => { fetchTasks(proj.id) }, [proj.id])
 
   const pTasks    = tasks.filter(t => t.project_id === proj.id)
-  const pDone     = pTasks.filter(tk => tk.status === 'approved').length
-  const pPct      = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
-  const daysLeft  = proj.deadline ? Math.max(0, Math.ceil((new Date(proj.deadline) - new Date()) / 86400000)) : null
   const projTools = tools.filter(tk => tk.project_id === proj.id)
 
   // Project's ordered stages list
@@ -492,48 +489,6 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
 
   return (
     <div style={{ paddingBottom:24 }}>
-
-      {/* ── Stats ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, marginBottom:10 }}>
-        {[
-          { v: pPct+'%',                    l: t('detail.progress'),  c: '#C96B3A' },
-          { v: team.length,                 l: t('detail.workers'),   c: 'var(--text-1)' },
-          { v: daysLeft !== null ? daysLeft+'d' : '—', l: t('detail.daysLeft'), c: daysLeft !== null && daysLeft < 7 ? '#A32D2D' : 'var(--text-1)' },
-          { v: `${pDone}/${pTasks.length}`, l: t('detail.tasksDone'), c: 'var(--text-1)' },
-        ].map(s => (
-          <div key={s.l} style={{ background:'var(--bg-accent,#F2EDE4)', borderRadius:10, padding:'8px 6px', textAlign:'center' }}>
-            <div style={{ fontSize:15, fontWeight:700, color:s.c }}>{s.v}</div>
-            <div style={{ fontSize:9, color:'#B8AFA6', marginTop:2, lineHeight:1.2 }}>{s.l}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Progress bar ── */}
-      <div style={{ height:5, background:'var(--border,#EAE3D8)', borderRadius:5, overflow:'hidden', marginBottom:10 }}>
-        <div style={{ height:5, borderRadius:5, background:'#C96B3A', width:`${pPct}%`, transition:'width .4s' }} />
-      </div>
-
-      {/* ── Address / Deadline ── */}
-      {(proj.address || proj.deadline) && (
-        <div style={{ background:'var(--bg-accent,#F2EDE4)', borderRadius:10, padding:'8px 12px', marginBottom:10, display:'flex', flexWrap:'wrap', gap:8, alignItems:'center' }}>
-          {proj.address && (
-            <span onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(proj.address)}`, '_blank')}
-              style={{ fontSize:12, fontWeight:600, color:'#C96B3A', cursor:'pointer', textDecoration:'underline', display:'flex', alignItems:'center', gap:2 }}>
-              <MapPin size={12} weight="bold" /> {proj.address}
-            </span>
-          )}
-          {proj.deadline && (
-            <span style={{ fontSize:11, color:'#B8AFA6', display:'flex', alignItems:'center', gap:2 }}>
-              <CalendarBlank size={11} weight="bold" /> {proj.deadline}
-              {daysLeft !== null && (
-                <span style={{ color: daysLeft < 7 ? '#A32D2D' : '#C96B3A', fontWeight:600, marginLeft:4 }}>
-                  · {t('detail.daysLeftText', { n: daysLeft })}
-                </span>
-              )}
-            </span>
-          )}
-        </div>
-      )}
 
       {/* ── Add + Tools row ── */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8, gap:6 }}>

@@ -129,7 +129,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
   const overdueTasks  = overdueList.length
   const pendingReview = tasks.filter(t => t.status === 'pending').length
 
-  const renderCard = (p, isCompleted = false, isFirst = false) => {
+  const renderCard = (p, isCompleted = false) => {
     const pTasks   = tasks.filter(tk => tk.project_id === p.id)
     const pDone    = pTasks.filter(tk => tk.status === 'approved').length
     const pPct     = pTasks.length === 0 ? 0 : Math.round((pDone / pTasks.length) * 100)
@@ -147,7 +147,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
       <div
         key={p.id}
         onClick={() => onSelect(p.id)}
-        className={isFirst && !isCompleted ? 'border-beam' : ''}
+        className="card-glow"
         style={{
           background: 'var(--bg-card)',
           border: `0.5px solid ${isCompleted ? 'var(--success-border)' : 'var(--border-medium)'}`,
@@ -157,8 +157,8 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
           display: 'flex', flexDirection: 'column',
           transition: 'border-color 0.2s',
         }}
-        onMouseEnter={e => { if (!isFirst) e.currentTarget.style.borderColor = 'var(--accent)' }}
-        onMouseLeave={e => { if (!isFirst) e.currentTarget.style.borderColor = isCompleted ? 'var(--success-border)' : 'var(--border-medium)' }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)' }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = isCompleted ? 'var(--success-border)' : 'var(--border-medium)' }}
       >
         {/* Top progress line */}
         <div style={{ height: 4, background: 'var(--border-medium)', position: 'relative' }}>
@@ -361,7 +361,7 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
       {/* Active projects grid */}
       {active.length > 0 && (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:14, marginBottom:24 }}>
-          {active.map((p, i) => renderCard(p, false, i === 0))}
+          {active.map(p => renderCard(p, false))}
         </div>
       )}
 

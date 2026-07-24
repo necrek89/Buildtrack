@@ -46,6 +46,27 @@
   --amber-bg: rgba(245,158,11,0.1);
   --overlay: rgba(0,0,0,0.5);
   --shadow: rgba(0,0,0,0.25);
+  /* expense categories (dark) */
+  --cat-materials-bg: rgba(59,130,246,0.12);
+  --cat-materials-fg: #60A5FA;
+  --cat-materials-bd: rgba(59,130,246,0.3);
+  --cat-materials-bar: #3B82F6;
+  --cat-labor-bg: rgba(34,197,94,0.12);
+  --cat-labor-fg: #4ADE80;
+  --cat-labor-bd: rgba(34,197,94,0.3);
+  --cat-labor-bar: #22C55E;
+  --cat-equipment-bg: rgba(249,115,22,0.12);
+  --cat-equipment-fg: #FB923C;
+  --cat-equipment-bd: rgba(249,115,22,0.3);
+  --cat-equipment-bar: #F97316;
+  --cat-transport-bg: rgba(139,92,246,0.12);
+  --cat-transport-fg: #A78BFA;
+  --cat-transport-bd: rgba(139,92,246,0.3);
+  --cat-transport-bar: #8B5CF6;
+  --cat-other-bg: rgba(120,113,108,0.14);
+  --cat-other-fg: #A8A29E;
+  --cat-other-bd: rgba(120,113,108,0.3);
+  --cat-other-bar: #78716C;
   color-scheme: dark;
 }
 
@@ -89,6 +110,27 @@
   --amber-bg: #FFFBEB;
   --overlay: rgba(0,0,0,0.4);
   --shadow: rgba(0,0,0,0.04);
+  /* expense categories (light) */
+  --cat-materials-bg: #EFF6FF;
+  --cat-materials-fg: #1E40AF;
+  --cat-materials-bd: #BFDBFE;
+  --cat-materials-bar: #3B82F6;
+  --cat-labor-bg: #F0FDF4;
+  --cat-labor-fg: #166534;
+  --cat-labor-bd: #BBF7D0;
+  --cat-labor-bar: #22C55E;
+  --cat-equipment-bg: #FFF7ED;
+  --cat-equipment-fg: #9A3412;
+  --cat-equipment-bd: #FED7AA;
+  --cat-equipment-bar: #F97316;
+  --cat-transport-bg: #F5F3FF;
+  --cat-transport-fg: #5B21B6;
+  --cat-transport-bd: #DDD6FE;
+  --cat-transport-bar: #8B5CF6;
+  --cat-other-bg: #F9FAFB;
+  --cat-other-fg: #374151;
+  --cat-other-bd: #E5E7EB;
+  --cat-other-bar: #9CA3AF;
   color-scheme: light;
 }
 
@@ -253,6 +295,25 @@ body {
 }
 .card:hover::before { opacity: 1; }
 .card-body { padding: 14px; position: relative; z-index: 1; }
+
+/* Glow-on-hover for cards that bring their own background/border (project cards) */
+.card-glow { position: relative; overflow: hidden; }
+.card-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(234,88,12,0.08) 0%,
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 0;
+}
+.card-glow:hover::before { opacity: 1; }
+.card-glow > * { position: relative; z-index: 1; }
 .section-title { font-size: 10px; font-weight: 400; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 8px; }
 
 /* ── BADGES ── */

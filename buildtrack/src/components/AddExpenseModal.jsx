@@ -94,9 +94,9 @@ export default function AddExpenseModal({ projectId, expense, onClose, onSave })
                     onClick={() => setForm(f => ({ ...f, currency: cur }))}
                     style={{
                       width: 48, height: 38, borderRadius: 8, border: '1.5px solid',
-                      borderColor: form.currency === cur ? '#C96B3A' : 'var(--border,#EAE3D8)',
-                      background:  form.currency === cur ? '#FAECE4' : 'var(--surface,#fff)',
-                      color:       form.currency === cur ? '#C96B3A' : '#7A6E66',
+                      borderColor: form.currency === cur ? 'var(--accent)' : 'var(--border-medium)',
+                      background:  form.currency === cur ? 'var(--accent-light)' : 'var(--bg-subtle)',
+                      color:       form.currency === cur ? 'var(--accent)' : 'var(--text-secondary)',
                       fontWeight: 700, fontSize: 13, cursor: 'pointer',
                     }}>
                     {cur === 'USD' ? '$' : '€'}
@@ -115,9 +115,9 @@ export default function AddExpenseModal({ projectId, expense, onClose, onSave })
                   style={{
                     display: 'flex', alignItems: 'center', gap: 5,
                     padding: '5px 12px', borderRadius: 20, border: '1.5px solid',
-                    borderColor: form.category === cat ? '#C96B3A' : 'var(--border,#EAE3D8)',
-                    background:  form.category === cat ? '#FAECE4' : 'var(--surface,#fff)',
-                    color:       form.category === cat ? '#C96B3A' : '#7A6E66',
+                    borderColor: form.category === cat ? 'var(--accent)' : 'var(--border-medium)',
+                    background:  form.category === cat ? 'var(--accent-light)' : 'var(--bg-subtle)',
+                    color:       form.category === cat ? 'var(--accent)' : 'var(--text-secondary)',
                     fontSize: 12, fontWeight: 600, cursor: 'pointer',
                   }}>
                   {(() => { const IC = CATEGORY_ICONS[cat]; return <IC size={13} weight="bold" /> })()} {t(`expenses.cat_${cat}`)}
@@ -150,7 +150,7 @@ export default function AddExpenseModal({ projectId, expense, onClose, onSave })
                 width: '100%', padding: '10px', borderRadius: 10,
                 border: '1.5px dashed var(--border,#D9D0C7)',
                 background: 'var(--surface-2,#FDFBF8)',
-                cursor: 'pointer', fontSize: 13, color: '#7A6E66',
+                cursor: 'pointer', fontSize: 13, color: 'var(--text-secondary)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}>
               <Camera size={13} weight="bold" /> {t('expenses.receiptBtn')}
@@ -165,7 +165,7 @@ export default function AddExpenseModal({ projectId, expense, onClose, onSave })
                   style={{
                     position: 'absolute', top: -6, right: -6,
                     width: 20, height: 20, borderRadius: '50%',
-                    background: '#A32D2D', color: '#fff',
+                    background: 'var(--danger)', color: '#fff',
                     border: 'none', fontSize: 11, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}><X size={11} weight="bold" /></button>
@@ -176,8 +176,8 @@ export default function AddExpenseModal({ projectId, expense, onClose, onSave })
         </div>
 
         {saveError && (
-          <div style={{ margin: '8px 0 0', padding: '8px 12px', background: '#FEE2E2',
-            color: '#991B1B', borderRadius: 8, fontSize: 12 }}>
+          <div style={{ margin: '8px 0 0', padding: '8px 12px', background: 'var(--danger-bg)',
+            color: 'var(--danger)', borderRadius: 8, fontSize: 12 }}>
             <Warning size={13} weight="bold" /> {saveError}
           </div>
         )}

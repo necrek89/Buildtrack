@@ -6,7 +6,7 @@ import LandingPage from './pages/LandingPage.jsx'
 
 // Card magic glow — event delegation, works for dynamically added cards
 document.addEventListener('mousemove', e => {
-  const card = e.target.closest('.card')
+  const card = e.target.closest('.card, .card-glow')
   if (card) {
     const r = card.getBoundingClientRect()
     card.style.setProperty('--mouse-x', ((e.clientX - r.left) / r.width * 100) + '%')
