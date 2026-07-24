@@ -1,0 +1,455 @@
+/* ── Landing page (MagicUI-style redesign) ─────────────────────────────
+   All rules scoped under .ldg so they can't collide with app styles.
+   The landing is intentionally light-only, independent of app theme. */
+
+.ldg {
+  --ld-orange:  #EA580C;
+  --ld-ink:     #1C1917;
+  --ld-muted:   #A8A29E;
+  --ld-border:  #E8E3DC;
+  --ld-sand:    #F5F1EB;
+  --ld-surface: #FAFAF9;
+
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #fff;
+  color: var(--ld-ink);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+.ldg * { box-sizing: border-box }
+
+/* ── Nav ── */
+.ldg .ld-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 40px;
+  border-bottom: 0.5px solid var(--ld-border);
+  position: sticky; top: 0;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  z-index: 50;
+}
+.ldg .ld-logo { font-size: 20px; font-weight: 500; letter-spacing: -0.5px; color: var(--ld-ink) }
+.ldg .ld-logo em { font-style: normal; color: var(--ld-orange) }
+.ldg .ld-nav-r { display: flex; align-items: center; gap: 14px }
+.ldg .ld-nav-link {
+  font-size: 13px; color: var(--ld-muted); cursor: pointer;
+  background: none; border: none; font-weight: 500; padding: 0;
+}
+.ldg .ld-nav-link:hover { color: var(--ld-ink) }
+.ldg .ld-lang {
+  font-size: 12px; border: none; background: transparent;
+  color: var(--ld-muted); cursor: pointer; outline: none;
+}
+.ldg .ld-btn-nav {
+  background: var(--ld-orange); color: #fff; border: none;
+  border-radius: 8px; padding: 7px 16px;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  position: relative; overflow: hidden;
+}
+.ldg .ld-btn-nav::after,
+.ldg .ld-btn-p::after,
+.ldg .ld-cta-btn::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+  transform: translateX(-100%);
+  animation: ld-shimmer 2.5s infinite;
+}
+@keyframes ld-shimmer { to { transform: translateX(100%) } }
+
+/* ── Hero ── */
+.ldg .ld-hero {
+  padding: 72px 40px 48px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  position: relative; overflow: hidden;
+}
+.ldg .ld-dots {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(circle, var(--ld-border) 1px, transparent 1px);
+  background-size: 24px 24px; opacity: 0.6;
+}
+.ldg .ld-hero-content { position: relative; z-index: 1 }
+
+.ldg .ld-eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 500; color: var(--ld-muted);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 20px; padding: 5px 14px;
+  border: 0.5px solid var(--ld-border); border-radius: 20px;
+  background: var(--ld-surface); position: relative; overflow: hidden;
+}
+.ldg .ld-eyebrow::before {
+  content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(234,88,12,0.12), transparent);
+  animation: ld-eyebrow-shine 3s infinite;
+}
+@keyframes ld-eyebrow-shine { to { left: 100% } }
+.ldg .ld-eyebrow-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--ld-orange);
+  animation: ld-pulse 2s infinite; flex-shrink: 0;
+}
+@keyframes ld-pulse {
+  0%,100% { opacity:1; transform:scale(1) }
+  50%      { opacity:0.5; transform:scale(0.8) }
+}
+
+.ldg .ld-h1 {
+  font-size: 52px; font-weight: 500; color: var(--ld-ink);
+  line-height: 1.07; letter-spacing: -2px;
+  margin: 0 0 18px; max-width: 600px;
+  text-wrap: balance;
+}
+.ldg .ld-h1 .w { display: inline-block; animation: ld-blur-in 0.6s both }
+@keyframes ld-blur-in {
+  from { opacity:0; filter:blur(8px); transform:translateY(8px) }
+  to   { opacity:1; filter:blur(0);   transform:translateY(0) }
+}
+
+.ldg .ld-sub {
+  font-size: 15px; color: var(--ld-muted); line-height: 1.65;
+  margin: 0 0 28px; max-width: 480px;
+  animation: ld-blur-in 0.6s 0.5s both;
+}
+
+.ldg .ld-btns {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  margin-bottom: 24px; animation: ld-blur-in 0.6s 0.6s both;
+}
+.ldg .ld-btn-p {
+  background: var(--ld-orange); color: #fff; border: none;
+  border-radius: 8px; padding: 11px 22px;
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  position: relative; overflow: hidden; transition: transform 0.15s;
+}
+.ldg .ld-btn-p:hover { transform: scale(1.02) }
+.ldg .ld-btn-s {
+  background: var(--ld-surface); color: var(--ld-ink);
+  border: 0.5px solid var(--ld-border); border-radius: 8px;
+  padding: 11px 22px; font-size: 14px; cursor: pointer;
+  transition: border-color 0.15s;
+}
+.ldg .ld-btn-s:hover { border-color: var(--ld-muted) }
+
+.ldg .ld-avatars {
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 28px; animation: ld-blur-in 0.6s 0.75s both;
+}
+.ldg .ld-av {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid #fff; margin-left: -8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 500; color: #fff; flex-shrink: 0;
+}
+.ldg .ld-av:first-child { margin-left: 0 }
+.ldg .ld-av-label { margin-left: 10px; font-size: 12px; color: var(--ld-muted) }
+.ldg .ld-av-label strong { color: var(--ld-ink); font-weight: 500 }
+
+.ldg .ld-ticker {
+  display: flex; gap: 32px; justify-content: center;
+  margin-bottom: 14px; animation: ld-blur-in 0.6s 0.85s both;
+}
+.ldg .ld-tick-num {
+  font-size: 28px; font-weight: 500; color: var(--ld-ink);
+  font-variant-numeric: tabular-nums;
+}
+.ldg .ld-tick-label { font-size: 11px; color: var(--ld-muted); margin-top: 2px; text-align: center }
+
+.ldg .ld-platforms {
+  display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+  margin-bottom: 56px; animation: ld-blur-in 0.6s 0.95s both;
+}
+.ldg .ld-plat {
+  display: flex; align-items: center; gap: 6px;
+  border: 0.5px solid var(--ld-border); border-radius: 8px;
+  padding: 6px 12px; font-size: 12px; color: var(--ld-ink);
+  background: var(--ld-surface);
+}
+.ldg .ld-plat .ic { display: flex; align-items: center; color: #78716C }
+.ldg .ld-plat-soon {
+  font-size: 10px; background: #FFF7ED; color: var(--ld-orange);
+  padding: 1px 6px; border-radius: 4px; font-weight: 500;
+}
+.ldg .ld-plat-live {
+  font-size: 10px; background: #DCFCE7; color: #16A34A;
+  padding: 1px 6px; border-radius: 4px; font-weight: 500;
+}
+
+/* ── Phone mockups ──
+   Generic phones (rounded frame + punch-hole camera). Screens are laid
+   out at real app scale (320px wide) and shrunk with transform:scale
+   so proportions match actual screenshots. */
+.ldg .ld-phones {
+  display: flex; gap: 20px; justify-content: center; align-items: flex-end;
+  animation: ld-blur-in 0.6s 1.0s both;
+}
+.ldg .ld-phone {
+  background: var(--ld-ink); border-radius: 26px; padding: 6px;
+  position: relative;
+  box-shadow: 0 32px 64px rgba(0,0,0,0.14);
+}
+.ldg .ld-phone.secondary { opacity: 0.7 }
+.ldg .ld-cam {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #101010;
+  box-shadow: inset 0 0 0 2px #2E2A26, 0 0 0 1px rgba(255,255,255,0.35);
+  z-index: 10;
+}
+.ldg .ld-clip {
+  width: 148px; height: 308px; border-radius: 20px;
+  overflow: hidden; background: #fff;
+}
+.ldg .ld-phone.secondary .ld-clip { width: 118px; height: 246px; border-radius: 18px }
+
+.ldg .scr {
+  width: 320px; height: 666px;
+  transform: scale(0.4625); transform-origin: top left;
+  display: flex; flex-direction: column; background: #fff;
+}
+.ldg .ld-phone.secondary .scr { transform: scale(0.36875); height: 667px }
+
+.ldg .s-hdr {
+  padding: 26px 16px 10px; border-bottom: 1px solid var(--ld-border);
+  display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+}
+.ldg .s-logo { font-size: 17px; font-weight: 500; letter-spacing: -0.4px; color: var(--ld-ink) }
+.ldg .s-logo em { font-style: normal; color: var(--ld-orange) }
+.ldg .s-av {
+  width: 26px; height: 26px; border-radius: 50%; background: var(--ld-orange);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #fff; font-weight: 500;
+}
+.ldg .s-body { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; gap: 10px; overflow: hidden }
+.ldg .s-card { border: 1px solid var(--ld-border); border-radius: 10px; padding: 12px }
+.ldg .s-pname { font-size: 14px; font-weight: 500; color: var(--ld-ink); margin-bottom: 8px }
+.ldg .s-pbar { height: 3px; background: var(--ld-border); border-radius: 2px; overflow: hidden; margin-bottom: 10px }
+.ldg .s-pbar-f { height: 100%; background: var(--ld-orange); border-radius: 2px; animation: ld-grow 1.5s 1s both ease-out }
+@keyframes ld-grow { from { width: 0 } to { width: 31% } }
+.ldg .s-stats { display: flex; gap: 6px }
+.ldg .s-stat { flex: 1; border: 1px solid var(--ld-border); border-radius: 7px; padding: 6px 8px }
+.ldg .s-sv { font-size: 13px; font-weight: 500; color: var(--ld-ink) }
+.ldg .s-sl { font-size: 10px; color: var(--ld-muted) }
+.ldg .s-sec-label { font-size: 11px; color: var(--ld-muted); margin-bottom: 8px }
+.ldg .s-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; font-weight: 500; color: var(--ld-ink);
+}
+.ldg .s-row + .s-row { margin-top: 8px }
+.ldg .s-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--ld-border); padding: 0 14px; flex-shrink: 0 }
+.ldg .s-tab { font-size: 12px; font-weight: 500; color: var(--ld-muted); padding: 8px 8px 6px; border-bottom: 2px solid transparent }
+.ldg .s-tab.on { color: var(--ld-orange); border-bottom-color: var(--ld-orange) }
+.ldg .s-tasks { padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; overflow: hidden }
+.ldg .s-task {
+  border: 1px solid var(--ld-border); border-radius: 8px; padding: 9px 10px;
+  display: flex; align-items: center; gap: 8px;
+  animation: ld-slide 0.4s both;
+}
+.ldg .s-task:nth-child(1) { animation-delay: 1.2s }
+.ldg .s-task:nth-child(2) { animation-delay: 1.4s }
+.ldg .s-task:nth-child(3) { animation-delay: 1.6s }
+.ldg .s-task:nth-child(4) { animation-delay: 1.8s }
+@keyframes ld-slide { from { opacity:0; transform:translateX(10px) } to { opacity:1; transform:translateX(0) } }
+.ldg .s-chk-done {
+  width: 16px; height: 16px; border-radius: 4px;
+  background: #FFF7ED; display: flex; align-items: center; justify-content: center;
+  font-size: 9px; color: var(--ld-orange); flex-shrink: 0;
+}
+.ldg .s-chk-todo { width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--ld-border); flex-shrink: 0 }
+.ldg .s-tn { font-size: 12px; font-weight: 500; color: var(--ld-ink); flex: 1 }
+.ldg .s-tc { font-size: 10px; color: var(--ld-muted) }
+.ldg .s-nav {
+  border-top: 1px solid var(--ld-border); padding: 8px 12px 16px;
+  display: flex; justify-content: space-around; flex-shrink: 0;
+}
+.ldg .s-ni { display: flex; flex-direction: column; align-items: center; gap: 3px }
+.ldg .s-nl { font-size: 9px; color: var(--ld-muted) }
+.ldg .s-nl.on { color: var(--ld-orange) }
+.ldg .s-member {
+  border: 1px solid var(--ld-border); border-radius: 9px; padding: 8px 10px;
+  display: flex; align-items: center; gap: 9px;
+}
+.ldg .s-member + .s-member { margin-top: 6px }
+.ldg .s-mav {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #fff; font-weight: 500; flex-shrink: 0;
+}
+.ldg .s-mname { font-size: 12px; font-weight: 500; color: var(--ld-ink) }
+.ldg .s-mshifts { font-size: 10px; color: var(--ld-muted) }
+.ldg .s-msum { font-size: 13px; font-weight: 500; color: var(--ld-orange) }
+
+/* ── Marquee ── */
+.ldg .ld-marquee {
+  padding: 32px 0; border-top: 0.5px solid var(--ld-border);
+  border-bottom: 0.5px solid var(--ld-border); overflow: hidden;
+}
+.ldg .ld-marquee-track {
+  display: flex; gap: 12px;
+  animation: ld-marquee 25s linear infinite;
+  width: max-content;
+}
+.ldg .ld-mq-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 20px; border: 0.5px solid var(--ld-border);
+  border-radius: 8px; background: var(--ld-surface);
+  white-space: nowrap; font-size: 13px; color: var(--ld-muted);
+}
+.ldg .ld-mq-item .ic { display: flex; align-items: center; color: var(--ld-orange) }
+@keyframes ld-marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+
+/* ── Bento grid ── */
+.ldg .ld-bento-section { padding: 64px 40px; border-top: 0.5px solid var(--ld-border) }
+.ldg .ld-sec-eyebrow {
+  font-size: 11px; font-weight: 500; color: var(--ld-muted);
+  letter-spacing: 1.5px; text-transform: uppercase;
+  text-align: center; margin-bottom: 12px;
+}
+.ldg .ld-sec-title {
+  font-size: 28px; font-weight: 500; color: var(--ld-ink);
+  text-align: center; letter-spacing: -0.8px; margin: 0 0 32px;
+  text-wrap: balance;
+}
+.ldg .ld-bento {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto auto; gap: 12px;
+  max-width: 880px; margin: 0 auto;
+}
+.ldg .ld-card {
+  background: var(--ld-surface); border: 0.5px solid var(--ld-border);
+  border-radius: 16px; padding: 20px;
+  position: relative; overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s; cursor: default;
+}
+.ldg .ld-card:hover { border-color: var(--ld-orange); transform: translateY(-2px) }
+.ldg .ld-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(234,88,12,0.06) 0%, transparent 60%);
+  opacity: 0; transition: opacity 0.3s; pointer-events: none;
+}
+.ldg .ld-card:hover::before { opacity: 1 }
+.ldg .ld-card.featured { border-color: var(--ld-orange); grid-column: span 2 }
+.ldg .ld-card.featured::after {
+  content: ''; position: absolute; inset: 0; border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(90deg, var(--ld-orange), #FCD34D, var(--ld-orange));
+  background-size: 300% 100%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: ld-beam 3s linear infinite;
+  pointer-events: none;
+}
+@keyframes ld-beam {
+  0%   { background-position: 0% 50% }
+  100% { background-position: 300% 50% }
+}
+.ldg .ld-card.tall { grid-row: span 2 }
+.ldg .ld-card-icon {
+  font-size: 13px; font-weight: 500; color: var(--ld-orange);
+  margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+}
+.ldg .ld-card-title { font-size: 14px; font-weight: 500; color: var(--ld-ink); margin-bottom: 5px }
+.ldg .ld-card-desc { font-size: 12px; color: var(--ld-muted); line-height: 1.6 }
+.ldg .ld-mini { margin-top: 12px; border: 0.5px solid var(--ld-border); border-radius: 8px; overflow: hidden }
+.ldg .ld-mini-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px; border-bottom: 0.5px solid var(--ld-border); font-size: 10px;
+}
+.ldg .ld-mini-row:last-child { border-bottom: none }
+.ldg .ld-mini-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0 }
+.ldg .ld-mini-name { flex: 1; color: var(--ld-ink); font-weight: 500 }
+.ldg .ld-mini-status { font-size: 9px; padding: 1px 5px; border-radius: 3px }
+.ldg .ld-mini-mav {
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; color: #fff; font-weight: 500; flex-shrink: 0;
+}
+
+/* ── Steps ── */
+.ldg .ld-steps {
+  padding: 64px 40px; border-top: 0.5px solid var(--ld-border);
+  background: var(--ld-sand);
+}
+.ldg .ld-steps-row { display: flex; max-width: 600px; margin: 0 auto }
+.ldg .ld-step { flex: 1; text-align: center; padding: 0 12px; position: relative }
+.ldg .ld-step-num {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--ld-orange); color: #fff;
+  font-size: 11px; font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+  animation: ld-pop 0.4s both ease-out;
+}
+.ldg .ld-step:nth-child(1) .ld-step-num { animation-delay: 0.2s }
+.ldg .ld-step:nth-child(2) .ld-step-num { animation-delay: 0.4s }
+.ldg .ld-step:nth-child(3) .ld-step-num { animation-delay: 0.6s }
+@keyframes ld-pop { from { transform:scale(0); opacity:0 } to { transform:scale(1); opacity:1 } }
+.ldg .ld-step-t { font-size: 13px; font-weight: 500; color: var(--ld-ink); margin-bottom: 3px }
+.ldg .ld-step-d { font-size: 12px; color: var(--ld-muted) }
+.ldg .ld-step-line {
+  position: absolute; top: 13px;
+  left: calc(50% + 14px); right: calc(-50% + 14px);
+  height: 0.5px; background: var(--ld-border);
+}
+
+/* ── CTA ── */
+.ldg .ld-cta { background: #1C1917; padding: 72px 40px; text-align: center }
+.ldg .ld-cta-title {
+  font-size: 32px; font-weight: 500; color: #F5F0EB;
+  letter-spacing: -1px; margin: 0 0 12px; line-height: 1.2;
+  text-wrap: balance;
+}
+.ldg .ld-cta-title em { font-style: normal; color: var(--ld-orange) }
+.ldg .ld-cta-sub { font-size: 14px; color: #78716C; margin: 0 0 26px }
+.ldg .ld-cta-btn {
+  background: var(--ld-orange); color: #fff; border: none;
+  border-radius: 8px; padding: 12px 26px;
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  position: relative; overflow: hidden;
+}
+
+/* ── Footer ── */
+.ldg .ld-footer {
+  padding: 24px 40px; border-top: 0.5px solid var(--ld-border);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px;
+  font-size: 12px; color: var(--ld-muted);
+}
+.ldg .ld-footer-links { display: flex; gap: 20px; font-size: 13px }
+.ldg .ld-footer-links span { cursor: pointer }
+.ldg .ld-footer-links span:hover { color: var(--ld-ink) }
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .ldg .ld-marquee-track,
+  .ldg .ld-btn-nav::after,
+  .ldg .ld-btn-p::after,
+  .ldg .ld-cta-btn::after,
+  .ldg .ld-eyebrow::before,
+  .ldg .ld-card.featured::after { animation: none }
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .ldg .ld-nav { padding: 12px 20px }
+  .ldg .ld-hero { padding: 48px 20px 32px }
+  .ldg .ld-h1 { font-size: 36px; letter-spacing: -1.2px }
+  .ldg .ld-ticker { gap: 20px }
+  .ldg .ld-platforms { gap: 6px }
+  .ldg .ld-phones { gap: 10px }
+  .ldg .ld-phone { padding: 5px; border-radius: 22px }
+  .ldg .ld-cam { top: 10px; width: 6px; height: 6px }
+  .ldg .ld-clip { width: 110px; height: 229px; border-radius: 17px }
+  .ldg .scr { transform: scale(0.34375); height: 667px }
+  .ldg .ld-phone.secondary .ld-clip { width: 82px; height: 171px; border-radius: 14px }
+  .ldg .ld-phone.secondary .scr { transform: scale(0.25625); height: 668px }
+  .ldg .ld-bento-section { padding: 48px 20px }
+  .ldg .ld-bento { grid-template-columns: 1fr 1fr; gap: 8px }
+  .ldg .ld-card.featured { grid-column: span 2 }
+  .ldg .ld-card.tall { grid-row: span 1 }
+  .ldg .ld-steps { padding: 48px 20px }
+  .ldg .ld-steps-row { flex-direction: column; gap: 24px; align-items: center }
+  .ldg .ld-step-line { display: none }
+  .ldg .ld-cta { padding: 48px 20px }
+  .ldg .ld-footer { flex-direction: column; text-align: center; justify-content: center }
+}
