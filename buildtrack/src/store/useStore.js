@@ -62,8 +62,8 @@ export const useStore = create((set, get) => ({
     const q = query.trim()
     const { data } = await supabase
       .from('tasks')
-      .select('id, text, description, stage, status, project_id, cost, currency, unit, quantity')
-      .or(`text.ilike.%${q}%,description.ilike.%${q}%,stage.ilike.%${q}%`)
+      .select('id, text, description, stage, zone, status, project_id, cost, currency, unit, quantity')
+      .or(`text.ilike.%${q}%,description.ilike.%${q}%,stage.ilike.%${q}%,zone.ilike.%${q}%`)
       .limit(30)
     return data || []
   },
@@ -165,7 +165,7 @@ export const useStore = create((set, get) => ({
   fetchTasks: async (projectId) => {
     const { role, projects } = get()
     let query = supabase.from('tasks').select(`
-      id, text, description, status, priority, stage, deadline,
+      id, text, description, status, priority, stage, zone, deadline,
       photo_url, reject_comment, worker_id, project_id,
       quantity, unit, cost, currency,
       worker:profiles(id, name)

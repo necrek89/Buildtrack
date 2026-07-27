@@ -15,8 +15,18 @@ import QuickAddRow from './InlineAdd'
 // ─── SORTABLE STAGE ITEM ─────────────────────────────────────────────────────
 export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen, toggleStage, openId, setOpenId,
   canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, color, isDragging, onRename, onDeleteStage, onQuickAdd,
-  quickAddOpen, onQuickAddOpen, onQuickAddClose }) {
+  quickAddOpen, onQuickAddOpen, onQuickAddClose,
+  // Optional label overrides — let a caller reuse this component for a different
+  // grouping axis (e.g. zones) without every tooltip saying "stage". Each
+  // defaults to today's stage-flavored copy, so the existing stage call site
+  // needs no changes.
+  namePlaceholder, renameLabel, deleteLabel, emptyGroupLabel, noItemsLabel }) {
   const { t } = useT()
+  namePlaceholder = namePlaceholder ?? t('tasks.stageNamePlaceholder')
+  renameLabel     = renameLabel     ?? t('tasks.renameStage')
+  deleteLabel     = deleteLabel     ?? t('tasks.stageDelete')
+  emptyGroupLabel = emptyGroupLabel ?? t('tasks.noStageTitle')
+  noItemsLabel    = noItemsLabel    ?? t('tasks.noTasksStage')
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: stage })
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -84,7 +94,7 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
               <input
                 ref={nameRef}
                 value={nameVal}
-                placeholder={t('tasks.stageNamePlaceholder')}
+                placeholder={namePlaceholder}
                 onChange={e => setNameVal(e.target.value)}
                 onBlur={commitEdit}
                 onKeyDown={e => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') cancelEdit() }}
@@ -99,13 +109,13 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
               <span
                 onDoubleClick={startEdit}
                 onClick={() => toggleStage(stage)}
-                title={canEdit ? t('tasks.stageRename') : undefined}
+                title={canEdit ? renameLabel : undefined}
                 style={{
                   fontSize:13, fontWeight:700, letterSpacing:'.02em', cursor:'pointer', flex:1, minWidth:0,
                   color: stage === '—' ? 'var(--text-muted)' : 'var(--text-primary)',
                   fontStyle: stage === '—' ? 'italic' : 'normal',
                 }}
-              >{stage === '—' ? t('tasks.noStageTitle') : stage}</span>
+              >{stage === '—' ? emptyGroupLabel : stage}</span>
             )}
             {!editing && hasAlert && <span style={{ fontSize:11, color:'var(--danger)', fontWeight:600, display:'flex', alignItems:'center' }}><Lightning size={11} weight="bold" /></span>}
             {!editing && hasPend  && <span style={{ fontSize:11, color:'var(--warning)', fontWeight:600, display:'flex', alignItems:'center' }}><Clock size={11} weight="bold" /></span>}
@@ -114,7 +124,7 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
             {canEdit && !editing && (
               <button
                 onClick={startEdit}
-                title={t('tasks.renameStage')}
+                title={renameLabel}
                 style={{
                   background:'none', border:'none', cursor:'pointer', padding:'2px 5px',
                   fontSize:12, color: stage === '—' ? 'var(--accent)' : 'var(--text-faint)', lineHeight:1, flexShrink:0,
@@ -133,7 +143,7 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
         {canEdit && onDeleteStage && (
           <button
             onClick={e => { e.stopPropagation(); onDeleteStage(stage) }}
-            title={t('tasks.stageDelete')}
+            title={deleteLabel}
             style={{
               background:'none', border:'none', cursor:'pointer', padding:'2px 4px',
               fontSize:13, color:'var(--text-faint)', lineHeight:1, flexShrink:0,
@@ -148,7 +158,7 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
       {isOpen && (
         <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
           {items.length === 0 && (
-            <div style={{ padding:'12px 14px', fontSize:12, color:'var(--text-muted)', textAlign:'center' }}>{t('tasks.noTasksStage')}</div>
+            <div style={{ padding:'12px 14px', fontSize:12, color:'var(--text-muted)', textAlign:'center' }}>{noItemsLabel}</div>
           )}
           {items.map((tk, ti) => (
             <div key={tk.id} style={{ borderTop: ti > 0 ? '1px solid var(--border,#F2EDE6)' : 'none' }}>
@@ -178,7 +188,8 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
 
 // ─── SORTABLE STAGE LIST ─────────────────────────────────────────────────────
 export function SortableStageList({ stageGroups, projStages, openStages, toggleStage, openId, setOpenId,
-  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, STAGE_COLORS, onReorder, onRename, onDeleteStage, onQuickAdd }) {
+  canEdit, canDelete, setEditTask, setDeleteId, approveTask, rejectTask, STAGE_COLORS, onReorder, onRename, onDeleteStage, onQuickAdd,
+  namePlaceholder, renameLabel, deleteLabel, emptyGroupLabel, noItemsLabel }) {
   const [activeId,      setActiveId]      = useState(null)
   const [quickAddStage, setQuickAddStage] = useState(null) // only one stage open at a time
   const sensors = useSensors(
@@ -227,6 +238,11 @@ export function SortableStageList({ stageGroups, projStages, openStages, toggleS
               onRename={onRename}
               onDeleteStage={onDeleteStage}
               onQuickAdd={onQuickAdd}
+              namePlaceholder={namePlaceholder}
+              renameLabel={renameLabel}
+              deleteLabel={deleteLabel}
+              emptyGroupLabel={emptyGroupLabel}
+              noItemsLabel={noItemsLabel}
               quickAddOpen={quickAddStage === stage}
               onQuickAddOpen={() => setQuickAddStage(stage)}
               onQuickAddClose={() => setQuickAddStage(null)}

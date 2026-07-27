@@ -58,6 +58,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
     project_id:  task?.project_id  || defaultProjectId || projects[0]?.id || '',
     worker_id:   task?.worker_id   || '',
     stage:       task?.stage       || '',
+    zone:        task?.zone        || '',
     deadline:    task?.deadline    || '',
     quantity:    task?.quantity    || '',
     unit:        task?.unit        || '',
@@ -118,7 +119,8 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
       setWorkers(w)
       const proj = useStore.getState().projects.find(p => p.id === val)
       const firstStage = Array.isArray(proj?.stages) && proj.stages.length > 0 ? proj.stages[0] : ''
-      setForm(f => ({ ...f, project_id: val, worker_id: '', stage: firstStage }))
+      const firstZone  = Array.isArray(proj?.zones)  && proj.zones.length  > 0 ? proj.zones[0]  : ''
+      setForm(f => ({ ...f, project_id: val, worker_id: '', stage: firstStage, zone: firstZone }))
     }
   }
 
@@ -184,14 +186,14 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
 
         <div style={{ overflowY:'auto', flex:1, paddingRight:2 }}>
 
-          {/* ── Where: project + stage ── */}
+          {/* ── Where: project, then stage + zone (both cascade from project) ── */}
+          <FormGroup label={`${t('tasks.projectLabel')} *`}>
+            <select className="form-input" value={form.project_id} onChange={set('project_id')}>
+              <option value="">—</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </FormGroup>
           <div className="form-grid-2">
-            <FormGroup label={`${t('tasks.projectLabel')} *`}>
-              <select className="form-input" value={form.project_id} onChange={set('project_id')}>
-                <option value="">—</option>
-                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </FormGroup>
             <FormGroup label={t('tasks.stageLabel')}>
               {(() => {
                 const proj = projects.find(p => p.id === form.project_id)
@@ -203,6 +205,23 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
                       : <>
                           <option value="">{t('tasks.noStage')}</option>
                           {stageList.map(s => <option key={s} value={s}>{s}</option>)}
+                        </>
+                    }
+                  </select>
+                )
+              })()}
+            </FormGroup>
+            <FormGroup label={t('tasks.zoneLabel')}>
+              {(() => {
+                const proj = projects.find(p => p.id === form.project_id)
+                const zoneList = Array.isArray(proj?.zones) ? proj.zones : []
+                return (
+                  <select className="form-input" value={form.zone} onChange={set('zone')}>
+                    {zoneList.length === 0
+                      ? <option value="">{t('tasks.noZonesHint')}</option>
+                      : <>
+                          <option value="">{t('tasks.noZone')}</option>
+                          {zoneList.map(z => <option key={z} value={z}>{z}</option>)}
                         </>
                     }
                   </select>
