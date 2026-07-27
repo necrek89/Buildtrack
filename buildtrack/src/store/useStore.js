@@ -494,17 +494,6 @@ export const useStore = create((set, get) => ({
     return { error: null, name: mgr.name }
   },
 
-  addClientToProject: async (email, projectId) => {
-    const { data: client, error } = await supabase
-      .from('profiles').select('id, name, role').eq('email', email.trim().toLowerCase()).single()
-    if (error || !client) return { error: 'User not found. Ask them to register first.' }
-    if (client.role !== 'client') return { error: 'This user is not registered as a Client.' }
-    const { error: e2 } = await supabase
-      .from('project_workers').insert({ project_id: projectId, worker_id: client.id })
-    if (e2) return { error: e2.code === '23505' ? 'Client already added to this project.' : e2.message }
-    return { error: null, name: client.name }
-  },
-
   // ── MATERIAL REQUESTS (Supabase) ─────────────────────
   fetchMaterialRequests: async (projectId) => {
     const { profile, role, projects } = get()

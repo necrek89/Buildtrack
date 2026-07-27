@@ -35,7 +35,7 @@ export default function ProjectDetail({ proj, onBack, onEdit, canDelete = true, 
   const pt       = tasks.filter(tk => tk.project_id === proj.id)
   const ptDone   = pt.filter(tk => tk.status === 'approved').length
   const pct      = pt.length === 0 ? 0 : Math.round((ptDone / pt.length) * 100)
-  const workers  = team.filter(m => m.role !== 'client').length
+  const workers  = team.length
   const daysLeft = proj.deadline
     ? Math.max(0, Math.ceil((new Date(proj.deadline) - new Date()) / 86400000))
     : null

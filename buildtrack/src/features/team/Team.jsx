@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Badge, Button, StatCard, EmptyState, Checkbox } from '../../components/UI'
+import { Badge, Button, StatCard, EmptyState } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore, currencySymbol } from '../../store/useStore'
 import { supabase } from '../../lib/supabase'
@@ -23,18 +23,13 @@ const STATUS_CYCLE = ['on_site', 'day_off', 'sick', 'vacation', 'other']
 // ─── TEAM ────────────────────────────────────────────────────────────────────
 export default function Team() {
   const { t, lang } = useT()
-  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, updateWorkerContact, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam, addWorkerToTeam, addWorkerToProject, removeWorkerFromProject, workLogs, fetchWorkLogs, addWorkLog, deleteWorkLog, updateMemberRate, attendance, payments, fetchPayments, addPayment, deletePayment } = useStore()
+  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, updateWorkerContact, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addManagerToTeam, addWorkerToTeam, addWorkerToProject, removeWorkerFromProject, workLogs, fetchWorkLogs, addWorkLog, deleteWorkLog, updateMemberRate, attendance, payments, fetchPayments, addPayment, deletePayment } = useStore()
   const [showInvite, setShowInvite] = useState(false)
   const [email, setEmail]           = useState('')
   const [loading, setLoading]       = useState(false)
   const [msg, setMsg]               = useState('')
-  const [selectedProjIds, setSelectedProjIds] = useState([]) // projects to also assign the new worker to
   const [codeCopied, setCodeCopied] = useState(false)
   const [openId, setOpenId]         = useState(null)
-  const [clientEmail,   setClientEmail]   = useState('')
-  const [clientProjId,  setClientProjId]  = useState('')
-  const [clientMsg,     setClientMsg]     = useState('')
-  const [clientLoading, setClientLoading] = useState(false)
   const [managerEmail,   setManagerEmail]   = useState('')
   const [managerMsg,     setManagerMsg]     = useState('')
   const [managerLoading, setManagerLoading] = useState(false)
@@ -65,17 +60,13 @@ export default function Team() {
     useStore.getState().fetchAttendance(todayStr())
   }, [])
 
-  const toggleInviteProject = (id) =>
-    setSelectedProjIds(ids => ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id])
-
   const invite = async () => {
     if (!email.trim()) return
     setLoading(true); setMsg('')
-    const { error, id, name } = await addWorkerToTeam(email.trim())
+    const { error, name } = await addWorkerToTeam(email.trim())
     if (error) { setMsg(error); setLoading(false); return }
-    for (const pid of selectedProjIds) await addWorkerToProject(id, pid)
     setMsg(`${name} added!`)
-    fetchAllWorkers(); setEmail(''); setSelectedProjIds([])
+    fetchAllWorkers(); setEmail('')
     setLoading(false)
   }
 
@@ -85,16 +76,6 @@ export default function Team() {
       setCodeCopied(true)
       setTimeout(() => setCodeCopied(false), 2000)
     })
-  }
-
-  const inviteClient = async () => {
-    if (!clientEmail.trim() || !clientProjId) { setClientMsg('Select a project and enter email'); return }
-    setClientLoading(true); setClientMsg('')
-    const { error, name } = await addClientToProject(clientEmail.trim(), clientProjId)
-    setClientLoading(false)
-    if (error) { setClientMsg(error); return }
-    setClientMsg(`${name} added as client!`)
-    setClientEmail(''); fetchAllWorkers()
   }
 
   const inviteManager = async () => {
@@ -239,10 +220,9 @@ export default function Team() {
     updateWorkerStatus(workerId, next)
   }
 
-  // Stat counters (exclude clients)
-  const workers = team.filter(m => m.role !== 'client')
-  const onSite  = workers.filter(m => !m.worker_status || m.worker_status === 'on_site').length
-  const away    = workers.length - onSite
+  // Stat counters
+  const onSite = team.filter(m => !m.worker_status || m.worker_status === 'on_site').length
+  const away   = team.length - onSite
 
   return (
     <div>
@@ -387,45 +367,9 @@ export default function Team() {
                 onKeyDown={e => e.key==='Enter' && invite()} style={{ flex:1 }} />
               <Button variant="primary" size="sm" onClick={invite} disabled={loading}>{loading ? '...' : t('common.add')}</Button>
             </div>
-            {projects.length > 0 && (
-              <div style={{ marginTop:10 }}>
-                <div style={{ fontSize:11, color:'var(--text-muted)', marginBottom:6 }}>{t('team.assignToProjects')}</div>
-                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                  {projects.map(p => (
-                    <label key={p.id} style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:'var(--text-primary)', cursor:'pointer' }}>
-                      <Checkbox checked={selectedProjIds.includes(p.id)} onChange={() => toggleInviteProject(p.id)} />
-                      {p.name}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
             {msg && (
               <div style={{ marginTop:8, fontSize:12, padding:'6px 10px', borderRadius:6, background: msg.includes('added') || msg.includes('!') ? 'var(--success-bg)' : 'var(--danger-bg)', color: msg.includes('added') || msg.includes('!') ? 'var(--success)' : 'var(--danger)' }}>
                 {msg}
-              </div>
-            )}
-          </div>
-
-          {/* Заказчик по email + проект */}
-          <div style={{ paddingTop:14 }}>
-            <div style={{ fontSize:12, fontWeight:700, color:'var(--text-secondary)', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
-              {t('team.clientMethod')}
-            </div>
-            <div style={{ fontSize:12, color:'var(--text-secondary)', marginBottom:8 }}>{t('team.clientDesc')}</div>
-            <select className="form-input" value={clientProjId} onChange={e => setClientProjId(e.target.value)} style={{ marginBottom:8 }}>
-              <option value="">{t('team.clientProjectSelect')}</option>
-              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-            <div style={{ display:'flex', gap:8 }}>
-              <input className="form-input" placeholder={t('team.clientPlaceholder')}
-                value={clientEmail} onChange={e => setClientEmail(e.target.value)}
-                onKeyDown={e => e.key==='Enter' && inviteClient()} style={{ flex:1 }} />
-              <Button variant="primary" size="sm" onClick={inviteClient} disabled={clientLoading}>{clientLoading ? '...' : t('common.add')}</Button>
-            </div>
-            {clientMsg && (
-              <div style={{ marginTop:8, fontSize:12, padding:'6px 10px', borderRadius:6, background: clientMsg.includes('added') ? 'var(--success-bg)' : 'var(--danger-bg)', color: clientMsg.includes('added') ? 'var(--success)' : 'var(--danger)' }}>
-                {clientMsg}
               </div>
             )}
           </div>
@@ -461,13 +405,13 @@ export default function Team() {
       {team.length === 0 && <EmptyState>{t('team.noMembers')}</EmptyState>}
 
       {/* Workers section */}
-      {team.filter(m => m.role !== 'client').length > 0 && (
+      {team.length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:8, paddingLeft:2 }}>
-            {t('team.workersSection')} ({team.filter(m => m.role !== 'client').length})
+            {t('team.workersSection')} ({team.length})
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-            {team.filter(m => m.role !== 'client').map(m => {
+            {team.map(m => {
           const st       = m.worker_status || 'on_site'
           const stCfg    = WORKER_STATUS[st] || WORKER_STATUS.on_site
           const isOpen   = openId === m.id
@@ -697,9 +641,9 @@ export default function Team() {
                       <div style={{ position:'relative' }}>
                         <button
                           onClick={(e) => { e.stopPropagation(); setProjPickerId(projPickerId === m.id ? null : m.id) }}
-                          style={{ display:'flex', alignItems:'center', gap:3, fontSize:11, fontWeight:600, background:'none', border:'1px dashed var(--border-medium)', color:'var(--text-secondary)', borderRadius:8, padding:'3px 8px', cursor:'pointer' }}
+                          style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, fontWeight:700, background:'var(--accent)', border:'none', color:'#fff', borderRadius:8, padding:'4px 10px', cursor:'pointer', boxShadow:'0 1px 3px rgba(0,0,0,0.12)' }}
                         >
-                          <Plus size={10} weight="bold" />{t('team.addToProjectBtn')}
+                          <Plus size={11} weight="bold" />{t('team.addToProjectBtn')}
                         </button>
                         {projPickerId === m.id && (
                           <div
@@ -1086,64 +1030,6 @@ export default function Team() {
             </div>
           )
         })}
-          </div>
-        </div>
-      )}
-
-      {/* Clients section */}
-      {team.filter(m => m.role === 'client').length > 0 && (
-        <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:8, paddingLeft:2 }}>
-            {t('team.clientsSection')} ({team.filter(m => m.role === 'client').length})
-          </div>
-          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-            {team.filter(m => m.role === 'client').map(m => {
-              const isOpen = openId === m.id
-              const workerProjects = (m.project_ids || []).map(pid => projects.find(p => p.id === pid)).filter(Boolean)
-              return (
-                <div key={m.id} style={{ background:'var(--surface,#fff)', border:`1.5px solid ${isOpen ? 'var(--accent)' : 'var(--border-medium)'}`, borderRadius:14, overflow:'hidden' }}>
-                  <div onClick={() => setOpenId(isOpen ? null : m.id)} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', cursor:'pointer', background: isOpen ? 'var(--accent-light,var(--accent-light))' : 'var(--surface,#fff)' }}>
-                    <div style={{ width:40, height:40, borderRadius:'50%', background: isOpen ? 'var(--accent)' : 'var(--bg-accent)', color: isOpen ? '#fff' : 'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:700, flexShrink:0 }}>
-                      {m.name?.charAt(0)?.toUpperCase()}
-                    </div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:600, color: isOpen ? 'var(--accent)' : 'var(--text-1,#2E2420)' }}>{m.name}</div>
-                      <div style={{ fontSize:10, color:'var(--text-muted)' }}>{t('team.clientRole')}</div>
-                    </div>
-                    {m.phone && (
-                      <a href={`tel:${m.phone}`} onClick={e => e.stopPropagation()} style={{ fontSize:10, color:'var(--accent)', textDecoration:'none' }}><Phone size={11} weight="bold" /> {m.phone}</a>
-                    )}
-                    <span style={{ fontSize:10, color:'var(--text-muted)', display:'flex', alignItems:'center' }}>{isOpen ? <CaretUp size={10} weight="bold" /> : <CaretDown size={10} weight="bold" />}</span>
-                  </div>
-                  {isOpen && (
-                    <div style={{ borderTop:'1px solid var(--border-medium)', padding:'12px 14px', background:'var(--surface-2,#FDFBF8)' }}>
-                      {/* Contacts */}
-                      <div style={{ marginBottom:10 }}>
-                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:5 }}>{t('team.contacts')}</div>
-                        <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-                          {m.phone ? <a href={`tel:${m.phone}`} style={{ fontSize:12, color:'var(--accent)', textDecoration:'none' }}><Phone size={11} weight="bold" /> {m.phone}</a> : null}
-                          {m.telegram ? <a href={`https://t.me/${m.telegram.replace(/^@/,'')}`} target="_blank" rel="noopener noreferrer" style={{ fontSize:12, color:'#229ED9', textDecoration:'none' }}><TelegramLogo size={12} weight="bold" /> {m.telegram.startsWith('@') ? m.telegram : `@${m.telegram}`}</a> : null}
-                          {!m.phone && !m.telegram && <span style={{ fontSize:11, color:'var(--text-muted)' }}>{t('team.notSpecified')}</span>}
-                        </div>
-                      </div>
-                      {/* Projects */}
-                      <div style={{ marginBottom:10 }}>
-                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:5 }}>{t('team.projectsHeader')}</div>
-                        {workerProjects.length === 0
-                          ? <span style={{ fontSize:11, color:'var(--text-muted)' }}>{t('common.none')}</span>
-                          : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
-                              {workerProjects.map(p => <span key={p.id} style={{ fontSize:11, fontWeight:600, background:'var(--accent-light,var(--accent-light))', color:'var(--accent)', borderRadius:8, padding:'3px 10px' }}>{p.name}</span>)}
-                            </div>
-                        }
-                      </div>
-                      <button onClick={() => removeWorker(m.id, m.name)} style={{ fontSize:11, color:'var(--danger)', background:'var(--danger-bg)', border:'none', borderRadius:8, padding:'6px 14px', cursor:'pointer', fontWeight:500 }}>
-                        {t('team.removeFromTeam')}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
           </div>
         </div>
       )}

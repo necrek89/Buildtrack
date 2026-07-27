@@ -261,7 +261,7 @@ function MMaterialsScreen() {
 function MTeamScreen() {
   const members = [
     { av: 'T', name: 'Tom Walker', role: 'worker' },
-    { av: 'E', name: 'Emma Davis', role: 'client' },
+    { av: 'E', name: 'Emma Davis', role: 'worker' },
     { av: 'A', name: 'Alex Brown', role: 'worker' },
   ]
   return (

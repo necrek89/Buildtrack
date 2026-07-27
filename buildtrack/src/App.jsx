@@ -9,7 +9,6 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import OnboardingScreen from './components/OnboardingScreen'
 import {
   Projects, MyTasks, Tools, Team, Notifications, Procurement,
-  ClientDashboard, ClientProgress, ClientPhotos
 } from './pages/index'
 import WorkerMaterials from './features/materials/WorkerMaterials'
 import { supabase } from './lib/supabase'
@@ -187,15 +186,9 @@ const NAV = {
     { id: 'notifications',     icon: 'notifications', labelKey: 'alerts'    },
     { id: 'account',           icon: 'account',       labelKey: 'account'   },
   ],
-  client: [
-    { id: 'dashboard',     icon: 'projects',      labelKey: 'myProject'     },
-    { id: 'progress',      icon: 'tasks',         labelKey: 'progress'      },
-    { id: 'notifications', icon: 'notifications', labelKey: 'alerts'        },
-    { id: 'account',       icon: 'account',       labelKey: 'account'       },
-  ],
 }
 
-const DEFAULT_PAGE = { foreman: 'projects', manager: 'projects', worker: 'my-tasks', client: 'dashboard' }
+const DEFAULT_PAGE = { foreman: 'projects', manager: 'projects', worker: 'my-tasks' }
 
 function PageContent({ role, page, onNavigate }) {
   if (page === 'account') return <AccountPage />
@@ -213,12 +206,6 @@ function PageContent({ role, page, onNavigate }) {
     if (page === 'worker-materials')  return <WorkerMaterials />
     if (page === 'tools')             return <Tools canAdd={false} />
     if (page === 'notifications')     return <Notifications onNavigate={onNavigate} />
-  }
-  if (role === 'client') {
-    if (page === 'dashboard')     return <ClientDashboard />
-    if (page === 'progress')      return <ClientProgress />
-    if (page === 'photos')        return <ClientPhotos />
-    if (page === 'notifications') return <Notifications onNavigate={onNavigate} />
   }
   return <div style={{ padding: 24, color: '#aaa' }}>Page not found</div>
 }

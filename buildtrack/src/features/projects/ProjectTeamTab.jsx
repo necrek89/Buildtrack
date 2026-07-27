@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, X } from '@phosphor-icons/react'
+import { X } from '@phosphor-icons/react'
 import { Badge, Button, EmptyState, IconButton } from '../../components/UI'
 import ConfirmModal from '../../components/ConfirmModal'
 import { useT } from '../../i18n/useLanguage'
@@ -71,9 +71,7 @@ export default function ProjectTeamTab({ proj, canDelete = false, tasks = [] }) 
                   <div key={w.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 10px', borderRadius:8, background:'var(--bg-subtle)' }}>
                     <div className="member-avatar" style={{ width:28, height:28, fontSize:11 }}>{w.name?.charAt(0)?.toUpperCase()}</div>
                     <div style={{ flex:1, fontSize:13, fontWeight:500 }}>{w.name}</div>
-                    <IconButton title={t('team.addToProjectBtn')} onClick={() => addExisting(w.id)}>
-                      <Plus size={13} weight="bold" />
-                    </IconButton>
+                    <Button variant="primary" size="sm" onClick={() => addExisting(w.id)}>{t('team.addToProjectBtn')}</Button>
                   </div>
                 ))}
               </div>
