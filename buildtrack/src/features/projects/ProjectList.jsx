@@ -398,9 +398,9 @@ export default function Projects({ canDelete = true, canEdit = true }) {
   const [showAdd,    setShowAdd]    = useState(false)
   const [confirmId,  setConfirmId]  = useState(null)
   const [editProject, setEditProject] = useState(null)
-  const [editForm,   setEditForm]   = useState({ name:'', stage:'Foundation', deadline:'', address:'', progress:0, stages:[] })
+  const [editForm,   setEditForm]   = useState({ name:'', stage:'Foundation', deadline:'', address:'', progress:0, stages:[], zones:[] })
   const [editSaving, setEditSaving] = useState(false)
-  const [addForm,    setAddForm]    = useState({ name:'', stage:'Foundation', deadline:'', address:'', stages:[] })
+  const [addForm,    setAddForm]    = useState({ name:'', stage:'Foundation', deadline:'', address:'', stages:[], zones:[] })
 
   useEffect(() => {
     // fetchProjects must complete first — fetchTasks filters by foreman's project IDs
@@ -419,17 +419,18 @@ export default function Projects({ canDelete = true, canEdit = true }) {
       address: addForm.address || null,
       foreman_id: profile.id, progress: 0,
       stages: addForm.stages || [],
+      zones: addForm.zones || [],
     })
     if (!error) {
       await fetchProjects()
       setShowAdd(false)
-      setAddForm({ name:'', stage:'Foundation', deadline:'', address:'', stages:[] })
+      setAddForm({ name:'', stage:'Foundation', deadline:'', address:'', stages:[], zones:[] })
     }
   }
 
   const openEdit = (p) => {
     setEditProject(p)
-    setEditForm({ name: p.name||'', stage: p.stage||'Foundation', deadline: p.deadline||'', address: p.address||'', progress: p.progress??0, stages: p.stages || [] })
+    setEditForm({ name: p.name||'', stage: p.stage||'Foundation', deadline: p.deadline||'', address: p.address||'', progress: p.progress??0, stages: p.stages || [], zones: p.zones || [] })
   }
 
   const saveEdit = async () => {
@@ -439,6 +440,7 @@ export default function Projects({ canDelete = true, canEdit = true }) {
       name: editForm.name.trim(),
       deadline: editForm.deadline || null, address: editForm.address || null,
       stages: editForm.stages || [],
+      zones: editForm.zones || [],
       // progress is auto-calculated from tasks, not saved here
     })
     setEditSaving(false)
@@ -561,6 +563,14 @@ export default function Projects({ canDelete = true, canEdit = true }) {
                   stages={editForm.stages || []}
                   onChange={stages => setEditForm(f => ({ ...f, stages }))}
                   placeholder={t('projects.stagePlaceholder')}
+                />
+              </FormGroup>
+              {/* ── Zone manager (second, independent grouping axis) ── */}
+              <FormGroup label={t('projects.zonesLabel')}>
+                <EditStages
+                  stages={editForm.zones || []}
+                  onChange={zones => setEditForm(f => ({ ...f, zones }))}
+                  placeholder={t('projects.zonePlaceholder')}
                 />
               </FormGroup>
             </div>

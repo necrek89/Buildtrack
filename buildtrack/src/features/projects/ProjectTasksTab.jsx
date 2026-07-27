@@ -11,6 +11,15 @@ import * as XLSX from 'xlsx'
 import { todayStr } from '../../lib/date'
 import { buildReportHtml } from '../../lib/printReport'
 
+// Two independent grouping axes share this shape: `stage` = type of work
+// (tasks.stage / projects.stages), `zone` = room or location (tasks.zone /
+// projects.zones). Everything below is parameterized on `field` so both
+// axes reuse the exact same logic instead of two near-duplicate copies.
+const AXIS = {
+  stage: { listKey: 'stages', taskKey: 'stage' },
+  zone:  { listKey: 'zones',  taskKey: 'zone'  },
+}
+
 // ─── PROJECT TASKS TAB ───────────────────────────────────────────────────────
 export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true, tools = [], team = [] }) {
   const { t, lang } = useT()
@@ -22,18 +31,27 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
   const [deleteId,     setDeleteId]     = useState(null)
   const [openId,       setOpenId]       = useState(null)
   const [openStages,   setOpenStages]   = useState({})
-  const [newStageName, setNewStageName] = useState('')
-  const [addingStage,  setAddingStage]  = useState(false)
-  const [importPreview, setImportPreview] = useState(null) // [{text,stage,unit,quantity,cost,currency}]
+  const [openZones,    setOpenZones]    = useState({})
+  const [groupBy,      setGroupBy]      = useState(() => localStorage.getItem(`tutuu_groupby_${proj.id}`) || 'stage')
+  const [newGroupName, setNewGroupName] = useState('')
+  const [addingGroup,  setAddingGroup]  = useState(false)
+  const [importPreview, setImportPreview] = useState(null) // [{text,stage,zone,unit,quantity,cost,currency}]
   const importRef = useRef()
 
   useEffect(() => { fetchTasks(proj.id) }, [proj.id])
 
+  const setGroupByAndPersist = (next) => {
+    setGroupBy(next)
+    localStorage.setItem(`tutuu_groupby_${proj.id}`, next)
+  }
+
   const pTasks    = tasks.filter(t => t.project_id === proj.id)
   const projTools = tools.filter(tk => tk.project_id === proj.id)
 
-  // Project's ordered stages list
+  // Project's ordered lists for each axis
   const projStages = Array.isArray(proj.stages) && proj.stages.length > 0 ? proj.stages : []
+  const projZones  = Array.isArray(proj.zones)  && proj.zones.length  > 0 ? proj.zones  : []
+  const listFor = (field) => field === 'zone' ? projZones : projStages
 
   const filtered = pTasks.filter(t =>
     filter === 'active'  ? ['new','rejected'].includes(t.status) :
@@ -56,86 +74,75 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
 
   const STAGE_COLORS = Array(10).fill('var(--accent)')
 
-  // Group tasks by stage, ordered by proj.stages first, then any extra
-  // stages found only in tasks, with no-stage tasks last. Used by both the
-  // .xlsx export and the print report (only stages with tasks are included).
-  const groupTasksByStage = (taskList) => {
+  // Build the ordered group list for one axis: every group declared on the
+  // project (even empty ones, so a foreman can open a freshly-created zone
+  // and quick-add into it), plus any group names found only on tasks, with
+  // ungrouped tasks ('—') last. Callers that only want populated groups
+  // (export/print) filter + renumber afterwards — see note at call sites.
+  const buildGroups = (taskList, field) => {
+    const { taskKey } = AXIS[field]
+    const list = listFor(field)
     const map = {}
     taskList.forEach(tk => {
-      const key = tk.stage || '—'
+      const key = tk[taskKey] || '—'
       if (!map[key]) map[key] = []
       map[key].push(tk)
     })
-    const taskStageKeys = Object.keys(map)
-    const ordered = projStages.filter(s => taskStageKeys.includes(s))
-    const extra   = taskStageKeys.filter(s => s !== '—' && !projStages.includes(s))
-    const all     = [...ordered, ...extra, ...(taskStageKeys.includes('—') ? ['—'] : [])]
-    return all.map((stage, i) => ({ stage, num: i + 1, items: sortTasks(map[stage] || []) }))
-  }
-
-  // Build ordered stage list: proj.stages order first, then any task stages not in list
-  const stageGroups = (() => {
-    const taskStageKeys = [...new Set(filtered.map(tk => tk.stage || '—'))]
-    // All stages from proj.stages in order (including empty ones)
-    const ordered = projStages
-    // Stages in tasks but not in proj.stages
-    const extra = taskStageKeys.filter(s => s !== '—' && !projStages.includes(s))
-    // No-stage tasks last
-    const all = [...ordered, ...extra, ...(taskStageKeys.includes('—') ? ['—'] : [])]
-    return all.map(stage => ({
-      stage,
-      stageIndex: projStages.indexOf(stage), // -1 if not in proj.stages
-      items: sortTasks(filtered.filter(tk => (tk.stage || '—') === stage)),
+    const taskKeys = Object.keys(map)
+    const ordered = list
+    const extra   = taskKeys.filter(k => k !== '—' && !list.includes(k))
+    const all     = [...ordered, ...extra, ...(taskKeys.includes('—') ? ['—'] : [])]
+    return all.map(name => ({
+      stage: name,
+      stageIndex: list.indexOf(name), // -1 if not in the project's declared list
+      items: sortTasks(map[name] || []),
     }))
-  })()
-
-  const addStage = async () => {
-    const name = newStageName.trim()
-    if (!name) return
-    const updated = [...projStages, name]
-    await updateProject(proj.id, { stages: updated })
-    setNewStageName('')
-    setAddingStage(false)
   }
 
-  const renameStage = async (oldName, newName) => {
+  const stageGroups = buildGroups(filtered, 'stage')
+  const zoneGroups  = buildGroups(filtered, 'zone')
+  const activeGroups = groupBy === 'zone' ? zoneGroups : stageGroups
+  const activeList   = groupBy === 'zone' ? projZones  : projStages
+  const activeOpen   = groupBy === 'zone' ? openZones  : openStages
+  const setActiveOpen = groupBy === 'zone' ? setOpenZones : setOpenStages
+
+  const addGroup = async (field, name) => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    const { listKey } = AXIS[field]
+    await updateProject(proj.id, { [listKey]: [...listFor(field), trimmed] })
+  }
+
+  const renameGroup = async (field, oldName, newName) => {
+    const { listKey, taskKey } = AXIS[field]
+    const list = listFor(field)
     if (oldName === '—') {
-      // "—" means tasks without a stage — assign them to a new stage
-      const updatedStages = projStages.includes(newName) ? projStages : [...projStages, newName]
-      await updateProject(proj.id, { stages: updatedStages })
-      const affected = pTasks.filter(tk => !tk.stage)
-      await Promise.all(affected.map(tk => updateTask(tk.id, { stage: newName })))
+      // "—" means tasks without this group assigned — assign them to a new group
+      const updatedList = list.includes(newName) ? list : [...list, newName]
+      await updateProject(proj.id, { [listKey]: updatedList })
+      const affected = pTasks.filter(tk => !tk[taskKey])
+      await Promise.all(affected.map(tk => updateTask(tk.id, { [taskKey]: newName })))
     } else {
-      const updatedStages = projStages.map(s => s === oldName ? newName : s)
-      await updateProject(proj.id, { stages: updatedStages })
-      const affected = pTasks.filter(tk => tk.stage === oldName)
-      await Promise.all(affected.map(tk => updateTask(tk.id, { stage: newName })))
+      const updatedList = list.map(s => s === oldName ? newName : s)
+      await updateProject(proj.id, { [listKey]: updatedList })
+      const affected = pTasks.filter(tk => tk[taskKey] === oldName)
+      await Promise.all(affected.map(tk => updateTask(tk.id, { [taskKey]: newName })))
     }
   }
 
-  const deleteStage = async (stageName) => {
-    const updatedStages = projStages.filter(s => s !== stageName)
-    await updateProject(proj.id, { stages: updatedStages })
-    // Clear stage from tasks that had this stage
-    const affected = pTasks.filter(tk => tk.stage === stageName)
-    await Promise.all(affected.map(tk => updateTask(tk.id, { stage: null })))
-  }
-
-  const moveStage = async (stageName, dir) => {
-    const idx = projStages.indexOf(stageName)
-    if (idx === -1) return
-    const newIdx = idx + dir
-    if (newIdx < 0 || newIdx >= projStages.length) return
-    const updated = [...projStages]
-    ;[updated[idx], updated[newIdx]] = [updated[newIdx], updated[idx]]
-    await updateProject(proj.id, { stages: updated })
+  const deleteGroup = async (field, name) => {
+    const { listKey, taskKey } = AXIS[field]
+    await updateProject(proj.id, { [listKey]: listFor(field).filter(s => s !== name) })
+    const affected = pTasks.filter(tk => tk[taskKey] === name)
+    await Promise.all(affected.map(tk => updateTask(tk.id, { [taskKey]: null })))
   }
 
   // ── Quick inline add ──────────────────────────────────────────────────────
-  const quickAdd = async ({ text, stage, qty, unit, cost }) => {
+  const quickAddToGroup = (field) => async ({ text, stage: groupValue, qty, unit, cost }) => {
+    const { taskKey } = AXIS[field]
     const taskData = {
       text,
-      stage:    stage === '—' ? null : stage,
+      [taskKey]: groupValue === '—' ? null : groupValue,
       project_id: proj.id,
       status:   'new',
       priority: 'normal',
@@ -153,10 +160,10 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
     const bom = '﻿'
     // Use semicolons — Excel (Russian locale) opens these correctly
     const csv = bom + [
-      'Этап;Название задачи;Описание;Ед.изм.;Кол-во;Сумма;Валюта',
-      'Фундамент;Заливка бетона;Марка М300;куб.м;50;5000;$',
-      'Фундамент;Армирование;;кг;800;;',
-      'Стены;Кладка кирпича;;кв.м;120;12000;€',
+      'Этап;Зона;Название задачи;Описание;Ед.изм.;Кол-во;Сумма;Валюта',
+      'Фундамент;;Заливка бетона;Марка М300;куб.м;50;5000;$',
+      'Фундамент;;Армирование;;кг;800;;',
+      'Стены;Кухня;Кладка кирпича;;кв.м;120;12000;€',
     ].join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const a = document.createElement('a')
@@ -212,6 +219,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
       const find = (...keys) => headers.findIndex(h => keys.some(k => h.includes(k)))
 
       const iStage    = find('этап', 'stage', 'фаза', 'раздел', 'группа')
+      const iZone     = find('зона', 'комната', 'помещение', 'zone', 'room', 'location')
       const iText     = find('назв', 'наим', 'задач', 'title', 'name', 'работ')
       const iDesc     = find('описан', 'desc', 'примеч', 'коммент')
       const iUnit     = find('ед', 'unit', 'един')
@@ -228,6 +236,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
 
       const rows = allRows.slice(1).map(c => ({
         stage:       iStage    >= 0 ? (c[iStage]    || '') : '',
+        zone:        iZone     >= 0 ? (c[iZone]     || '') : '',
         text:                          c[iText]     || '',
         description: iDesc     >= 0 ? (c[iDesc]     || '') : '',
         unit:        iUnit     >= 0 ? (c[iUnit]     || '') : '',
@@ -244,19 +253,23 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
 
   const confirmImport = async () => {
     if (!importPreview?.length) return
-    // Add new stages from CSV to proj.stages if not already there
+    // Add new stages/zones found in the CSV to the project's lists
     const newStages = [...projStages]
+    const newZones  = [...projZones]
     importPreview.forEach(row => {
       if (row.stage && !newStages.includes(row.stage)) newStages.push(row.stage)
+      if (row.zone  && !newZones.includes(row.zone))   newZones.push(row.zone)
     })
-    if (newStages.length !== projStages.length) {
-      await updateProject(proj.id, { stages: newStages })
-    }
+    const listUpdates = {}
+    if (newStages.length !== projStages.length) listUpdates.stages = newStages
+    if (newZones.length  !== projZones.length)  listUpdates.zones  = newZones
+    if (Object.keys(listUpdates).length) await updateProject(proj.id, listUpdates)
     // Insert tasks
     await Promise.all(importPreview.map(row => addTask({
       text: row.text,
       description: row.description || null,
       stage: row.stage || null,
+      zone: row.zone || null,
       unit: row.unit || null,
       quantity: row.quantity,
       cost: row.cost,
@@ -275,7 +288,16 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
       approved: t('procTasks.statusApproved'), rejected: t('procTasks.statusRejected'),
     }
 
-    const allGroups = groupTasksByStage(pTasks)
+    // Export-side groups only include populated buckets, renumbered after
+    // the filter (buildGroups always returns every declared group —
+    // including empty ones — for the live accordion view; that's not
+    // wanted in an exported report).
+    const populate = (field) => buildGroups(pTasks, field)
+      .filter(g => g.items.length > 0)
+      .map((g, i) => ({ ...g, num: i + 1 }))
+
+    const stageExport = populate('stage')
+    const hasZones = pTasks.some(tk => tk.zone)
 
     const wb = XLSX.utils.book_new()
 
@@ -285,7 +307,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
        t('procTasks.colUnit'), t('procTasks.colQty'), t('procTasks.colCost'), t('procTasks.colCurrency'), t('procTasks.colStatus')],
     ]
     let num = 1
-    for (const { stage, items } of allGroups) {
+    for (const { stage, items } of stageExport) {
       for (const tk of items) {
         rows.push([
           num++,
@@ -319,19 +341,28 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
     XLSX.utils.book_append_sheet(wb, ws, t('procTasks.sheetTasks'))
 
     // ── Sheet 2: Summary by stage ─────────────────────────────────────────────
-    const summaryRows = [
-      [t('procTasks.colStage'), t('procTasks.colTotalTasks'), t('procTasks.colDone'), t('procTasks.colPending'), t('procTasks.colActive'), t('procTasks.colSum')],
-    ]
-    for (const { stage, items } of allGroups) {
-      const done    = items.filter(t => t.status === 'approved').length
-      const pending = items.filter(t => t.status === 'pending').length
-      const active  = items.filter(t => ['new','rejected'].includes(t.status)).length
-      const total   = items.reduce((s, t) => s + (t.cost != null ? Number(t.cost) : 0), 0)
-      summaryRows.push([stage, items.length, done, pending, active, total || ''])
+    const buildSummarySheet = (groups) => {
+      const summaryRows = [
+        [t('procTasks.colStage'), t('procTasks.colTotalTasks'), t('procTasks.colDone'), t('procTasks.colPending'), t('procTasks.colActive'), t('procTasks.colSum')],
+      ]
+      for (const { stage, items } of groups) {
+        const done    = items.filter(t => t.status === 'approved').length
+        const pending = items.filter(t => t.status === 'pending').length
+        const active  = items.filter(t => ['new','rejected'].includes(t.status)).length
+        const total   = items.reduce((s, t) => s + (t.cost != null ? Number(t.cost) : 0), 0)
+        summaryRows.push([stage, items.length, done, pending, active, total || ''])
+      }
+      const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows)
+      wsSummary['!cols'] = [{ wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 12 }]
+      return wsSummary
     }
-    const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows)
-    wsSummary['!cols'] = [{ wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 12 }]
-    XLSX.utils.book_append_sheet(wb, wsSummary, t('procTasks.sheetSummary'))
+
+    XLSX.utils.book_append_sheet(wb, buildSummarySheet(stageExport), t('procTasks.sheetSummary'))
+
+    // ── Sheet 3: Summary by zone (only if the project actually uses zones) ────
+    if (hasZones) {
+      XLSX.utils.book_append_sheet(wb, buildSummarySheet(populate('zone')), t('procTasks.sheetSummaryZone'))
+    }
 
     const date = todayStr()
     XLSX.writeFile(wb, `${proj.name}_${t('procTasks.filenameSuffix')}_${date}.xlsx`)
@@ -363,10 +394,13 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
       })
     }
 
-    const allGroups = groupTasksByStage(pTasks)
+    // Print whatever grouping is currently on screen
+    const printGroups = buildGroups(pTasks, groupBy)
+      .filter(g => g.items.length > 0)
+      .map((g, i) => ({ ...g, num: i + 1 }))
 
     let globalRow = 1
-    const rows = allGroups.map(({ stage, num, items }) => {
+    const rows = printGroups.map(({ stage, num, items }) => {
       const taskRows = items.map(tk => {
         const n = globalRow++
         const comments = commentsMap[tk.id] || []
@@ -458,8 +492,10 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
     w.document.close()
   }
 
-  // Sync openStages when stages are added/removed, but preserve open/closed state of existing stages.
-  // Do NOT use tasks.length as a dependency — that would collapse all stages on every task add/delete.
+  // Sync open/closed accordion state per axis when its groups change, but
+  // preserve the open/closed state of groups that already existed. Do NOT
+  // use tasks.length as a dependency — that would collapse every group on
+  // every task add/delete.
   const stageKeyStr = stageGroups.map(g => g.stage).join('\0')
   useEffect(() => {
     setOpenStages(prev => {
@@ -470,22 +506,34 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter, proj.id, stageKeyStr])
 
-  // Auto-open a task coming from notification / search
+  const zoneKeyStr = zoneGroups.map(g => g.stage).join('\0')
+  useEffect(() => {
+    setOpenZones(prev => {
+      const next = {}
+      zoneGroups.forEach(({ stage }) => { next[stage] = prev[stage] ?? false })
+      return next
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, proj.id, zoneKeyStr])
+
+  // Auto-open a task coming from notification / search — opens it within
+  // whichever axis is currently on screen.
   useEffect(() => {
     if (!pendingOpenTaskId) return
     const task = pTasks.find(tk => String(tk.id) === String(pendingOpenTaskId))
     if (!task) return
-    const stageName = task.stage || '—'
-    setOpenStages(prev => ({ ...prev, [stageName]: true }))
+    const groupName = (groupBy === 'zone' ? task.zone : task.stage) || '—'
+    setActiveOpen(prev => ({ ...prev, [groupName]: true }))
     setFilter('all')
     setOpenId(task.id)
     setPendingOpenTask(null)
     setTimeout(() => {
       document.getElementById(`task-card-${task.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }, 200)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingOpenTaskId, pTasks.length])
 
-  const toggleStage = (stage) => setOpenStages(prev => ({ ...prev, [stage]: !prev[stage] }))
+  const toggleGroup = (name) => setActiveOpen(prev => ({ ...prev, [name]: !prev[name] }))
 
   return (
     <div style={{ paddingBottom:24 }}>
@@ -548,6 +596,20 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
         )}
       </div>
 
+      {/* ── Group-by axis toggle ── */}
+      <div style={{ display:'flex', gap:5, marginBottom:8 }}>
+        {['stage', 'zone'].map(field => (
+          <button
+            key={field}
+            className={`filter-btn ${groupBy === field ? 'active' : ''}`}
+            onClick={() => setGroupByAndPersist(field)}
+            style={{ fontSize:11, padding:'4px 10px' }}
+          >
+            {field === 'stage' ? t('tasks.groupByStage') : t('tasks.groupByZone')}
+          </button>
+        ))}
+      </div>
+
       {/* ── Filter chips ── */}
       <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:10 }}>
         {['all','active','pending','done'].map(f => (
@@ -560,14 +622,17 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
         ))}
       </div>
 
-      {filtered.length === 0 && stageGroups.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
+      {filtered.length === 0 && activeGroups.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
 
-      {/* ── Stage accordions with drag-and-drop ── */}
+      {/* ── Group accordions with drag-and-drop — remounted on axis switch
+           (key={groupBy}) so drag/quick-add/rename state never leaks
+           between the two axes, even though both share the '—' bucket. ── */}
       <SortableStageList
-        stageGroups={stageGroups}
-        projStages={projStages}
-        openStages={openStages}
-        toggleStage={toggleStage}
+        key={groupBy}
+        stageGroups={activeGroups}
+        projStages={activeList}
+        openStages={activeOpen}
+        toggleStage={toggleGroup}
         openId={openId}
         setOpenId={setOpenId}
         canEdit={canEdit}
@@ -577,38 +642,43 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
         approveTask={approveTask}
         rejectTask={rejectTask}
         STAGE_COLORS={STAGE_COLORS}
-        onReorder={async (newOrder) => { await updateProject(proj.id, { stages: newOrder }) }}
-        onRename={canEdit ? renameStage : undefined}
-        onDeleteStage={canEdit ? deleteStage : undefined}
-        onQuickAdd={canEdit ? quickAdd : undefined}
+        onReorder={async (newOrder) => { await updateProject(proj.id, { [AXIS[groupBy].listKey]: newOrder }) }}
+        onRename={canEdit ? (oldName, newName) => renameGroup(groupBy, oldName, newName) : undefined}
+        onDeleteStage={canEdit ? (name) => deleteGroup(groupBy, name) : undefined}
+        onQuickAdd={canEdit ? quickAddToGroup(groupBy) : undefined}
+        namePlaceholder={groupBy === 'zone' ? t('tasks.zoneNamePlaceholder') : undefined}
+        renameLabel={groupBy === 'zone' ? t('tasks.renameZone') : undefined}
+        deleteLabel={groupBy === 'zone' ? t('tasks.zoneDelete') : undefined}
+        emptyGroupLabel={groupBy === 'zone' ? t('tasks.noZoneTitle') : undefined}
+        noItemsLabel={groupBy === 'zone' ? t('tasks.noTasksZone') : undefined}
       />
 
-      {/* ── Add Stage button (foreman only) ── */}
+      {/* ── Add stage/zone button (foreman only) ── */}
       {canEdit && (
         <div style={{ marginTop: 10 }}>
-          {addingStage ? (
+          {addingGroup ? (
             <div style={{ display:'flex', gap:8, alignItems:'center' }}>
               <input
                 className="form-input"
                 style={{ flex:1, fontSize:13 }}
-                placeholder={t('projects.stagePlaceholder')}
-                value={newStageName}
-                onChange={e => setNewStageName(e.target.value)}
-                onKeyDown={e => { if (e.key==='Enter') addStage(); if (e.key==='Escape') setAddingStage(false) }}
+                placeholder={groupBy === 'zone' ? t('projects.zonePlaceholder') : t('projects.stagePlaceholder')}
+                value={newGroupName}
+                onChange={e => setNewGroupName(e.target.value)}
+                onKeyDown={e => { if (e.key==='Enter') { addGroup(groupBy, newGroupName); setNewGroupName(''); setAddingGroup(false) }; if (e.key==='Escape') setAddingGroup(false) }}
                 autoFocus
               />
-              <Button variant="primary" size="sm" onClick={addStage}>{t('common.add')}</Button>
-              <button onClick={() => { setAddingStage(false); setNewStageName('') }}
+              <Button variant="primary" size="sm" onClick={() => { addGroup(groupBy, newGroupName); setNewGroupName(''); setAddingGroup(false) }}>{t('common.add')}</Button>
+              <button onClick={() => { setAddingGroup(false); setNewGroupName('') }}
                 style={{ background:'none', border:'none', fontSize:18, color:'var(--text-muted)', cursor:'pointer', lineHeight:1, display:'flex', alignItems:'center' }}><X size={18} weight="bold" /></button>
             </div>
           ) : (
-            <button onClick={() => setAddingStage(true)} style={{
+            <button onClick={() => setAddingGroup(true)} style={{
               display:'flex', alignItems:'center', gap:6, padding:'10px 14px',
               background:'none', border:'1.5px dashed var(--border,#D9D0C7)',
               borderRadius:14, cursor:'pointer', fontSize:13, color:'var(--text-muted)',
               fontWeight:500, width:'100%',
             }}>
-              <span style={{ fontSize:16, lineHeight:1 }}>＋</span> {t('tasks.addStage')}
+              <span style={{ fontSize:16, lineHeight:1 }}>＋</span> {groupBy === 'zone' ? t('tasks.addZone') : t('tasks.addStage')}
             </button>
           )}
         </div>
@@ -649,7 +719,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
               <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
                 <thead>
                   <tr style={{ background:'var(--bg-accent,#F2EDE4)' }}>
-                    {[t('tasks.importColStage'),t('tasks.importColName'),t('tasks.importColDesc'),t('tasks.importColUnit'),t('tasks.importColQty'),t('tasks.importColAmount')].map(h => (
+                    {[t('tasks.importColStage'),t('tasks.importColZone'),t('tasks.importColName'),t('tasks.importColDesc'),t('tasks.importColUnit'),t('tasks.importColQty'),t('tasks.importColAmount')].map(h => (
                       <th key={h} style={{ padding:'6px 8px', textAlign:'left', border:'1px solid var(--border,#EAE3D8)', fontWeight:700, fontSize:11, color:'#7A6E66' }}>{h}</th>
                     ))}
                   </tr>
@@ -658,6 +728,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
                   {importPreview.map((r, i) => (
                     <tr key={i} style={{ background: i%2===0 ? 'var(--surface,#fff)' : 'var(--surface-2,#FDFBF8)' }}>
                       <td style={{ padding:'5px 8px', border:'1px solid var(--border,#EAE3D8)', color:'#888' }}>{r.stage || '—'}</td>
+                      <td style={{ padding:'5px 8px', border:'1px solid var(--border,#EAE3D8)', color:'#888' }}>{r.zone || '—'}</td>
                       <td style={{ padding:'5px 8px', border:'1px solid var(--border,#EAE3D8)', fontWeight:600 }}>{r.text}</td>
                       <td style={{ padding:'5px 8px', border:'1px solid var(--border,#EAE3D8)', color:'#888' }}>{r.description || '—'}</td>
                       <td style={{ padding:'5px 8px', border:'1px solid var(--border,#EAE3D8)' }}>{r.unit || '—'}</td>
