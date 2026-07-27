@@ -351,6 +351,13 @@ export const useStore = create((set, get) => ({
     return workers
   },
 
+  // Unassign a worker/manager/client from a single project (project_workers row only —
+  // their profile, other project memberships and existing task assignments are untouched)
+  removeWorkerFromProject: async (projectId, workerId) => {
+    await supabase.from('project_workers').delete().eq('project_id', projectId).eq('worker_id', workerId)
+    set(s => ({ team: s.team.filter(m => m.id !== workerId) }))
+  },
+
   // Update a profiles row and patch the matching entry in the local team array
   _patchTeamMember: async (workerId, patch) => {
     await supabase.from('profiles').update(patch).eq('id', workerId)
