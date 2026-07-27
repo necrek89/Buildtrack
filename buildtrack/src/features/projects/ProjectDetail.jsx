@@ -112,7 +112,7 @@ export default function ProjectDetail({ proj, onBack, onEdit, canDelete = true, 
       {tab === 'expenses'  && <ExpensesTab proj={proj} canEdit={canEdit} />}
       {tab === 'photos'    && <PhotosTab proj={proj} />}
       {tab === 'docs'      && <DocumentsTab proj={proj} />}
-      {tab === 'team'      && <ProjectTeamTab proj={proj} />}
+      {tab === 'team'      && <ProjectTeamTab proj={proj} canDelete={canDelete} tasks={pt} />}
     </div>
   )
 }
