@@ -339,6 +339,7 @@ const t = {
       colDesc: 'Description', colStage: 'Stage', colQty: 'Qty', colUnit: 'Unit',
       colPrice: 'Unit Price', colTotal: 'Total',
       previewBtn: 'Preview Invoice', downloadBtn: 'Download PDF', backBtn: 'Edit',
+      stageSelectDesc: 'Choose which stages to include in the invoice. You can bill partially for completed stages only.', selectAllStages: 'All stages', deselectAllStages: 'Deselect all', noStage: 'No stage', alreadyInvoiced: 'already invoiced', tasksWord: 'tasks', badgeLabel: 'Invoice', partialLabel: 'Partial Invoice', itemsWord: 'items', stagesWord: 'stages', historyTitle: 'Invoice history for this project', stagesLabel: 'Stages:',
     },
 
     procTasks: {
@@ -813,6 +814,7 @@ const t = {
       colDesc: 'Наименование', colStage: 'Этап', colQty: 'Кол-во', colUnit: 'Ед.',
       colPrice: 'Цена', colTotal: 'Сумма',
       previewBtn: 'Предпросмотр', downloadBtn: 'Скачать PDF', backBtn: 'Назад',
+      stageSelectDesc: 'Выберите этапы для включения в счёт. Можно выставить промежуточный счёт только за завершённые этапы.', selectAllStages: 'Все этапы', deselectAllStages: 'Снять всё', noStage: 'Без этапа', alreadyInvoiced: 'уже выставлялся', tasksWord: 'задач', badgeLabel: 'Счёт', partialLabel: 'Промежуточный счёт', itemsWord: 'позиций', stagesWord: 'этапов', historyTitle: 'История счетов по объекту', stagesLabel: 'Этапы:',
     },
 
     procTasks: {
@@ -1274,6 +1276,7 @@ const t = {
       colDesc: 'Opis', colStage: 'Faza', colQty: 'Kol.', colUnit: 'Jed.',
       colPrice: 'Cijena', colTotal: 'Ukupno',
       previewBtn: 'Pregled fakture', downloadBtn: 'Preuzmi PDF', backBtn: 'Nazad',
+      stageSelectDesc: 'Izaberite etape za uključivanje u fakturu. Djelimičnu fakturu možete izdati samo za završene etape.', selectAllStages: 'Sve etape', deselectAllStages: 'Poništi sve', noStage: 'Bez etape', alreadyInvoiced: 'već fakturisano', tasksWord: 'zadataka', badgeLabel: 'Faktura', partialLabel: 'Djelimična faktura', itemsWord: 'stavki', stagesWord: 'etapa', historyTitle: 'Istorija faktura za ovaj projekat', stagesLabel: 'Etape:',
     },
 
     procTasks: {
@@ -1735,6 +1738,7 @@ const t = {
       colDesc: 'Descripción', colStage: 'Etapa', colQty: 'Cant.', colUnit: 'Ud.',
       colPrice: 'Precio', colTotal: 'Total',
       previewBtn: 'Vista previa', downloadBtn: 'Descargar PDF', backBtn: 'Editar',
+      stageSelectDesc: 'Elige qué etapas incluir en la factura. Puedes facturar parcialmente solo por etapas completadas.', selectAllStages: 'Todas las etapas', deselectAllStages: 'Deseleccionar todo', noStage: 'Sin etapa', alreadyInvoiced: 'ya facturado', tasksWord: 'tareas', badgeLabel: 'Factura', partialLabel: 'Factura parcial', itemsWord: 'ítems', stagesWord: 'etapas', historyTitle: 'Historial de facturas de este proyecto', stagesLabel: 'Etapas:',
     },
 
     procTasks: {
@@ -2196,6 +2200,7 @@ const t = {
       colDesc: 'Descrição', colStage: 'Etapa', colQty: 'Qtd.', colUnit: 'Ud.',
       colPrice: 'Preço', colTotal: 'Total',
       previewBtn: 'Pré-visualizar', downloadBtn: 'Baixar PDF', backBtn: 'Editar',
+      stageSelectDesc: 'Escolha quais etapas incluir na fatura. Você pode faturar parcialmente apenas etapas concluídas.', selectAllStages: 'Todas as etapas', deselectAllStages: 'Desmarcar tudo', noStage: 'Sem etapa', alreadyInvoiced: 'já faturado', tasksWord: 'tarefas', badgeLabel: 'Fatura', partialLabel: 'Fatura parcial', itemsWord: 'itens', stagesWord: 'etapas', historyTitle: 'Histórico de faturas deste projeto', stagesLabel: 'Etapas:',
     },
 
     procTasks: {
@@ -2657,6 +2662,7 @@ const t = {
       colDesc: 'Beschreibung', colStage: 'Phase', colQty: 'Menge', colUnit: 'Einh.',
       colPrice: 'Einzelpreis', colTotal: 'Gesamt',
       previewBtn: 'Vorschau', downloadBtn: 'PDF herunterladen', backBtn: 'Bearbeiten',
+      stageSelectDesc: 'Wähle, welche Phasen in die Rechnung aufgenommen werden. Teilrechnungen sind nur für abgeschlossene Phasen möglich.', selectAllStages: 'Alle Phasen', deselectAllStages: 'Alle abwählen', noStage: 'Keine Phase', alreadyInvoiced: 'bereits abgerechnet', tasksWord: 'Aufgaben', badgeLabel: 'Rechnung', partialLabel: 'Teilrechnung', itemsWord: 'Positionen', stagesWord: 'Phasen', historyTitle: 'Rechnungsverlauf für dieses Projekt', stagesLabel: 'Phasen:',
     },
 
     procTasks: {
@@ -3118,6 +3124,7 @@ const t = {
       colDesc: 'Description', colStage: 'Phase', colQty: 'Qté', colUnit: 'Unité',
       colPrice: 'Prix unitaire', colTotal: 'Total',
       previewBtn: 'Aperçu', downloadBtn: 'Télécharger PDF', backBtn: 'Modifier',
+      stageSelectDesc: 'Choisissez les étapes à inclure dans la facture. Vous ne pouvez facturer partiellement que les étapes terminées.', selectAllStages: 'Toutes les étapes', deselectAllStages: 'Tout désélectionner', noStage: 'Aucune étape', alreadyInvoiced: 'déjà facturé', tasksWord: 'tâches', badgeLabel: 'Facture', partialLabel: 'Facture partielle', itemsWord: 'postes', stagesWord: 'étapes', historyTitle: 'Historique des factures pour ce projet', stagesLabel: 'Étapes :',
     },
 
     procTasks: {
@@ -3579,6 +3586,7 @@ const t = {
       colDesc: 'Popis', colStage: 'Etapa', colQty: 'Mn.', colUnit: 'Jedn.',
       colPrice: 'Jedn. cena', colTotal: 'Celkom',
       previewBtn: 'Náhľad', downloadBtn: 'Stiahnuť PDF', backBtn: 'Upraviť',
+      stageSelectDesc: 'Vyberte etapy, ktoré chcete zahrnúť do faktúry. Čiastočnú faktúru môžete vystaviť len za dokončené etapy.', selectAllStages: 'Všetky etapy', deselectAllStages: 'Zrušiť výber', noStage: 'Bez etapy', alreadyInvoiced: 'už vyfakturované', tasksWord: 'úloh', badgeLabel: 'Faktúra', partialLabel: 'Čiastočná faktúra', itemsWord: 'položiek', stagesWord: 'etáp', historyTitle: 'História faktúr pre tento projekt', stagesLabel: 'Etapy:',
     },
     procTasks: {
       statusNew: 'Nová', statusPending: 'Na kontrole', statusApproved: 'Hotová', statusRejected: 'Zamietnutá',
@@ -4039,6 +4047,7 @@ const t = {
       colDesc: 'Popis', colStage: 'Etapa', colQty: 'Mn.', colUnit: 'Jedn.',
       colPrice: 'Jedn. cena', colTotal: 'Celkem',
       previewBtn: 'Náhled', downloadBtn: 'Stáhnout PDF', backBtn: 'Upravit',
+      stageSelectDesc: 'Vyberte etapy, které chcete zahrnout do faktury. Částečnou fakturu můžete vystavit pouze za dokončené etapy.', selectAllStages: 'Všechny etapy', deselectAllStages: 'Zrušit výběr', noStage: 'Bez etapy', alreadyInvoiced: 'již vyfakturováno', tasksWord: 'úkolů', badgeLabel: 'Faktura', partialLabel: 'Částečná faktura', itemsWord: 'položek', stagesWord: 'etap', historyTitle: 'Historie faktur pro tento projekt', stagesLabel: 'Etapy:',
     },
     procTasks: {
       statusNew: 'Nová', statusPending: 'Ke kontrole', statusApproved: 'Hotová', statusRejected: 'Zamítnutá',
