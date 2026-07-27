@@ -1,0 +1,8 @@
+# Tutuu
+
+> Tutuu is a web app for managing small construction crews — task assignment and tracking, material requests, tool tracking, attendance and salary calculation, photo documentation and PDF invoices, all in one place. Free to start, works on any phone.
+
+## Pages
+
+- [Home](https://tutuu.net/): Product overview, features and sign-up
+- [Install guide](https://tutuu.net/install): How to add Tutuu to your home screen on iPhone and Android
