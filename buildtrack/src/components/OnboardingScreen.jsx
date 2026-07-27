@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Buildings, HardHat, Hammer, UserCircle, ArrowRight, ArrowLeft, Bell, CheckCircle } from '@phosphor-icons/react'
+import { Buildings, HardHat, Hammer, ArrowRight, ArrowLeft, Bell, CheckCircle } from '@phosphor-icons/react'
 import { useT } from '../i18n/useLanguage'
 import { useStore } from '../store/useStore'
 import { subscribeToPush, isPushSupported } from '../lib/push'
@@ -8,7 +8,6 @@ const SLIDE_META = [
   { Icon: Buildings,  color: 'var(--accent)', bg: 'linear-gradient(160deg, #FFF5EF 0%, #FAE8D8 100%)', circleBg: 'var(--accent-light)', key: 'slide1' },
   { Icon: HardHat,    color: '#2E6B4A', bg: 'linear-gradient(160deg, #F0F9F4 0%, #D8EFDF 100%)', circleBg: '#E0F2E8', key: 'slide2' },
   { Icon: Hammer,     color: '#3A5FAB', bg: 'linear-gradient(160deg, #EEF3FD 0%, #D8E4FA 100%)', circleBg: '#E0E9FA', key: 'slide3' },
-  { Icon: UserCircle, color: '#7A3FAA', bg: 'linear-gradient(160deg, #F6EFFE 0%, #E8D8FA 100%)', circleBg: '#EEE0FA', key: 'slide4' },
   { Icon: Bell,       color: 'var(--accent)', bg: 'linear-gradient(160deg, #FFF5EF 0%, #FAE8D8 100%)', circleBg: 'var(--accent-light)', key: 'slide5' },
 ]
 
@@ -77,7 +76,7 @@ export default function OnboardingScreen({ onDone }) {
   const touchStartX     = useRef(null)
   const touchStartY     = useRef(null)
 
-  const INFO_SLIDES = SLIDE_META.slice(0, 4)
+  const INFO_SLIDES = SLIDE_META.slice(0, -1)
   const isLast      = idx === INFO_SLIDES.length - 1
   const isPushSlide = idx === SLIDE_META.length - 1
 

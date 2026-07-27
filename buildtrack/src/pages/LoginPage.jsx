@@ -143,7 +143,6 @@ export default function LoginPage({ onLogin }) {
                   <select className="form-input" value={form.role} onChange={set('role')}>
                     <option value="foreman">{t('roles.foreman')}</option>
                     <option value="worker">{t('roles.worker')}</option>
-                    <option value="client">{t('roles.client')}</option>
                   </select>
                 </div>
               </>

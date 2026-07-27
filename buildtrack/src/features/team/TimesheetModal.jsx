@@ -14,7 +14,7 @@ export default function TimesheetModal({ onClose }) {
   const [loading, setLoading] = useState(false)
   const [saving,  setSaving]  = useState(false)
 
-  const workers = team.filter(m => m.role !== 'client')
+  const workers = team
 
   const loadLogs = async (d) => {
     setLoading(true)
