@@ -84,7 +84,7 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
               <input
                 ref={nameRef}
                 value={nameVal}
-                placeholder="Название этапа"
+                placeholder={t('tasks.stageNamePlaceholder')}
                 onChange={e => setNameVal(e.target.value)}
                 onBlur={commitEdit}
                 onKeyDown={e => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') cancelEdit() }}
@@ -105,7 +105,7 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
                   color: stage === '—' ? 'var(--text-muted)' : 'var(--text-primary)',
                   fontStyle: stage === '—' ? 'italic' : 'normal',
                 }}
-              >{stage === '—' ? 'Без этапа' : stage}</span>
+              >{stage === '—' ? t('tasks.noStageTitle') : stage}</span>
             )}
             {!editing && hasAlert && <span style={{ fontSize:11, color:'var(--danger)', fontWeight:600, display:'flex', alignItems:'center' }}><Lightning size={11} weight="bold" /></span>}
             {!editing && hasPend  && <span style={{ fontSize:11, color:'var(--warning)', fontWeight:600, display:'flex', alignItems:'center' }}><Clock size={11} weight="bold" /></span>}
@@ -114,7 +114,7 @@ export function SortableStageItem({ stage, stageIndex, projStages, items, isOpen
             {canEdit && !editing && (
               <button
                 onClick={startEdit}
-                title="Переименовать этап"
+                title={t('tasks.renameStage')}
                 style={{
                   background:'none', border:'none', cursor:'pointer', padding:'2px 5px',
                   fontSize:12, color: stage === '—' ? 'var(--accent)' : 'var(--text-faint)', lineHeight:1, flexShrink:0,

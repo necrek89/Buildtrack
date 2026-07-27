@@ -2,25 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import { Hourglass, X, Warning } from '@phosphor-icons/react'
 import { useStore, currencySymbol } from '../store/useStore'
 import { useT } from '../i18n/useLanguage'
+import translations from '../i18n/translations'
 import { Button, FormGroup, Modal } from './UI'
 import { supabase } from '../lib/supabase'
 import DatePicker from './DatePicker'
 
-// No default stages — each project defines its own
-
-const UNIT_OPTIONS = [
-  { value: '',      label: '— без единицы' },
-  { value: 'шт',    label: 'шт — штука' },
-  { value: 'пог.м', label: 'пог.м — погонный метр' },
-  { value: 'кв.м',  label: 'кв.м — квадратный метр' },
-  { value: 'куб.м', label: 'куб.м — кубический метр' },
-  { value: 'м',     label: 'м — метр' },
-  { value: 'кг',    label: 'кг — килограмм' },
-  { value: 'т',     label: 'т — тонна' },
-  { value: 'л',     label: 'л — литр' },
-  { value: 'ч',     label: 'ч — час' },
-  { value: 'компл', label: 'компл — комплект' },
-]
+// No default stages — each project defines its own.
+// Unit list lives in translations (tasks.units) — the stored short code is
+// locale-appropriate free text, printed as-is on invoices and exports.
 
 // ── Image compression (canvas) ───────────────────────────────────────────────
 async function compressImage(file, maxPx = 1400, quality = 0.82) {
@@ -52,7 +41,8 @@ async function compressImage(file, maxPx = 1400, quality = 0.82) {
 }
 
 export default function TaskModal({ task, onClose, defaultProjectId }) {
-  const { t } = useT()
+  const { t, lang } = useT()
+  const UNIT_OPTIONS = translations[lang]?.tasks?.units || translations.en.tasks.units
   const { addTask, updateTask, fetchTasks, projects, fetchProjects, fetchWorkers, profile } = useStore()
   const isEdit = !!task
   const [workers,   setWorkers]   = useState([])
@@ -194,88 +184,12 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
 
         <div style={{ overflowY:'auto', flex:1, paddingRight:2 }}>
 
-          <FormGroup label={`${t('tasks.projectLabel')} *`}>
-            <select className="form-input" value={form.project_id} onChange={set('project_id')}>
-              <option value="">—</option>
-              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          </FormGroup>
-
-          <FormGroup label={`${t('tasks.titleLabel')} *`}>
-            <input
-              className="form-input"
-              placeholder={t('tasks.titlePlaceholder')}
-              value={form.text}
-              onChange={set('text')}
-              autoFocus
-            />
-          </FormGroup>
-
-          <FormGroup label={t('tasks.detailsLabel')}>
-            <textarea
-              className="form-input"
-              rows={4}
-              placeholder={t('tasks.detailsPlaceholder')}
-              value={form.description}
-              onChange={set('description')}
-              style={{ resize:'vertical', minHeight:80 }}
-            />
-          </FormGroup>
-
-          {/* ── Quantity + Unit ── */}
+          {/* ── Where: project + stage ── */}
           <div className="form-grid-2">
-            <FormGroup label="Объём / кол-во">
-              <input
-                className="form-input"
-                type="number"
-                min="0"
-                step="any"
-                placeholder="Например: 50"
-                value={form.quantity}
-                onChange={e => handleQuantityChange(e.target.value)}
-              />
-            </FormGroup>
-            <FormGroup label="Единица измерения">
-              <select className="form-input" value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}>
-                {UNIT_OPTIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
-              </select>
-            </FormGroup>
-          </div>
-
-          {/* ── Unit price → auto-calc total ── */}
-          <FormGroup label={`Цена за единицу${form.unit ? ` (за ${form.unit})` : ''}`}>
-            <div style={{ display:'flex', gap:6, alignItems:'center' }}>
-              <input
-                className="form-input"
-                type="number"
-                min="0"
-                step="any"
-                placeholder="Например: 2"
-                value={unitPrice}
-                onChange={e => handleUnitPriceChange(e.target.value)}
-                style={{ flex:1, minWidth:0 }}
-              />
-              <span style={{ fontSize:13, color:'var(--text-secondary)', flexShrink:0 }}>{currSym}</span>
-              {unitPrice && form.quantity && parseFloat(unitPrice) > 0 && parseFloat(form.quantity) > 0 && (
-                <div style={{
-                  display:'flex', alignItems:'center', gap:4, flexShrink:0,
-                  fontSize:12, color:'var(--text-muted)', background:'var(--bg-accent,#F2EDE4)',
-                  borderRadius:6, padding:'4px 8px',
-                }}>
-                  <span style={{ color:'var(--text-muted)' }}>{form.quantity} × {unitPrice} =</span>
-                  <span style={{ fontWeight:700, color:'var(--accent,var(--accent))' }}>
-                    {(parseFloat(form.quantity) * parseFloat(unitPrice)).toLocaleString()} {currSym}
-                  </span>
-                </div>
-              )}
-            </div>
-          </FormGroup>
-
-          <div className="form-grid-2">
-            <FormGroup label={t('tasks.assigneeLabel')}>
-              <select className="form-input" value={form.worker_id} onChange={set('worker_id')}>
-                <option value="">{t('tasks.unassigned')}</option>
-                {workers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+            <FormGroup label={`${t('tasks.projectLabel')} *`}>
+              <select className="form-input" value={form.project_id} onChange={set('project_id')}>
+                <option value="">—</option>
+                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </FormGroup>
             <FormGroup label={t('tasks.stageLabel')}>
@@ -297,14 +211,104 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
             </FormGroup>
           </div>
 
-          <FormGroup label="Итого за работу">
+          {/* ── What: title + details ── */}
+          <FormGroup label={`${t('tasks.titleLabel')} *`}>
+            <input
+              className="form-input"
+              placeholder={t('tasks.titlePlaceholder')}
+              value={form.text}
+              onChange={set('text')}
+              autoFocus
+            />
+          </FormGroup>
+
+          <FormGroup label={t('tasks.detailsLabel')}>
+            <textarea
+              className="form-input"
+              rows={3}
+              placeholder={t('tasks.detailsPlaceholder')}
+              value={form.description}
+              onChange={set('description')}
+              style={{ resize:'vertical', minHeight:64 }}
+            />
+          </FormGroup>
+
+          {/* ── Who & when: assignee + deadline ── */}
+          <div className="form-grid-2">
+            <FormGroup label={t('tasks.assigneeLabel')}>
+              <select className="form-input" value={form.worker_id} onChange={set('worker_id')}>
+                <option value="">{t('tasks.unassigned')}</option>
+                {workers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+              </select>
+            </FormGroup>
+            <FormGroup label={t('tasks.deadlineLabel')}>
+              <DatePicker value={form.deadline} onChange={v => setForm(f => ({ ...f, deadline: v }))} />
+            </FormGroup>
+          </div>
+
+          {/* ── Cost & volume — one contiguous block ── */}
+          <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em',
+            color:'var(--accent)', borderBottom:'1.5px solid var(--accent-border)',
+            paddingBottom:6, marginBottom:12, marginTop:16 }}>
+            {t('tasks.costSection')}
+          </div>
+
+          <div className="form-grid-2">
+            <FormGroup label={t('tasks.qtyLabel')}>
+              <input
+                className="form-input"
+                type="number"
+                min="0"
+                step="any"
+                placeholder={t('tasks.qtyPlaceholder')}
+                value={form.quantity}
+                onChange={e => handleQuantityChange(e.target.value)}
+              />
+            </FormGroup>
+            <FormGroup label={t('tasks.unitLabel')}>
+              <select className="form-input" value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}>
+                {UNIT_OPTIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+              </select>
+            </FormGroup>
+          </div>
+
+          {/* Unit price → auto-calc total */}
+          <FormGroup label={`${t('tasks.unitPriceLabel')}${form.unit ? ` (${form.unit})` : ''}`}>
             <div style={{ display:'flex', gap:6, alignItems:'center' }}>
               <input
                 className="form-input"
                 type="number"
                 min="0"
                 step="any"
-                placeholder="Считается автоматически или вручную"
+                placeholder={t('tasks.pricePlaceholder')}
+                value={unitPrice}
+                onChange={e => handleUnitPriceChange(e.target.value)}
+                style={{ flex:1, minWidth:0 }}
+              />
+              <span style={{ fontSize:13, color:'var(--text-secondary)', flexShrink:0 }}>{currSym}</span>
+              {unitPrice && form.quantity && parseFloat(unitPrice) > 0 && parseFloat(form.quantity) > 0 && (
+                <div style={{
+                  display:'flex', alignItems:'center', gap:4, flexShrink:0,
+                  fontSize:12, color:'var(--text-muted)', background:'var(--bg-accent,#F2EDE4)',
+                  borderRadius:6, padding:'4px 8px',
+                }}>
+                  <span style={{ color:'var(--text-muted)' }}>{form.quantity} × {unitPrice} =</span>
+                  <span style={{ fontWeight:700, color:'var(--accent,var(--accent))' }}>
+                    {(parseFloat(form.quantity) * parseFloat(unitPrice)).toLocaleString()} {currSym}
+                  </span>
+                </div>
+              )}
+            </div>
+          </FormGroup>
+
+          <FormGroup label={t('tasks.totalLabel')}>
+            <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+              <input
+                className="form-input"
+                type="number"
+                min="0"
+                step="any"
+                placeholder={t('tasks.totalPlaceholder')}
                 value={form.cost}
                 onChange={e => {
                   setForm(f => ({ ...f, cost: e.target.value }))
@@ -316,12 +320,8 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
               <span style={{ fontSize:13, color:'var(--text-secondary)', flexShrink:0 }}>{currSym}</span>
             </div>
             <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:4 }}>
-              Заполни «Цена за единицу» выше — сумма посчитается сама. Или введи итог вручную.
+              {t('tasks.totalHint')}
             </div>
-          </FormGroup>
-
-          <FormGroup label={t('tasks.deadlineLabel')}>
-            <DatePicker value={form.deadline} onChange={v => setForm(f => ({ ...f, deadline: v }))} />
           </FormGroup>
 
           {/* ── Media attachments ── */}

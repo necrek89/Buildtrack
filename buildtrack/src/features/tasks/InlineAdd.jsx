@@ -1,24 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { useT } from '../../i18n/useLanguage'
+import translations from '../../i18n/translations'
 import { useStore, currencySymbol } from '../../store/useStore'
 import { Plus, Check, X } from '@phosphor-icons/react'
 
-const UNIT_OPTIONS = [
-  { value: '',      label: '—' },
-  { value: 'шт',    label: 'шт' },
-  { value: 'пог.м', label: 'пог.м' },
-  { value: 'кв.м',  label: 'кв.м' },
-  { value: 'куб.м', label: 'куб.м' },
-  { value: 'м',     label: 'м' },
-  { value: 'кг',    label: 'кг' },
-  { value: 'т',     label: 'т' },
-  { value: 'л',     label: 'л' },
-  { value: 'ч',     label: 'ч' },
-  { value: 'компл', label: 'компл' },
-]
-
 export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
-  const { t }   = useT()
+  const { t, lang } = useT()
+  // Same unit list as TaskModal, compact display (short code only)
+  const UNIT_OPTIONS = (translations[lang]?.tasks?.units || translations.en.tasks.units)
+    .map(u => ({ value: u.value, label: u.value || '—' }))
   const profile  = useStore(s => s.profile)
   const currSym  = currencySymbol(profile?.currency)
 
@@ -134,7 +124,7 @@ export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
           value={qty}
           onChange={e => setQty(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="кол-во"
+          placeholder={t('tasks.qtyShort')}
           min="0"
           disabled={busy}
           style={{ ...inp, width:72, flexShrink:0 }}
@@ -157,7 +147,7 @@ export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
           value={unitPrice}
           onChange={e => setUnitPrice(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={`цена/${unit || 'ед'}`}
+          placeholder={`${t('tasks.priceShort')}/${unit || t('tasks.unitShort')}`}
           min="0"
           disabled={busy}
           style={{ ...inp, flex:1, minWidth:60 }}
@@ -179,7 +169,7 @@ export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
         <button
           onClick={submit}
           disabled={busy || !name.trim()}
-          title="Добавить (Enter)"
+          title={`${t('common.add')} (Enter)`}
           style={{
             flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center',
             background: name.trim() && !busy ? 'var(--accent,var(--accent))' : '#D1C8C0',
@@ -194,7 +184,7 @@ export default function QuickAddRow({ stage, onAdd, isOpen, onOpen, onClose }) {
 
         <button
           onClick={onClose}
-          title="Отмена (Esc)"
+          title={`${t('common.cancel')} (Esc)`}
           style={{
             flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center',
             background:'transparent',
