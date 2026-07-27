@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Badge, Button, StatCard, EmptyState } from '../../components/UI'
+import { Badge, Button, StatCard, EmptyState, Checkbox } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore, currencySymbol } from '../../store/useStore'
 import { supabase } from '../../lib/supabase'
 import AttendanceModal from '../../components/AttendanceModal'
 import { generateMonthlyReport, generateAnnualReport } from './SalaryReportGenerator'
-import { DownloadSimple, Phone, TelegramLogo, FileXls, CalendarBlank, ChartBar, CheckCircle, ClipboardText, Lightning, Wrench, Clock, Trash, CaretUp, CaretDown, File, X } from '@phosphor-icons/react'
+import { DownloadSimple, Phone, TelegramLogo, FileXls, CalendarBlank, ChartBar, CheckCircle, ClipboardText, Lightning, Wrench, Clock, Trash, CaretUp, CaretDown, File, X, Copy } from '@phosphor-icons/react'
 import * as XLSX from 'xlsx'
 import TimesheetModal from './TimesheetModal'
 import { todayStr } from '../../lib/date'
@@ -23,11 +23,13 @@ const STATUS_CYCLE = ['on_site', 'day_off', 'sick', 'vacation', 'other']
 // ─── TEAM ────────────────────────────────────────────────────────────────────
 export default function Team() {
   const { t, lang } = useT()
-  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, updateWorkerContact, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam, workLogs, fetchWorkLogs, addWorkLog, deleteWorkLog, updateMemberRate, attendance, payments, fetchPayments, addPayment, deletePayment } = useStore()
+  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, updateWorkerContact, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam, addWorkerToTeam, addWorkerToProject, workLogs, fetchWorkLogs, addWorkLog, deleteWorkLog, updateMemberRate, attendance, payments, fetchPayments, addPayment, deletePayment } = useStore()
   const [showInvite, setShowInvite] = useState(false)
   const [email, setEmail]           = useState('')
   const [loading, setLoading]       = useState(false)
   const [msg, setMsg]               = useState('')
+  const [selectedProjIds, setSelectedProjIds] = useState([]) // projects to also assign the new worker to
+  const [codeCopied, setCodeCopied] = useState(false)
   const [openId, setOpenId]         = useState(null)
   const [clientEmail,   setClientEmail]   = useState('')
   const [clientProjId,  setClientProjId]  = useState('')
@@ -62,25 +64,26 @@ export default function Team() {
     useStore.getState().fetchAttendance(todayStr())
   }, [])
 
+  const toggleInviteProject = (id) =>
+    setSelectedProjIds(ids => ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id])
+
   const invite = async () => {
     if (!email.trim()) return
     setLoading(true); setMsg('')
-    const allProjects = useStore.getState().projects
-    if (!allProjects.length) { setMsg('No project found'); setLoading(false); return }
-    const { data: worker, error } = await supabase
-      .from('profiles').select('id, name, role').eq('email', email.trim().toLowerCase()).single()
-    if (error || !worker) { setMsg('User not found. Ask them to register first.'); setLoading(false); return }
-    const inserts = allProjects.map(p => ({ project_id: p.id, worker_id: worker.id }))
-    const { data: added, error: e2 } = await supabase.from('project_workers')
-      .upsert(inserts, { onConflict: 'project_id,worker_id', ignoreDuplicates: true })
-      .select()
-    if (e2) {
-      setMsg('Error adding worker')
-    } else {
-      setMsg(added?.length ? `${worker.name} added!` : 'Worker already in team')
-      fetchAllWorkers(); setEmail('')
-    }
+    const { error, id, name } = await addWorkerToTeam(email.trim())
+    if (error) { setMsg(error); setLoading(false); return }
+    for (const pid of selectedProjIds) await addWorkerToProject(id, pid)
+    setMsg(`${name} added!`)
+    fetchAllWorkers(); setEmail(''); setSelectedProjIds([])
     setLoading(false)
+  }
+
+  const copyInviteLink = () => {
+    const link = `${window.location.origin}/app?join=${profile?.invite_code || ''}`
+    navigator.clipboard.writeText(link).then(() => {
+      setCodeCopied(true)
+      setTimeout(() => setCodeCopied(false), 2000)
+    })
   }
 
   const inviteClient = async () => {
@@ -350,8 +353,29 @@ export default function Team() {
       {profile?.role === 'foreman' && showInvite && (
         <div className="card card-body" style={{ marginBottom:12 }}>
 
-          {/* Рабочий по email */}
+          {/* Приглашение по коду */}
           <div style={{ paddingBottom:14, borderBottom:'1px solid var(--border-medium)' }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'var(--text-secondary)', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
+              {t('team.codeMethod')}
+            </div>
+            <div style={{ fontSize:12, color:'var(--text-secondary)', marginBottom:8 }}>{t('team.codeDesc')}</div>
+            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+              <div style={{
+                flex:1, fontFamily:'monospace', fontSize:14, fontWeight:700, letterSpacing:'.04em',
+                padding:'8px 12px', borderRadius:8, background:'var(--bg-subtle)',
+                border:'0.5px solid var(--border-medium)', color:'var(--text-primary)',
+                overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+              }}>
+                {profile?.invite_code || '—'}
+              </div>
+              <Button variant="primary" size="sm" onClick={copyInviteLink}>
+                {codeCopied ? t('team.copied') : <><Copy size={13} weight="bold" style={{ marginRight:4, verticalAlign:-2 }} />{t('team.copyCode')}</>}
+              </Button>
+            </div>
+          </div>
+
+          {/* Рабочий по email */}
+          <div style={{ paddingBottom:14, paddingTop:14, borderBottom:'1px solid var(--border-medium)' }}>
             <div style={{ fontSize:12, fontWeight:700, color:'var(--text-secondary)', marginBottom:6, textTransform:'uppercase', letterSpacing:'.06em' }}>
               {t('team.emailMethod')}
             </div>
@@ -362,6 +386,19 @@ export default function Team() {
                 onKeyDown={e => e.key==='Enter' && invite()} style={{ flex:1 }} />
               <Button variant="primary" size="sm" onClick={invite} disabled={loading}>{loading ? '...' : t('common.add')}</Button>
             </div>
+            {projects.length > 0 && (
+              <div style={{ marginTop:10 }}>
+                <div style={{ fontSize:11, color:'var(--text-muted)', marginBottom:6 }}>{t('team.assignToProjects')}</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                  {projects.map(p => (
+                    <label key={p.id} style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:'var(--text-primary)', cursor:'pointer' }}>
+                      <Checkbox checked={selectedProjIds.includes(p.id)} onChange={() => toggleInviteProject(p.id)} />
+                      {p.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
             {msg && (
               <div style={{ marginTop:8, fontSize:12, padding:'6px 10px', borderRadius:6, background: msg.includes('added') || msg.includes('!') ? 'var(--success-bg)' : 'var(--danger-bg)', color: msg.includes('added') || msg.includes('!') ? 'var(--success)' : 'var(--danger)' }}>
                 {msg}
