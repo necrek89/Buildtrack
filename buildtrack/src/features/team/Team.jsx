@@ -5,7 +5,7 @@ import { useStore, currencySymbol } from '../../store/useStore'
 import { supabase } from '../../lib/supabase'
 import AttendanceModal from '../../components/AttendanceModal'
 import { generateMonthlyReport, generateAnnualReport } from './SalaryReportGenerator'
-import { DownloadSimple, Phone, TelegramLogo, FileXls, CalendarBlank, ChartBar, CheckCircle, ClipboardText, Lightning, Wrench, Clock, Trash, CaretUp, CaretDown, File, X, Copy } from '@phosphor-icons/react'
+import { DownloadSimple, Phone, TelegramLogo, FileXls, CalendarBlank, ChartBar, CheckCircle, ClipboardText, Lightning, Wrench, Clock, Trash, CaretUp, CaretDown, File, X, Copy, Plus } from '@phosphor-icons/react'
 import * as XLSX from 'xlsx'
 import TimesheetModal from './TimesheetModal'
 import { todayStr } from '../../lib/date'
@@ -23,7 +23,7 @@ const STATUS_CYCLE = ['on_site', 'day_off', 'sick', 'vacation', 'other']
 // ─── TEAM ────────────────────────────────────────────────────────────────────
 export default function Team() {
   const { t, lang } = useT()
-  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, updateWorkerContact, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam, addWorkerToTeam, addWorkerToProject, workLogs, fetchWorkLogs, addWorkLog, deleteWorkLog, updateMemberRate, attendance, payments, fetchPayments, addPayment, deletePayment } = useStore()
+  const { team, projects, tasks, tools, fetchProjects, fetchAllWorkers, updateWorkerStatus, updateWorkerContact, profile, joinRequests, fetchJoinRequests, approveJoinRequest, rejectJoinRequest, addClientToProject, addManagerToTeam, addWorkerToTeam, addWorkerToProject, removeWorkerFromProject, workLogs, fetchWorkLogs, addWorkLog, deleteWorkLog, updateMemberRate, attendance, payments, fetchPayments, addPayment, deletePayment } = useStore()
   const [showInvite, setShowInvite] = useState(false)
   const [email, setEmail]           = useState('')
   const [loading, setLoading]       = useState(false)
@@ -51,6 +51,7 @@ export default function Team() {
   const [showPayForm, setShowPayForm] = useState(null) // workerId
   const [contactEditId, setContactEditId] = useState(null) // workerId
   const [contactForm, setContactForm] = useState({}) // keyed by workerId
+  const [projPickerId, setProjPickerId] = useState(null) // workerId with the "add to project" picker open
   const now = new Date()
   const [reportMonth, setReportMonth] = useState(now.getMonth() + 1)
   const [reportYear,  setReportYear]  = useState(now.getFullYear())
@@ -679,14 +680,47 @@ export default function Team() {
                   {/* Projects */}
                   <div style={{ marginBottom:10 }}>
                     <div style={{ fontSize:10, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:5 }}>{t('team.projectsHeader')}</div>
-                    {workerProjects.length === 0
-                      ? <span style={{ fontSize:11, color:'var(--text-muted)' }}>{t('common.none')}</span>
-                      : <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
-                          {workerProjects.map(p => (
-                            <span key={p.id} style={{ fontSize:11, fontWeight:600, background:'var(--accent-light,var(--accent-light))', color:'var(--accent)', borderRadius:8, padding:'3px 10px' }}>{p.name}</span>
-                          ))}
-                        </div>
-                    }
+                    <div style={{ display:'flex', gap:5, flexWrap:'wrap', alignItems:'center' }}>
+                      {workerProjects.map(p => (
+                        <span key={p.id} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, fontWeight:600, background:'var(--accent-light,var(--accent-light))', color:'var(--accent)', borderRadius:8, padding:'3px 6px 3px 10px' }}>
+                          {p.name}
+                          <button
+                            onClick={async (e) => { e.stopPropagation(); await removeWorkerFromProject(p.id, m.id); fetchAllWorkers() }}
+                            title={t('team.removeFromProject')}
+                            style={{ background:'none', border:'none', cursor:'pointer', color:'var(--accent)', opacity:0.6, padding:0, display:'flex', alignItems:'center' }}
+                          ><X size={10} weight="bold" /></button>
+                        </span>
+                      ))}
+                      {workerProjects.length === 0 && (
+                        <span style={{ fontSize:11, color:'var(--text-muted)' }}>{t('common.none')}</span>
+                      )}
+                      <div style={{ position:'relative' }}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setProjPickerId(projPickerId === m.id ? null : m.id) }}
+                          style={{ display:'flex', alignItems:'center', gap:3, fontSize:11, fontWeight:600, background:'none', border:'1px dashed var(--border-medium)', color:'var(--text-secondary)', borderRadius:8, padding:'3px 8px', cursor:'pointer' }}
+                        >
+                          <Plus size={10} weight="bold" />{t('team.addToProjectBtn')}
+                        </button>
+                        {projPickerId === m.id && (
+                          <div
+                            onClick={e => e.stopPropagation()}
+                            style={{ position:'absolute', top:'calc(100% + 4px)', left:0, zIndex:20, background:'var(--surface,#fff)', border:'1px solid var(--border-medium)', borderRadius:10, boxShadow:'0 6px 20px rgba(0,0,0,0.12)', minWidth:170, maxHeight:220, overflowY:'auto', padding:6 }}
+                          >
+                            {projects.filter(p => !workerProjects.some(wp => wp.id === p.id)).length === 0 ? (
+                              <div style={{ fontSize:11, color:'var(--text-muted)', padding:'6px 8px' }}>{t('team.allProjectsAssigned')}</div>
+                            ) : projects.filter(p => !workerProjects.some(wp => wp.id === p.id)).map(p => (
+                              <div
+                                key={p.id}
+                                onClick={async () => { await addWorkerToProject(m.id, p.id); fetchAllWorkers(); setProjPickerId(null) }}
+                                style={{ fontSize:12, padding:'6px 8px', borderRadius:6, cursor:'pointer', color:'var(--text-primary)' }}
+                                onMouseEnter={e => e.currentTarget.style.background='var(--bg-subtle)'}
+                                onMouseLeave={e => e.currentTarget.style.background='transparent'}
+                              >{p.name}</div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Tools */}
