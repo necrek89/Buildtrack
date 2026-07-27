@@ -351,7 +351,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
         <div style={{ display:'flex', alignItems:'center', gap:10, paddingBottom:14, borderBottom:'1.5px solid var(--border-medium)', flexShrink:0 }}>
           <div style={{ background:'var(--accent)', color:'#fff', fontSize:11, fontWeight:800,
             letterSpacing:'.1em', padding:'3px 10px', borderRadius:6, textTransform:'uppercase' }}>
-            Invoice
+            {t('invoice.badgeLabel')}
           </div>
           <div style={{ flex:1, fontSize:15, fontWeight:700, color:'var(--text-primary)' }}>
             {proj.name}
@@ -386,7 +386,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
               ) : (
                 <>
                   <div style={{ fontSize:13, color:'#6B7280', marginBottom:16, lineHeight:1.5 }}>
-                    Выберите этапы для включения в счёт. Можно выставить промежуточный счёт только за завершённые этапы.
+                    {t('invoice.stageSelectDesc')}
                   </div>
 
                   {/* Select all / none */}
@@ -395,12 +395,12 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                       style={{ padding:'4px 12px', borderRadius:6, border:'1.5px solid var(--accent-border)',
                         background: allSelected ? 'var(--accent)' : 'var(--accent-light)', color: allSelected ? '#fff' : 'var(--accent)',
                         fontSize:12, fontWeight:600, cursor:'pointer' }}>
-                      Все этапы
+                      {t('invoice.selectAllStages')}
                     </button>
                     <button onClick={() => setSelectedStages(new Set())}
                       style={{ padding:'4px 12px', borderRadius:6, border:'1.5px solid var(--border-medium)',
                         background:'var(--bg-subtle)', color:'#7A6E66', fontSize:12, fontWeight:600, cursor:'pointer' }}>
-                      Снять всё
+                      {t('invoice.deselectAllStages')}
                     </button>
                   </div>
 
@@ -435,17 +435,17 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                           <div style={{ flex:1, minWidth:0 }}>
                             <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                               <span style={{ fontSize:14, fontWeight:700, color: checked ? 'var(--accent-hover)' : '#2E2420' }}>
-                                {stage === '—' ? 'Без этапа' : stage}
+                                {stage === '—' ? t('invoice.noStage') : stage}
                               </span>
                               {wasInvoiced && (
                                 <span style={{ fontSize:10, background:'var(--warning-bg)', color:'var(--warning)',
                                   border:'1px solid var(--warning-bg)', borderRadius:5, padding:'1px 6px', fontWeight:600 }}>
-                                  уже выставлялся
+                                  {t('invoice.alreadyInvoiced')}
                                 </span>
                               )}
                             </div>
                             <div style={{ fontSize:12, color:'#6B7280', marginTop:2 }}>
-                              {info.count} {info.count === 1 ? 'задача' : 'задач'} · {fmtMoney(info.total, info.currency)}
+                              {info.count} {t('invoice.tasksWord')} · {fmtMoney(info.total, info.currency)}
                             </div>
                           </div>
 
@@ -466,10 +466,10 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                       borderRadius:12, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                       <div>
                         <div style={{ fontSize:11, color:'var(--text-muted)', fontWeight:600, marginBottom:2 }}>
-                          {isPartial ? <><File size={11} weight="bold" /> Промежуточный счёт</> : <><ClipboardText size={11} weight="bold" /> Полный счёт</>}
+                          {isPartial ? <><File size={11} weight="bold" /> {t('invoice.partialLabel')}</> : <><ClipboardText size={11} weight="bold" /> {t('invoice.badgeLabel')}</>}
                         </div>
                         <div style={{ fontSize:12, color:'var(--text-secondary)' }}>
-                          {selectedTasks.length} позиций · {selectedStages.size} из {stageList.length} этапов
+                          {selectedTasks.length} {t('invoice.itemsWord')} · {selectedStages.size}/{stageList.length} {t('invoice.stagesWord')}
                         </div>
                       </div>
                       <div style={{ fontSize:20, fontWeight:800, color:'#fff' }}>
@@ -482,7 +482,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                   {history.length > 0 && (
                     <div style={{ marginTop:20 }}>
                       <div style={{ fontSize:11, fontWeight:700, color:'#6B7280', textTransform:'uppercase',
-                        letterSpacing:'.06em', marginBottom:8 }}>История счетов по объекту</div>
+                        letterSpacing:'.06em', marginBottom:8 }}>{t('invoice.historyTitle')}</div>
                       <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                         {history.map((h, i) => (
                           <div key={i} style={{ display:'flex', alignItems:'center', gap:10,
@@ -492,7 +492,7 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                             <div style={{ flex:1, minWidth:0 }}>
                               <div style={{ fontWeight:600, color:'var(--accent-hover)' }}>{h.invoiceNumber}</div>
                               <div style={{ color:'#6B7280', fontSize:11 }}>
-                                {fmtDate(h.date)} · {(h.stages || []).join(', ') || 'Все этапы'}
+                                {fmtDate(h.date)} · {(h.stages || []).join(', ') || t('invoice.selectAllStages')}
                               </div>
                             </div>
                             <div style={{ fontWeight:700, color:'var(--text-primary)', flexShrink:0 }}>
@@ -516,10 +516,10 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
               <div style={{ margin:'8px 0 4px', padding:'10px 14px', background:'var(--accent-light)',
                 borderRadius:10, border:'1px solid var(--accent-border)', fontSize:12 }}>
                 <div style={{ fontWeight:700, color:'var(--accent-hover)', marginBottom:4 }}>
-                  <span style={{ display:'flex', alignItems:'center', gap:5 }}>{isPartial ? <><File size={11} weight="bold" /> Промежуточный счёт</> : <><ClipboardText size={11} weight="bold" /> Полный счёт</>}</span> · {fmtMoney(subtotal, currency)}
+                  <span style={{ display:'flex', alignItems:'center', gap:5 }}>{isPartial ? <><File size={11} weight="bold" /> {t('invoice.partialLabel')}</> : <><ClipboardText size={11} weight="bold" /> {t('invoice.badgeLabel')}</>}</span> · {fmtMoney(subtotal, currency)}
                 </div>
                 <div style={{ color:'#374151' }}>
-                  Этапы: {selectedStageNames.map(s => s === '—' ? 'Без этапа' : s).join(', ')}
+                  {t('invoice.stagesLabel')} {selectedStageNames.map(s => s === '—' ? t('invoice.noStage') : s).join(', ')}
                 </div>
               </div>
 
@@ -600,11 +600,11 @@ export default function InvoiceModal({ proj, tasks, onClose }) {
                 <div style={{ textAlign:'right' }}>
                   <div style={{ background:'#EA580C', fontSize:12, fontWeight:800, letterSpacing:'.08em',
                     padding:'3px 12px', borderRadius:5, textTransform:'uppercase', marginBottom:4 }}>
-                    {isPartial ? 'Partial Invoice' : 'Invoice'}
+                    {isPartial ? t('invoice.partialLabel') : t('invoice.badgeLabel')}
                   </div>
                   {isPartial && (
                     <div style={{ fontSize:10, color:'#9CA3AF', marginBottom:4 }}>
-                      {selectedStageNames.map(s => s === '—' ? 'No stage' : s).join(', ')}
+                      {selectedStageNames.map(s => s === '—' ? t('invoice.noStage') : s).join(', ')}
                     </div>
                   )}
                   <div style={{ fontSize:11, color:'#D1D5DB', lineHeight:1.8 }}>
