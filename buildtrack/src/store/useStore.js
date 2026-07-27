@@ -44,6 +44,8 @@ export const useStore = create((set, get) => ({
   notifications: [],
   activityLog: [],
   joinRequests: [],
+  roster: [], // foreman's full crew across all projects — kept separate from `team`
+             // (which holds whichever single project/context was last fetched)
   materials: [],
   materialRequests: [],
   documents: [],
@@ -306,8 +308,10 @@ export const useStore = create((set, get) => ({
     return workers
   },
 
-  // Fetch all unique workers across all foreman's projects, with project membership
-  fetchAllWorkers: async () => {
+  // Shared query behind fetchAllWorkers/fetchRoster: every worker across the
+  // foreman's projects (Source 1) plus approved join_requests (Source 2 —
+  // catches crew members who joined but aren't assigned to any project yet)
+  _buildRoster: async () => {
     const { profile, projects } = get()
     const map = {}
 
@@ -346,8 +350,22 @@ export const useStore = create((set, get) => ({
       }
     }
 
-    const workers = Object.values(map)
+    return Object.values(map)
+  },
+
+  // Fetch all unique workers across all foreman's projects, with project membership
+  fetchAllWorkers: async () => {
+    const workers = await get()._buildRoster()
     set({ team: workers })
+    return workers
+  },
+
+  // Same data as fetchAllWorkers, written to `roster` instead of `team` — lets a
+  // project-scoped view (ProjectTeamTab) keep `team` as just that project's
+  // members while still having the full crew available to pick from when adding.
+  fetchRoster: async () => {
+    const workers = await get()._buildRoster()
+    set({ roster: workers })
     return workers
   },
 
@@ -356,6 +374,38 @@ export const useStore = create((set, get) => ({
   removeWorkerFromProject: async (projectId, workerId) => {
     await supabase.from('project_workers').delete().eq('project_id', projectId).eq('worker_id', workerId)
     set(s => ({ team: s.team.filter(m => m.id !== workerId) }))
+  },
+
+  // Add a worker to the foreman's crew without assigning them to any project yet
+  // (via an approved join_requests row — the same relationship a worker gets by
+  // sending a join request and having it accepted). Assign to actual project(s)
+  // separately with addWorkerToProject.
+  addWorkerToTeam: async (email) => {
+    const { profile } = get()
+    const { data: worker, error } = await supabase
+      .from('profiles').select('id, name, role').eq('email', email.trim().toLowerCase()).single()
+    if (error || !worker) return { error: 'User not found. Ask them to register first.' }
+    if (worker.role !== 'worker') return { error: 'This user is not registered as a Worker.' }
+    const { error: insErr } = await supabase.from('join_requests')
+      .insert({ foreman_id: profile.id, worker_id: worker.id, status: 'approved' })
+    if (insErr) {
+      if (insErr.code === '23505') {
+        // Already linked (pending request or previously approved) — make sure it's approved
+        await supabase.from('join_requests').update({ status: 'approved' })
+          .eq('foreman_id', profile.id).eq('worker_id', worker.id)
+      } else {
+        return { error: insErr.message }
+      }
+    }
+    get().logActivity({ action_type: 'worker_joined', entity_name: worker.name, entity_id: worker.id })
+    return { error: null, id: worker.id, name: worker.name }
+  },
+
+  // Assign an existing crew member (or anyone with a profile) to one specific project
+  addWorkerToProject: async (workerId, projectId) => {
+    const { error } = await supabase.from('project_workers').insert({ project_id: projectId, worker_id: workerId })
+    if (error) return { error: error.code === '23505' ? 'Already on this project.' : error.message }
+    return { error: null }
   },
 
   // Update a profiles row and patch the matching entry in the local team array
@@ -410,16 +460,13 @@ export const useStore = create((set, get) => ({
     set({ joinRequests: data || [] })
   },
 
-  // Прораб одобряет заявку
+  // Прораб одобряет заявку — только присоединяет к бригаде, без привязки к
+  // проектам. Прораб назначает на конкретные проекты отдельно, через
+  // "+ Add" на вкладке Team внутри каждого проекта.
   approveJoinRequest: async (requestId, workerId) => {
-    const { projects, joinRequests, profile } = get()
+    const { joinRequests, profile } = get()
     const req = joinRequests.find(r => r.id === requestId)
     const workerName = req?.worker?.name || 'Unknown'
-    const workerRole = req?.worker?.role
-
-    // И менеджер, и рабочий добавляются во все проекты прораба
-    const inserts = projects.map(p => ({ project_id: p.id, worker_id: workerId }))
-    if (inserts.length) await supabase.from('project_workers').insert(inserts)
 
     await supabase.from('join_requests').update({ status: 'approved' }).eq('id', requestId)
     set(s => ({ joinRequests: s.joinRequests.filter(r => r.id !== requestId) }))
