@@ -186,8 +186,8 @@ export default function TaskCard({ t, openId, setOpenId, onEdit, onDelete, onApp
             {t.text}
           </div>
           <div style={{ display:'flex', flexWrap:'wrap', gap:4, alignItems:'center' }}>
-            {t.stage    && <Badge variant="gray">{t.stage}</Badge>}
-            {t.zone     && <Badge variant="blue">{t.zone}</Badge>}
+            {t.stage && t.stage !== '—' && <Badge variant="gray">{t.stage}</Badge>}
+            {t.zone  && t.zone  !== '—' && <Badge variant="blue">{t.zone}</Badge>}
             {t.quantity != null && t.unit && (
               <span style={{ fontSize:10, background:'var(--info-bg)', color:'var(--info)', borderRadius:5, padding:'1px 6px', fontWeight:600 }}>
                 {t.quantity} {t.unit}
