@@ -615,15 +615,17 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
           </button>
         ))}
         {canEdit && groupBy !== 'flat' && !addingGroup && (
+          // Same footprint as the "+ Task" button (.btn.btn-primary.btn-sm:
+          // 11px / 5px 10px / 8px radius) so neither reads as more important.
           <button
             onClick={() => setAddingGroup(true)}
             style={{
-              marginLeft:'auto', display:'flex', alignItems:'center', gap:5,
-              background:'none', border:'1.5px solid var(--accent,#EA580C)', borderRadius:9,
-              padding:'6px 13px', cursor:'pointer', fontSize:12, fontWeight:600, color:'var(--accent,#EA580C)',
+              marginLeft:'auto', display:'flex', alignItems:'center', gap:4,
+              background:'none', border:'1px solid var(--accent,#EA580C)', borderRadius:8,
+              padding:'5px 10px', cursor:'pointer', fontSize:11, fontWeight:500, color:'var(--accent,#EA580C)',
             }}
           >
-            <span style={{ fontSize:15, lineHeight:1 }}>＋</span> {groupBy === 'zone' ? t('tasks.addZone') : t('tasks.addStage')}
+            <span style={{ fontSize:13, lineHeight:1 }}>＋</span> {groupBy === 'zone' ? t('tasks.addZone') : t('tasks.addStage')}
           </button>
         )}
       </div>
