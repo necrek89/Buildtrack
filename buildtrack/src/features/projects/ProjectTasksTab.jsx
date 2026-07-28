@@ -609,24 +609,21 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
             key={field}
             className={`filter-btn ${groupBy === field ? 'active' : ''}`}
             onClick={() => setGroupByAndPersist(field)}
-            style={{ fontSize:12, padding:'6px 13px' }}
           >
             {field === 'flat' ? t('tasks.viewAll') : field === 'stage' ? t('tasks.groupByStage') : t('tasks.groupByZone')}
           </button>
         ))}
         {canEdit && groupBy !== 'flat' && !addingGroup && (
-          // Same footprint as the "+ Task" button (.btn.btn-primary.btn-sm:
-          // 11px / 5px 10px / 8px radius) so neither reads as more important.
-          <button
+          // Literally the same <Button size="sm"> used for "+ Task" — same
+          // classes, so the box (padding/font/radius) is guaranteed
+          // identical; only color is overridden to keep it visually secondary.
+          <Button
+            size="sm"
             onClick={() => setAddingGroup(true)}
-            style={{
-              marginLeft:'auto', display:'flex', alignItems:'center', gap:4,
-              background:'none', border:'1px solid var(--accent,#EA580C)', borderRadius:8,
-              padding:'5px 10px', cursor:'pointer', fontSize:11, fontWeight:500, color:'var(--accent,#EA580C)',
-            }}
+            style={{ marginLeft:'auto', color:'var(--accent,#EA580C)', borderColor:'var(--accent,#EA580C)' }}
           >
-            <span style={{ fontSize:13, lineHeight:1 }}>＋</span> {groupBy === 'zone' ? t('tasks.addZone') : t('tasks.addStage')}
-          </button>
+            + {groupBy === 'zone' ? t('tasks.addZone') : t('tasks.addStage')}
+          </Button>
         )}
       </div>
 
@@ -650,8 +647,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
       {/* ── Filter chips ── */}
       <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:10 }}>
         {['all','active','pending','done'].map(f => (
-          <button key={f} className={`filter-btn ${filter===f?'active':''}`} onClick={() => setFilter(f)}
-            style={{ fontSize:12, padding:'6px 13px' }}>
+          <button key={f} className={`filter-btn ${filter===f?'active':''}`} onClick={() => setFilter(f)}>
             {f === 'all'     ? `${t('tasks.filterAll')} (${pTasks.length})` :
              f === 'active'  ? t('tasks.filterActive') :
              f === 'pending' ? `${t('tasks.filterReview')} (${pTasks.filter(t=>t.status==='pending').length})` : t('tasks.filterDone')}

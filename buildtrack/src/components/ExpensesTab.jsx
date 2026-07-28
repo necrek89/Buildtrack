@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { CalendarBlank, PencilSimple, Trash, CaretUp, CaretDown, X } from '@phosphor-icons/react'
 import { useStore, currencySymbol } from '../store/useStore'
 import { useT } from '../i18n/useLanguage'
-import { EmptyState } from './UI'
+import { Button, EmptyState } from './UI'
 import AddExpenseModal, { CATEGORY_ICONS } from './AddExpenseModal'
 
 function fmtMoney(amount, currency = 'USD') {
@@ -254,13 +254,7 @@ export default function ExpensesTab({ proj, canEdit = true }) {
           </div>
         </div>
         {canEdit && (
-          <button onClick={() => setShowAdd(true)} style={{
-            padding: '8px 14px', borderRadius: 10, border: 'none',
-            background: 'var(--accent)', color: '#fff', fontSize: 13,
-            fontWeight: 700, cursor: 'pointer', flexShrink: 0,
-          }}>
-            + {t('expenses.addBtn')}
-          </button>
+          <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>+ {t('expenses.addBtn')}</Button>
         )}
       </div>
 

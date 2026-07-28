@@ -58,9 +58,9 @@ export function Badge({ variant = 'gray', children }) {
 }
 
 // Button
-export function Button({ variant = 'default', size = 'md', onClick, children, type = 'button', disabled = false }) {
+export function Button({ variant = 'default', size = 'md', onClick, children, type = 'button', disabled = false, style }) {
   const cls = ['btn', variant === 'primary' ? 'btn-primary' : variant === 'danger' ? 'btn-danger' : '', size === 'sm' ? 'btn-sm' : ''].join(' ')
-  return <button className={cls} onClick={onClick} type={type} disabled={disabled}>{children}</button>
+  return <button className={cls} onClick={onClick} type={type} disabled={disabled} style={style}>{children}</button>
 }
 
 // Icon button (edit / delete)
