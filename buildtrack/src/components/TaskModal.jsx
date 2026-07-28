@@ -143,6 +143,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
     worker_id:   task?.worker_id   || '',
     stage:       task?.stage       || '',
     zone:        task?.zone        || '',
+    start_date:  task?.start_date  || '',
     deadline:    task?.deadline    || '',
     quantity:    task?.quantity    || '',
     unit:        task?.unit        || '',
@@ -164,7 +165,7 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
   // required) and starts open when editing a task that already has any of
   // this data, so the user isn't forced to tap just to see what's there.
   const [expanded, setExpanded] = useState(() =>
-    isEdit && !!(task.stage || task.zone || task.worker_id || task.deadline || task.quantity || task.unit || task.cost)
+    isEdit && !!(task.stage || task.zone || task.worker_id || task.start_date || task.deadline || task.quantity || task.unit || task.cost)
   )
 
   const currentProj = projects.find(p => p.id === form.project_id)
@@ -258,8 +259,9 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
     setSaveError(null)
     const payload = {
       ...form,
-      worker_id: form.worker_id || null,
-      deadline:  form.deadline  || null,
+      worker_id:  form.worker_id  || null,
+      start_date: form.start_date || null,
+      deadline:   form.deadline   || null,
       photo_url: mediaUrls.join(',') || null,
       quantity:  form.quantity ? parseFloat(form.quantity) : null,
       unit:      form.unit || null,
@@ -384,18 +386,24 @@ export default function TaskModal({ task, onClose, defaultProjectId }) {
                 </FormGroup>
               </div>
 
-              {/* ── Who & when: assignee + deadline ── */}
+              {/* ── When: start + deadline (deadline doubles as the end date
+                   for the crew Schedule view) ── */}
               <div className="form-grid-2">
-                <FormGroup label={t('tasks.assigneeLabel')}>
-                  <select className="form-input" value={form.worker_id} onChange={set('worker_id')}>
-                    <option value="">{t('tasks.unassigned')}</option>
-                    {workers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                  </select>
+                <FormGroup label={t('tasks.startDateLabel')}>
+                  <DatePicker value={form.start_date} onChange={v => setForm(f => ({ ...f, start_date: v }))} />
                 </FormGroup>
                 <FormGroup label={t('tasks.deadlineLabel')}>
                   <DatePicker value={form.deadline} onChange={v => setForm(f => ({ ...f, deadline: v }))} />
                 </FormGroup>
               </div>
+
+              {/* ── Who: assignee ── */}
+              <FormGroup label={t('tasks.assigneeLabel')}>
+                <select className="form-input" value={form.worker_id} onChange={set('worker_id')}>
+                  <option value="">{t('tasks.unassigned')}</option>
+                  {workers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                </select>
+              </FormGroup>
 
               {/* ── Cost & volume — one contiguous block ── */}
               <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em',

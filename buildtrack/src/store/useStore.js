@@ -165,7 +165,7 @@ export const useStore = create((set, get) => ({
   fetchTasks: async (projectId) => {
     const { role, projects } = get()
     let query = supabase.from('tasks').select(`
-      id, text, description, status, priority, stage, zone, deadline,
+      id, text, description, status, priority, stage, zone, start_date, deadline,
       photo_url, reject_comment, worker_id, project_id,
       quantity, unit, cost, currency,
       worker:profiles(id, name)
