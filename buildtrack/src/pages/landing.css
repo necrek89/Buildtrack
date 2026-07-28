@@ -597,12 +597,10 @@
   box-shadow: 0 32px 80px rgba(0,0,0,0.5);
 }
 .ldg .ld-lb-clip {
-  /* width/height set inline from JS (see lightboxDims in LandingPage.jsx) —
-     no CSS aspect-ratio here, so there's nothing for WebKit to disagree
-     with Chromium about */
-  border-radius: 24px; overflow: hidden; background: #F4EFE8;
+  width: min(320px, 78vw);
+  border-radius: 24px; overflow: hidden; background: #F4EFE8; line-height: 0;
 }
-.ldg .ld-lb-clip .mscr { transform-origin: top left }
+.ldg .ld-lb-img { display: block; width: 100%; height: auto }
 .ldg .ld-lb-dots { display: flex; gap: 8px; margin-top: 18px }
 .ldg .ld-lb-dot {
   width: 8px; height: 8px; border-radius: 50%; border: none; padding: 0;
@@ -631,9 +629,3 @@
   .ldg .ld-lb-close { width: 36px; height: 36px }
   .ldg .ld-lb-arrow { width: 40px; height: 40px }
 }
-
-/* The task-card entrance animation (up to a 1.7s delay) is meant for the
-   one-time page-load reveal — the lightbox mounts a fresh copy of the same
-   markup, which would otherwise replay it and sit blank for over a second
-   every time it opens. */
-.ldg .ld-lb-clip .m-card { animation: none; opacity: 1; transform: none }
