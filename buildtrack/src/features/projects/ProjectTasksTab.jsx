@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase'
 import TaskModal from '../../components/TaskModal'
 import ConfirmModal from '../../components/ConfirmModal'
 import { SortableStageList } from '../tasks/SortableStage'
+import TaskCard from '../tasks/TaskCard'
 import { FileText, UploadSimple, DownloadSimple, Printer, ChatCircle, Wrench, X } from '@phosphor-icons/react'
 import * as XLSX from 'xlsx'
 import { todayStr } from '../../lib/date'
@@ -32,7 +33,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
   const [openId,       setOpenId]       = useState(null)
   const [openStages,   setOpenStages]   = useState({})
   const [openZones,    setOpenZones]    = useState({})
-  const [groupBy,      setGroupBy]      = useState(() => localStorage.getItem(`tutuu_groupby_${proj.id}`) || 'stage')
+  const [groupBy,      setGroupBy]      = useState(() => localStorage.getItem(`tutuu_groupby_${proj.id}`) || 'flat')
   const [newGroupName, setNewGroupName] = useState('')
   const [addingGroup,  setAddingGroup]  = useState(false)
   const [importPreview, setImportPreview] = useState(null) // [{text,stage,zone,unit,quantity,cost,currency}]
@@ -43,6 +44,9 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
   const setGroupByAndPersist = (next) => {
     setGroupBy(next)
     localStorage.setItem(`tutuu_groupby_${proj.id}`, next)
+    // Adding a stage/zone only makes sense in that axis's own view
+    setAddingGroup(false)
+    setNewGroupName('')
   }
 
   const pTasks    = tasks.filter(t => t.project_id === proj.id)
@@ -394,8 +398,9 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
       })
     }
 
-    // Print whatever grouping is currently on screen
-    const printGroups = buildGroups(pTasks, groupBy)
+    // Print whatever grouping is currently on screen — the flat view has no
+    // axis of its own, so printing falls back to grouping by stage.
+    const printGroups = buildGroups(pTasks, groupBy === 'flat' ? 'stage' : groupBy)
       .filter(g => g.items.length > 0)
       .map((g, i) => ({ ...g, num: i + 1 }))
 
@@ -596,19 +601,49 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
         )}
       </div>
 
-      {/* ── Group-by axis toggle ── */}
-      <div style={{ display:'flex', gap:5, marginBottom:8 }}>
-        {['stage', 'zone'].map(field => (
+      {/* ── Group-by axis toggle + add-stage/zone (moved up here so it sits
+           next to "+ Task" instead of buried below a long card list) ── */}
+      <div style={{ display:'flex', gap:5, marginBottom:8, alignItems:'center', flexWrap:'wrap' }}>
+        {['flat', 'stage', 'zone'].map(field => (
           <button
             key={field}
             className={`filter-btn ${groupBy === field ? 'active' : ''}`}
             onClick={() => setGroupByAndPersist(field)}
             style={{ fontSize:11, padding:'4px 10px' }}
           >
-            {field === 'stage' ? t('tasks.groupByStage') : t('tasks.groupByZone')}
+            {field === 'flat' ? t('tasks.viewAll') : field === 'stage' ? t('tasks.groupByStage') : t('tasks.groupByZone')}
           </button>
         ))}
+        {canEdit && groupBy !== 'flat' && !addingGroup && (
+          <button
+            onClick={() => setAddingGroup(true)}
+            style={{
+              marginLeft:'auto', display:'flex', alignItems:'center', gap:4,
+              background:'none', border:'1.5px solid var(--accent,#EA580C)', borderRadius:8,
+              padding:'4px 10px', cursor:'pointer', fontSize:11, fontWeight:600, color:'var(--accent,#EA580C)',
+            }}
+          >
+            <span style={{ fontSize:13, lineHeight:1 }}>＋</span> {groupBy === 'zone' ? t('tasks.addZone') : t('tasks.addStage')}
+          </button>
+        )}
       </div>
+
+      {canEdit && groupBy !== 'flat' && addingGroup && (
+        <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:8 }}>
+          <input
+            className="form-input"
+            style={{ flex:1, fontSize:13 }}
+            placeholder={groupBy === 'zone' ? t('projects.zonePlaceholder') : t('projects.stagePlaceholder')}
+            value={newGroupName}
+            onChange={e => setNewGroupName(e.target.value)}
+            onKeyDown={e => { if (e.key==='Enter') { addGroup(groupBy, newGroupName); setNewGroupName(''); setAddingGroup(false) }; if (e.key==='Escape') setAddingGroup(false) }}
+            autoFocus
+          />
+          <Button variant="primary" size="sm" onClick={() => { addGroup(groupBy, newGroupName); setNewGroupName(''); setAddingGroup(false) }}>{t('common.add')}</Button>
+          <button onClick={() => { setAddingGroup(false); setNewGroupName('') }}
+            style={{ background:'none', border:'none', fontSize:18, color:'var(--text-muted)', cursor:'pointer', lineHeight:1, display:'flex', alignItems:'center' }}><X size={18} weight="bold" /></button>
+        </div>
+      )}
 
       {/* ── Filter chips ── */}
       <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:10 }}>
@@ -622,66 +657,53 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
         ))}
       </div>
 
-      {filtered.length === 0 && activeGroups.length === 0 && <EmptyState>{t('tasks.noTasks')}</EmptyState>}
+      {(groupBy === 'flat' ? filtered.length === 0 : (filtered.length === 0 && activeGroups.length === 0)) && (
+        <EmptyState>{t('tasks.noTasks')}</EmptyState>
+      )}
 
-      {/* ── Group accordions with drag-and-drop — remounted on axis switch
-           (key={groupBy}) so drag/quick-add/rename state never leaks
-           between the two axes, even though both share the '—' bucket. ── */}
-      <SortableStageList
-        key={groupBy}
-        stageGroups={activeGroups}
-        projStages={activeList}
-        openStages={activeOpen}
-        toggleStage={toggleGroup}
-        openId={openId}
-        setOpenId={setOpenId}
-        canEdit={canEdit}
-        canDelete={canDelete}
-        setEditTask={setEditTask}
-        setDeleteId={setDeleteId}
-        approveTask={approveTask}
-        rejectTask={rejectTask}
-        STAGE_COLORS={STAGE_COLORS}
-        onReorder={async (newOrder) => { await updateProject(proj.id, { [AXIS[groupBy].listKey]: newOrder }) }}
-        onRename={canEdit ? (oldName, newName) => renameGroup(groupBy, oldName, newName) : undefined}
-        onDeleteStage={canEdit ? (name) => deleteGroup(groupBy, name) : undefined}
-        onQuickAdd={canEdit ? quickAddToGroup(groupBy) : undefined}
-        namePlaceholder={groupBy === 'zone' ? t('tasks.zoneNamePlaceholder') : undefined}
-        renameLabel={groupBy === 'zone' ? t('tasks.renameZone') : undefined}
-        deleteLabel={groupBy === 'zone' ? t('tasks.zoneDelete') : undefined}
-        emptyGroupLabel={groupBy === 'zone' ? t('tasks.noZoneTitle') : undefined}
-        noItemsLabel={groupBy === 'zone' ? t('tasks.noTasksZone') : undefined}
-      />
-
-      {/* ── Add stage/zone button (foreman only) ── */}
-      {canEdit && (
-        <div style={{ marginTop: 10 }}>
-          {addingGroup ? (
-            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-              <input
-                className="form-input"
-                style={{ flex:1, fontSize:13 }}
-                placeholder={groupBy === 'zone' ? t('projects.zonePlaceholder') : t('projects.stagePlaceholder')}
-                value={newGroupName}
-                onChange={e => setNewGroupName(e.target.value)}
-                onKeyDown={e => { if (e.key==='Enter') { addGroup(groupBy, newGroupName); setNewGroupName(''); setAddingGroup(false) }; if (e.key==='Escape') setAddingGroup(false) }}
-                autoFocus
-              />
-              <Button variant="primary" size="sm" onClick={() => { addGroup(groupBy, newGroupName); setNewGroupName(''); setAddingGroup(false) }}>{t('common.add')}</Button>
-              <button onClick={() => { setAddingGroup(false); setNewGroupName('') }}
-                style={{ background:'none', border:'none', fontSize:18, color:'var(--text-muted)', cursor:'pointer', lineHeight:1, display:'flex', alignItems:'center' }}><X size={18} weight="bold" /></button>
-            </div>
-          ) : (
-            <button onClick={() => setAddingGroup(true)} style={{
-              display:'flex', alignItems:'center', gap:6, padding:'10px 14px',
-              background:'none', border:'1.5px dashed var(--border,#D9D0C7)',
-              borderRadius:14, cursor:'pointer', fontSize:13, color:'var(--text-muted)',
-              fontWeight:500, width:'100%',
-            }}>
-              <span style={{ fontSize:16, lineHeight:1 }}>＋</span> {groupBy === 'zone' ? t('tasks.addZone') : t('tasks.addStage')}
-            </button>
-          )}
+      {/* ── Flat view (default): every task, no grouping, no drag-and-drop —
+           the only way in from a brand-new project with no stages/zones yet. ── */}
+      {groupBy === 'flat' ? (
+        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+          {sortTasks(filtered).map(tk => (
+            <TaskCard key={tk.id} t={tk} openId={openId} setOpenId={setOpenId}
+              onEdit={canEdit ? setEditTask : null}
+              onDelete={canDelete ? setDeleteId : null}
+              onApprove={canEdit && tk.status === 'pending' ? approveTask : null}
+              onReject={canEdit && tk.status === 'pending' ? (id) => rejectTask(id, 'Needs revision') : null}
+              onMarkDone={canEdit && tk.status !== 'approved' ? approveTask : null}
+            />
+          ))}
         </div>
+      ) : (
+        /* ── Group accordions with drag-and-drop — remounted on axis switch
+             (key={groupBy}) so drag/quick-add/rename state never leaks
+             between axes, even though both share the '—' bucket. ── */
+        <SortableStageList
+          key={groupBy}
+          stageGroups={activeGroups}
+          projStages={activeList}
+          openStages={activeOpen}
+          toggleStage={toggleGroup}
+          openId={openId}
+          setOpenId={setOpenId}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          setEditTask={setEditTask}
+          setDeleteId={setDeleteId}
+          approveTask={approveTask}
+          rejectTask={rejectTask}
+          STAGE_COLORS={STAGE_COLORS}
+          onReorder={async (newOrder) => { await updateProject(proj.id, { [AXIS[groupBy].listKey]: newOrder }) }}
+          onRename={canEdit ? (oldName, newName) => renameGroup(groupBy, oldName, newName) : undefined}
+          onDeleteStage={canEdit ? (name) => deleteGroup(groupBy, name) : undefined}
+          onQuickAdd={canEdit ? quickAddToGroup(groupBy) : undefined}
+          namePlaceholder={groupBy === 'zone' ? t('tasks.zoneNamePlaceholder') : undefined}
+          renameLabel={groupBy === 'zone' ? t('tasks.renameZone') : undefined}
+          deleteLabel={groupBy === 'zone' ? t('tasks.zoneDelete') : undefined}
+          emptyGroupLabel={groupBy === 'zone' ? t('tasks.noZoneTitle') : undefined}
+          noItemsLabel={groupBy === 'zone' ? t('tasks.noTasksZone') : undefined}
+        />
       )}
 
       {/* ── Tools on site ── */}
