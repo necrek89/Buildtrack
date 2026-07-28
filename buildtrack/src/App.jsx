@@ -11,6 +11,7 @@ import {
   Projects, MyTasks, Tools, Team, Notifications, Procurement, Schedule,
 } from './pages/index'
 import WorkerMaterials from './features/materials/WorkerMaterials'
+import LockoutBanner from './components/LockoutBanner'
 import { supabase } from './lib/supabase'
 
 // ── Task Search Overlay ───────────────────────────────────────────────────────
@@ -401,6 +402,7 @@ export default function App() {
         </nav>
 
         <main className="main">
+          <LockoutBanner onNavigate={setPage} />
           <PageContent role={role} page={page} onNavigate={setPage} />
           <div className="tab-spacer" />
         </main>

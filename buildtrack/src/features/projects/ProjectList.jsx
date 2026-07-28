@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle, PencilSimple, ArrowCounterClockwise, Trash, Warning, Clock, MapPin, CalendarBlank, CaretUp, CaretDown, X } from '@phosphor-icons/react'
-import { Badge, Button, FormGroup, IconButton, EmptyState } from '../../components/UI'
+import { Badge, Button, FormGroup, IconButton, EmptyState, Alert } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore } from '../../store/useStore'
 import { supabase } from '../../lib/supabase'
@@ -394,13 +394,14 @@ function ProjectCardList({ onSelect, onEdit, onDelete = null, onComplete = null,
 // ─── PROJECTS (two-mode: list ↔ detail) ─────────────────────────────────────
 export default function Projects({ canDelete = true, canEdit = true }) {
   const { t } = useT()
-  const { projects, tasks, tools, fetchProjects, fetchTasks, fetchTools, updateProject, profile, selectedProjectId, setSelectedProject } = useStore()
+  const { projects, tasks, tools, fetchProjects, fetchTasks, fetchTools, updateProject, createProject: createProjectAction, profile, selectedProjectId, setSelectedProject } = useStore()
   const [showAdd,    setShowAdd]    = useState(false)
   const [confirmId,  setConfirmId]  = useState(null)
   const [editProject, setEditProject] = useState(null)
   const [editForm,   setEditForm]   = useState({ name:'', stage:'Foundation', deadline:'', address:'', progress:0, stages:[], zones:[] })
   const [editSaving, setEditSaving] = useState(false)
   const [addForm,    setAddForm]    = useState({ name:'', stage:'Foundation', deadline:'', address:'', stages:[], zones:[] })
+  const [addError,   setAddError]   = useState('')
 
   useEffect(() => {
     // fetchProjects must complete first — fetchTasks filters by foreman's project IDs
@@ -413,19 +414,20 @@ export default function Projects({ canDelete = true, canEdit = true }) {
 
   const createProject = async () => {
     if (!addForm.name.trim()) return
-    const { error } = await supabase.from('projects').insert({
+    setAddError('')
+    const { error } = await createProjectAction({
       name: addForm.name,
       deadline: addForm.deadline || null,
       address: addForm.address || null,
-      foreman_id: profile.id, progress: 0,
       stages: addForm.stages || [],
       zones: addForm.zones || [],
     })
-    if (!error) {
-      await fetchProjects()
-      setShowAdd(false)
-      setAddForm({ name:'', stage:'Foundation', deadline:'', address:'', stages:[], zones:[] })
+    if (error) {
+      setAddError(error === 'limit_projects' ? t('errors.limitProjects') : error === 'locked' ? t('errors.locked') : error)
+      return
     }
+    setShowAdd(false)
+    setAddForm({ name:'', stage:'Foundation', deadline:'', address:'', stages:[], zones:[] })
   }
 
   const openEdit = (p) => {
@@ -471,7 +473,7 @@ export default function Projects({ canDelete = true, canEdit = true }) {
         <>
           <div className="page-header">
             <h1 className="page-title">{t('projects.title')}</h1>
-            {canEdit && <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>{t('projects.add')}</Button>}
+            {canEdit && <Button variant="primary" size="sm" onClick={() => { setAddError(''); setShowAdd(true) }}>{t('projects.add')}</Button>}
           </div>
           {canEdit && projects.length === 0 ? (
             <div style={{ margin:'32px 0', padding:'32px 24px', background:'var(--surface)', border:'1.5px dashed var(--border-medium)', borderRadius:20, textAlign:'center' }}>
@@ -490,7 +492,7 @@ export default function Projects({ canDelete = true, canEdit = true }) {
                 ))}
               </div>
               <button
-                onClick={() => setShowAdd(true)}
+                onClick={() => { setAddError(''); setShowAdd(true) }}
                 style={{ marginTop:28, padding:'14px 32px', borderRadius:14, background:'var(--accent)', color:'#fff', border:'none', fontSize:15, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 16px rgba(201,107,58,0.3)' }}
               >
                 {t('projects.createFirstBtn')}
@@ -522,6 +524,7 @@ export default function Projects({ canDelete = true, canEdit = true }) {
           <div className="modal" style={{ maxHeight:'90dvh', display:'flex', flexDirection:'column' }}>
             <div className="modal-title">{t('projects.newModal')}</div>
             <div style={{ overflowY:'auto', flex:1 }}>
+              <Alert dense>{addError}</Alert>
               <FormGroup label={t('projects.nameLabel')}>
                 <input className="form-input" placeholder={t('projects.namePlaceholder')}
                   value={addForm.name} onChange={setA('name')} autoFocus />
