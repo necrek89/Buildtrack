@@ -718,6 +718,9 @@ export default function LandingPage() {
           <span onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>{l.ftFeat}</span>
           <span onClick={() => setShowPricing(true)}>{l.ftPrice}</span>
           <span onClick={() => nav('/app')}>{l.ftSignin}</span>
+          <span onClick={() => nav('/terms')}>Terms</span>
+          <span onClick={() => nav('/privacy')}>Privacy</span>
+          <span onClick={() => nav('/refund')}>Refunds</span>
         </div>
         <div>© 2026 Tutuu</div>
       </footer>
