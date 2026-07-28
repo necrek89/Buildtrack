@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import InstallPage from './pages/InstallPage.jsx'
+import { TermsPage, PrivacyPage, RefundPage } from './pages/LegalPage.jsx'
 
 // Card magic glow — event delegation, works for dynamically added cards
 document.addEventListener('mousemove', e => {
@@ -32,6 +33,9 @@ function Router() {
 
   if (path === '/') return <LandingPage />
   if (path === '/install') return <InstallPage />
+  if (path === '/terms') return <TermsPage />
+  if (path === '/privacy') return <PrivacyPage />
+  if (path === '/refund') return <RefundPage />
   return <App />
 }
 
