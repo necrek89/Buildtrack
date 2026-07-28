@@ -6,6 +6,8 @@ import { useT } from '../i18n/useLanguage'
 import { supabase } from '../lib/supabase'
 import { useAsyncGuard } from '../lib/useAsyncGuard'
 import { subscribeToPush, unsubscribeFromPush, isSubscribed, isPushSupported } from '../lib/push'
+import { PLANS, computeIsLocked, getTrialDaysLeft, fmtPrice } from '../lib/billing'
+import { isPaddleConfigured, openCheckout } from '../lib/paddle'
 
 const AVATAR_COLORS = [
   'var(--accent)','var(--success)','#D4A843','#4A7FC1','#9B6B9B',
@@ -57,6 +59,7 @@ export default function AccountPage() {
   const [pwOk,    setPwOk]    = useState(true)
   const [saving,  saveGuard]  = useAsyncGuard()
   const [pwSaving, pwGuard]   = useAsyncGuard()
+  const [billingPeriod, setBillingPeriod] = useState('monthly')
   const [pushSupported, setPushSupported] = useState(false)
   const [pushEnabled,   setPushEnabled]   = useState(false)
   const [pushLoading,   setPushLoading]   = useState(false)
@@ -244,6 +247,68 @@ export default function AccountPage() {
           </Button>
         </div>
       </div>
+
+      {/* ── Billing / Plan ── */}
+      {profile?.role === 'foreman' && (() => {
+        const locked = computeIsLocked(profile)
+        const daysLeft = getTrialDaysLeft(profile)
+        const configured = isPaddleConfigured()
+        const statusLabel = profile.plan
+          ? `${t(`account.billingPlan${profile.plan === 'pro' ? 'Pro' : 'Standard'}`)} · ${profile.plan_period === 'annual' ? t('account.billingAnnual') : t('account.billingMonthly')}`
+          : locked ? t('account.billingTrialEndedMsg') : t('account.billingTrialDaysLeft', { n: daysLeft })
+        const statusExtra = profile.subscription_status === 'canceled' ? t('account.billingStatusCanceled')
+          : profile.subscription_status === 'paused' ? t('account.billingStatusPaused')
+          : profile.subscription_current_period_end ? t('account.billingRenewsOn', { date: profile.subscription_current_period_end.slice(0, 10) })
+          : null
+
+        return (
+          <div className="card card-body" style={{ marginBottom:12 }}>
+            <div className="section-title">{t('account.billingSection')}</div>
+            <div style={{ fontSize:13, fontWeight:600, color: locked ? 'var(--danger)' : 'var(--text-primary)', marginBottom:2 }}>
+              {statusLabel}
+            </div>
+            {statusExtra && <div style={{ fontSize:12, color:'var(--text-secondary)', marginBottom:12 }}>{statusExtra}</div>}
+
+            <div style={{ display:'flex', gap:6, margin:'12px 0' }}>
+              <button className={`filter-btn ${billingPeriod === 'monthly' ? 'active' : ''}`} onClick={() => setBillingPeriod('monthly')}>
+                {t('account.billingMonthly')}
+              </button>
+              <button className={`filter-btn ${billingPeriod === 'annual' ? 'active' : ''}`} onClick={() => setBillingPeriod('annual')}>
+                {t('account.billingAnnual')} · {t('account.billingSaveBadge')}
+              </button>
+            </div>
+
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+              {['standard', 'pro'].map(planKey => {
+                const p = PLANS[planKey]
+                const price = billingPeriod === 'annual' ? p.priceAnnual : p.priceMonthly
+                const label = planKey === 'pro' ? t('account.billingPlanPro') : t('account.billingPlanStandard')
+                const subscribeLabel = planKey === 'pro' ? t('account.billingSubscribePro') : t('account.billingSubscribeStandard')
+                return (
+                  <div key={planKey} style={{ border:'1px solid var(--border-medium)', borderRadius:10, padding:12 }}>
+                    <div style={{ fontSize:13, fontWeight:700, marginBottom:4 }}>{label}</div>
+                    <div style={{ fontSize:18, fontWeight:700, color:'var(--accent)', marginBottom:10 }}>
+                      ${fmtPrice(price)}
+                      <span style={{ fontSize:11, fontWeight:500, color:'var(--text-muted)' }}>
+                        /{billingPeriod === 'annual' ? t('account.billingAnnual') : t('account.billingMonthly')}
+                      </span>
+                    </div>
+                    <Button
+                      variant="primary" size="sm" disabled={!configured}
+                      onClick={() => openCheckout(planKey, billingPeriod, profile)}
+                    >
+                      {subscribeLabel}
+                    </Button>
+                  </div>
+                )
+              })}
+            </div>
+            {!configured && (
+              <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:10 }}>{t('account.billingNotConfiguredMsg')}</div>
+            )}
+          </div>
+        )
+      })()}
 
       {/* ── Change Password ── */}
       <div className="card card-body" style={{ marginBottom:12 }}>

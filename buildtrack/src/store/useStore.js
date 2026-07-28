@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import { todayStr, toLocalDateStr } from '../lib/date'
+import { resolveBillingState, PLANS } from '../lib/billing'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 
@@ -37,6 +38,8 @@ export const useStore = create((set, get) => ({
   user: null,
   profile: null,
   role: null,
+  isLocked: false,          // true when the relevant foreman's trial has ended with no active subscription
+  billingForemanId: null,   // for workers/managers: the foreman whose plan governs isLocked
   tasks: [],
   tools: [],
   projects: [],
@@ -85,7 +88,9 @@ export const useStore = create((set, get) => ({
     if (error) { set({ loading: false }); return { error } }
     const { data: profile } = await supabase
       .from('profiles').select('*').eq('id', data.user.id).single()
-    set({ user: data.user, profile, role: profile.role, loading: false })
+    const { isLocked, billingForemanId, trialEndsAt } = await resolveBillingState(profile)
+    if (trialEndsAt) profile.trial_ends_at = trialEndsAt
+    set({ user: data.user, profile, role: profile.role, loading: false, isLocked, billingForemanId })
     return { error: null }
   },
 
@@ -107,7 +112,7 @@ export const useStore = create((set, get) => ({
 
   signOut: async () => {
     await supabase.auth.signOut()
-    set({ user: null, profile: null, role: null, tasks: [], projects: [], tools: [], team: [], joinRequests: [] })
+    set({ user: null, profile: null, role: null, tasks: [], projects: [], tools: [], team: [], joinRequests: [], isLocked: false, billingForemanId: null })
   },
 
   checkSession: async () => {
@@ -121,7 +126,9 @@ export const useStore = create((set, get) => ({
       await supabase.from('profiles').update({ invite_code: code }).eq('id', session.user.id)
       profile.invite_code = code
     }
-    set({ user: session.user, profile, role: profile?.role })
+    const { isLocked, billingForemanId, trialEndsAt } = await resolveBillingState(profile)
+    if (trialEndsAt) profile.trial_ends_at = trialEndsAt
+    set({ user: session.user, profile, role: profile?.role, isLocked, billingForemanId })
   },
 
   fetchProfile: async () => {
@@ -129,7 +136,9 @@ export const useStore = create((set, get) => ({
     if (!session) return
     const { data: profile } = await supabase
       .from('profiles').select('*').eq('id', session.user.id).single()
-    set({ profile })
+    const { isLocked, billingForemanId, trialEndsAt } = await resolveBillingState(profile)
+    if (trialEndsAt) profile.trial_ends_at = trialEndsAt
+    set({ profile, isLocked, billingForemanId })
   },
 
   // ── PROJECTS ──────────────────────────────────────────────
@@ -158,6 +167,20 @@ export const useStore = create((set, get) => ({
   updateProject: async (id, updates) => {
     const { error } = await supabase.from('projects').update(updates).eq('id', id)
     if (!error) set(s => ({ projects: s.projects.map(p => p.id === id ? { ...p, ...updates } : p) }))
+    return { error }
+  },
+
+  createProject: async (payload) => {
+    const { profile, projects } = get()
+    if (profile?.plan === 'standard') {
+      const activeCount = projects.filter(p => p.status !== 'completed').length
+      if (activeCount >= PLANS.standard.maxActiveProjects) return { error: 'limit_projects' }
+    }
+    const { error } = await supabase.from('projects').insert({ ...payload, foreman_id: profile.id, progress: 0 })
+    if (!error) {
+      await get().fetchProjects()
+      get().logActivity({ action_type: 'project_created', entity_name: payload.name })
+    }
     return { error }
   },
 
@@ -382,6 +405,10 @@ export const useStore = create((set, get) => ({
   // separately with addWorkerToProject.
   addWorkerToTeam: async (email) => {
     const { profile } = get()
+    if (profile?.plan === 'standard') {
+      const roster = await get()._buildRoster()
+      if (roster.length >= PLANS.standard.maxWorkers) return { error: 'limit_workers' }
+    }
     const { data: worker, error } = await supabase
       .from('profiles').select('id, name, role').eq('email', email.trim().toLowerCase()).single()
     if (error || !worker) return { error: 'User not found. Ask them to register first.' }
@@ -465,6 +492,10 @@ export const useStore = create((set, get) => ({
   // "+ Add" на вкладке Team внутри каждого проекта.
   approveJoinRequest: async (requestId, workerId) => {
     const { joinRequests, profile } = get()
+    if (profile?.plan === 'standard') {
+      const roster = await get()._buildRoster()
+      if (roster.length >= PLANS.standard.maxWorkers) return { error: 'limit_workers' }
+    }
     const req = joinRequests.find(r => r.id === requestId)
     const workerName = req?.worker?.name || 'Unknown'
 
@@ -472,6 +503,7 @@ export const useStore = create((set, get) => ({
     set(s => ({ joinRequests: s.joinRequests.filter(r => r.id !== requestId) }))
     get().logActivity({ action_type: 'worker_joined', entity_name: workerName, entity_id: workerId })
     sendPush(workerId, 'Request approved', `${profile.name} added you to the crew`, '/app')
+    return { error: null }
   },
 
   // Прораб отклоняет заявку
@@ -953,6 +985,37 @@ export const useStore = create((set, get) => ({
     return true
   },
 }))
+
+// Central lockout guard: wraps every create/edit/delete action so a foreman
+// whose trial has ended with no active subscription (or a worker/manager
+// under such a foreman) can't mutate anything, without threading a flag
+// through every component that calls these. Read-only actions (fetch*) are
+// deliberately not in this list — the soft lockout keeps all data visible.
+const MUTATING_ACTIONS = [
+  'createProject', 'updateProject',
+  'addTask', 'updateTask', 'deleteTask', 'submitTask', 'approveTask', 'rejectTask',
+  'addTool', 'updateTool', 'deleteTool',
+  'removeWorkerFromProject', 'addWorkerToTeam', 'addWorkerToProject',
+  'updateWorkerStatus', 'updateWorkerContact',
+  'approveJoinRequest', 'rejectJoinRequest', 'addManagerToTeam',
+  'addMaterialRequest', 'updateMaterialRequestStatus', 'deleteMaterialRequest',
+  'addMaterial', 'markMaterialPurchased', 'markMaterialNeeded', 'deleteMaterial',
+  'addComment',
+  'addExpense', 'updateExpense', 'deleteExpense',
+  'addDocument', 'deleteDocument',
+  'addWorkLog', 'deleteWorkLog', 'updateWorkLog',
+  'addPayment', 'deletePayment', 'updateMemberRate',
+  'saveAttendance', 'copyYesterdayAttendance',
+]
+const guardedActions = {}
+for (const name of MUTATING_ACTIONS) {
+  const original = useStore.getState()[name]
+  guardedActions[name] = (...args) => {
+    if (useStore.getState().isLocked) return Promise.resolve({ error: 'locked' })
+    return original(...args)
+  }
+}
+useStore.setState(guardedActions)
 
 export const STAGES = ['Foundation', 'Electrical', 'Walls', 'Roofing', 'Finishing']
 export const PRIORITY_OPTIONS = [

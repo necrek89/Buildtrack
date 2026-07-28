@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Badge, Button, StatCard, EmptyState } from '../../components/UI'
+import { Badge, Button, StatCard, EmptyState, Alert } from '../../components/UI'
 import { useT } from '../../i18n/useLanguage'
 import { useStore, currencySymbol } from '../../store/useStore'
 import { supabase } from '../../lib/supabase'
@@ -33,6 +33,7 @@ export default function Team() {
   const [managerEmail,   setManagerEmail]   = useState('')
   const [managerMsg,     setManagerMsg]     = useState('')
   const [managerLoading, setManagerLoading] = useState(false)
+  const [joinReqError, setJoinReqError] = useState('')
   const [logForm, setLogForm]   = useState({}) // keyed by workerId
   const [showLogForm, setShowLogForm] = useState(null) // workerId or null
   const [rateEditId, setRateEditId]   = useState(null) // workerId editing rate
@@ -60,11 +61,18 @@ export default function Team() {
     useStore.getState().fetchAttendance(todayStr())
   }, [])
 
+  // Known billing error codes translated; anything else (existing raw
+  // English messages from this store action) is shown as-is.
+  const billingErrorMsg = (error) =>
+    error === 'limit_workers' ? t('errors.limitWorkers') :
+    error === 'limit_projects' ? t('errors.limitProjects') :
+    error === 'locked' ? t('errors.locked') : error
+
   const invite = async () => {
     if (!email.trim()) return
     setLoading(true); setMsg('')
     const { error, name } = await addWorkerToTeam(email.trim())
-    if (error) { setMsg(error); setLoading(false); return }
+    if (error) { setMsg(billingErrorMsg(error)); setLoading(false); return }
     setMsg(`${name} added!`)
     fetchAllWorkers(); setEmail('')
     setLoading(false)
@@ -383,6 +391,7 @@ export default function Team() {
             <div style={{ fontSize:11, fontWeight:700, color:'var(--accent)', letterSpacing:'.08em', textTransform:'uppercase' }}>{t('team.joinRequests')}</div>
             <div style={{ background:'var(--accent-light,var(--accent-light))', color:'var(--accent)', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:10 }}>{joinRequests.length}</div>
           </div>
+          {joinReqError && <div style={{ padding:'8px 14px' }}><Alert>{joinReqError}</Alert></div>}
           {joinRequests.map(r => (
             <div key={r.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', borderBottom:'1px solid var(--border-medium)' }}>
               <div style={{ width:36, height:36, borderRadius:'50%', background:'var(--accent-light,var(--accent-light))', color:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, flexShrink:0 }}>
@@ -393,7 +402,11 @@ export default function Team() {
                 <div style={{ fontSize:11, color:'var(--text-muted)' }}>{t('team.wantsToJoin')}</div>
               </div>
               <div style={{ display:'flex', gap:6 }}>
-                <Button size="sm" variant="primary" onClick={() => approveJoinRequest(r.id, r.worker.id)}>{t('team.accept')}</Button>
+                <Button size="sm" variant="primary" onClick={async () => {
+                  setJoinReqError('')
+                  const { error } = await approveJoinRequest(r.id, r.worker.id)
+                  if (error) setJoinReqError(billingErrorMsg(error))
+                }}>{t('team.accept')}</Button>
                 <Button size="sm" variant="danger"  onClick={() => rejectJoinRequest(r.id)}>{t('team.decline')}</Button>
               </div>
             </div>
