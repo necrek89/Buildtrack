@@ -302,36 +302,20 @@ function MTeamScreen() {
 // scale rather than opening an image file. Scale is measured from the actual
 // rendered clip width via ResizeObserver, so it stays correct at any phone
 // or desktop viewport instead of relying on fixed CSS breakpoints. ──────────
-// Native mockup canvas is a fixed 320×666 (see .ldg .mscr) — everything
-// about the lightbox's size is derived from one width number so there is
-// exactly one source of truth, computed in plain JS with no CSS
-// aspect-ratio/clientWidth measurement involved at all (the previous fix
-// still relied on aspect-ratio, which is a plausible spot for a WebKit
-// quirk we can't repro in this sandbox — only Chromium is available here).
-function lightboxDims() {
-  const w = Math.min(320, window.innerWidth * 0.78)
-  return { w, h: (w / 320) * 666, scale: w / 320 }
-}
-
+// Real PNG captures of each screen (see public/mockups/) — a plain <img>
+// scales via ordinary CSS (width + height:auto), the same everywhere,
+// which sidesteps the whole class of bug the live CSS-mockup rendering
+// kept running into (a double-nested .mscr div meant a computed JS scale
+// was being applied to an empty wrapper while the actual content stayed
+// at its default tiny size — that was the real, reproducible-anywhere
+// root cause, not a Safari-only quirk).
 function MockupLightbox({ screens, startIndex, onClose }) {
   const [idx, setIdx] = useState(startIndex)
-  const [dims, setDims] = useState(lightboxDims)
   const touchX = useRef(null)
 
   const count = screens.length
   const goPrev = () => setIdx(i => (i - 1 + count) % count)
   const goNext = () => setIdx(i => (i + 1) % count)
-
-  useEffect(() => {
-    const update = () => setDims(lightboxDims())
-    update()
-    window.addEventListener('resize', update)
-    window.addEventListener('orientationchange', update)
-    return () => {
-      window.removeEventListener('resize', update)
-      window.removeEventListener('orientationchange', update)
-    }
-  }, [])
 
   useEffect(() => {
     const onKey = (e) => {
@@ -353,7 +337,7 @@ function MockupLightbox({ screens, startIndex, onClose }) {
     touchX.current = null
   }
 
-  const Screen = screens[idx].Comp
+  const screen = screens[idx]
 
   return (
     <div className="ld-lb-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -365,10 +349,8 @@ function MockupLightbox({ screens, startIndex, onClose }) {
 
       <div className="ld-lb-phone" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         <div className="ld-cam" />
-        <div className="ld-lb-clip" style={{ width: dims.w, height: dims.h }}>
-          <div className="mscr" style={{ transform: `scale(${dims.scale})` }}>
-            <Screen />
-          </div>
+        <div className="ld-lb-clip">
+          <img src={screen.src} alt={screen.alt} className="ld-lb-img" draggable="false" />
         </div>
       </div>
 
@@ -454,8 +436,13 @@ export default function LandingPage() {
   const [showPricing, setShowPricing] = useState(false)
   const [stats, setStats] = useState(null)
   const [lightboxIdx, setLightboxIdx] = useState(null)
-  // Same order as rendered in .ld-phones below
-  const mockupScreens = [{ Comp: MMaterialsScreen }, { Comp: MTasksScreen }, { Comp: MTeamScreen }]
+  // Same order as rendered in .ld-phones below — real PNG captures of each
+  // screen, see public/mockups/
+  const mockupScreens = [
+    { src: '/mockups/materials.png', alt: 'Materials screen' },
+    { src: '/mockups/tasks.png',     alt: 'Tasks screen' },
+    { src: '/mockups/team.png',      alt: 'Team screen' },
+  ]
 
   // Real aggregate numbers from the DB (landing_stats RPC, anon-accessible).
   // The ticker is only rendered once real data arrives.
