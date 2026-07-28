@@ -609,7 +609,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
             key={field}
             className={`filter-btn ${groupBy === field ? 'active' : ''}`}
             onClick={() => setGroupByAndPersist(field)}
-            style={{ fontSize:11, padding:'4px 10px' }}
+            style={{ fontSize:12, padding:'6px 13px' }}
           >
             {field === 'flat' ? t('tasks.viewAll') : field === 'stage' ? t('tasks.groupByStage') : t('tasks.groupByZone')}
           </button>
@@ -618,12 +618,12 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
           <button
             onClick={() => setAddingGroup(true)}
             style={{
-              marginLeft:'auto', display:'flex', alignItems:'center', gap:4,
-              background:'none', border:'1.5px solid var(--accent,#EA580C)', borderRadius:8,
-              padding:'4px 10px', cursor:'pointer', fontSize:11, fontWeight:600, color:'var(--accent,#EA580C)',
+              marginLeft:'auto', display:'flex', alignItems:'center', gap:5,
+              background:'none', border:'1.5px solid var(--accent,#EA580C)', borderRadius:9,
+              padding:'6px 13px', cursor:'pointer', fontSize:12, fontWeight:600, color:'var(--accent,#EA580C)',
             }}
           >
-            <span style={{ fontSize:13, lineHeight:1 }}>＋</span> {groupBy === 'zone' ? t('tasks.addZone') : t('tasks.addStage')}
+            <span style={{ fontSize:15, lineHeight:1 }}>＋</span> {groupBy === 'zone' ? t('tasks.addZone') : t('tasks.addStage')}
           </button>
         )}
       </div>
@@ -649,7 +649,7 @@ export default function ProjectTasksTab({ proj, canDelete = true, canEdit = true
       <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:10 }}>
         {['all','active','pending','done'].map(f => (
           <button key={f} className={`filter-btn ${filter===f?'active':''}`} onClick={() => setFilter(f)}
-            style={{ fontSize:11, padding:'4px 10px' }}>
+            style={{ fontSize:12, padding:'6px 13px' }}>
             {f === 'all'     ? `${t('tasks.filterAll')} (${pTasks.length})` :
              f === 'active'  ? t('tasks.filterActive') :
              f === 'pending' ? `${t('tasks.filterReview')} (${pTasks.filter(t=>t.status==='pending').length})` : t('tasks.filterDone')}
