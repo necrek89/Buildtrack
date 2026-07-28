@@ -304,22 +304,26 @@ function MTeamScreen() {
 // or desktop viewport instead of relying on fixed CSS breakpoints. ──────────
 function MockupLightbox({ screens, startIndex, onClose }) {
   const [idx, setIdx] = useState(startIndex)
-  const [scale, setScale] = useState(1)
-  const clipRef  = useRef(null)
-  const touchX   = useRef(null)
+  // Mirrors the .ld-lb-clip CSS rule (width: min(320px, 78vw)) exactly, so
+  // the scale is always right on the very first paint — no waiting on a
+  // ResizeObserver/clientWidth read, which proved unreliable on iOS Safari
+  // (content stayed at its tiny default scale instead of filling the frame).
+  const [scale, setScale] = useState(() => Math.min(320, window.innerWidth * 0.78) / 320)
+  const touchX = useRef(null)
 
   const count = screens.length
   const goPrev = () => setIdx(i => (i - 1 + count) % count)
   const goNext = () => setIdx(i => (i + 1) % count)
 
   useEffect(() => {
-    const el = clipRef.current
-    if (!el) return
-    const update = () => setScale(el.clientWidth / 320)
+    const update = () => setScale(Math.min(320, window.innerWidth * 0.78) / 320)
     update()
-    const ro = new ResizeObserver(update)
-    ro.observe(el)
-    return () => ro.disconnect()
+    window.addEventListener('resize', update)
+    window.addEventListener('orientationchange', update)
+    return () => {
+      window.removeEventListener('resize', update)
+      window.removeEventListener('orientationchange', update)
+    }
   }, [])
 
   useEffect(() => {
@@ -354,7 +358,7 @@ function MockupLightbox({ screens, startIndex, onClose }) {
 
       <div className="ld-lb-phone" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         <div className="ld-cam" />
-        <div className="ld-lb-clip" ref={clipRef}>
+        <div className="ld-lb-clip">
           <div className="mscr" style={{ transform: `scale(${scale})` }}>
             <Screen />
           </div>
