@@ -540,8 +540,8 @@ export default function LandingPage() {
               ].map((w, i) => (
                 <div key={i} className="ld-mini-row">
                   <div className="ld-mini-mav" style={{ background: w.color }}>{w.initials}</div>
-                  <span className="ld-mini-name" style={{ fontSize: 11 }}>{w.name} · {w.shifts} {l.shiftsWord}</span>
-                  <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--ld-orange)' }}>{w.sum}</span>
+                  <span className="ld-mini-name">{w.name} · {w.shifts} {l.shiftsWord}</span>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ld-orange)' }}>{w.sum}</span>
                 </div>
               ))}
             </div>
