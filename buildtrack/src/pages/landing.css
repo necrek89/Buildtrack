@@ -629,3 +629,9 @@
   .ldg .ld-lb-close { width: 36px; height: 36px }
   .ldg .ld-lb-arrow { width: 40px; height: 40px }
 }
+
+/* The task-card entrance animation (up to a 1.7s delay) is meant for the
+   one-time page-load reveal — the lightbox mounts a fresh copy of the same
+   markup, which would otherwise replay it and sit blank for over a second
+   every time it opens. */
+.ldg .ld-lb-clip .m-card { animation: none; opacity: 1; transform: none }
