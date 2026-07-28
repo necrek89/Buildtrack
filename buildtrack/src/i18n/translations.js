@@ -8,12 +8,13 @@ const t = {
   en: {
     nav: {
       projects: 'Projects', materials: 'Materials', tools: 'Tools',
-      team: 'Team', alerts: 'Alerts', myTasks: 'My Tasks',
+      team: 'Team', alerts: 'Alerts', schedule: 'Schedule', myTasks: 'My Tasks',
       account: 'Account', progress: 'Progress', photos: 'Photos',
       myProject: 'My Project', signOut: 'Sign Out',
       darkMode: 'Dark Mode', lightMode: 'Light Mode',
     },
     roles: { foreman: 'Foreman', manager: 'Manager', worker: 'Worker', client: 'Client' },
+    schedule: { today: 'Today', noWorkers: 'No one in the crew yet', },
     common: {
       cancel: 'Cancel', save: 'Save', delete: 'Delete', edit: 'Edit',
       add: 'Add', back: '← Back', create: 'Create', close: 'Close',
@@ -136,7 +137,7 @@ const t = {
       addBtn: 'Add Task',
       quickAdd: 'Quick-add task…',
       quickAddPlaceholder: 'Task name...',
-      quickAddBtn: '+ Add task', zoneLabel: 'Zone / Room', noZone: '— no zone —', noZonesHint: 'No zone yet — start typing to create the first one', zoneNamePlaceholder: 'Zone name', renameZone: 'Rename zone', zoneDelete: 'Delete zone', noZoneTitle: 'No zone', noTasksZone: 'No tasks in this zone', addZone: 'Zone', groupByStage: 'By work type', groupByZone: 'By zone', importColZone: 'Zone', viewAll: 'All', moreDetails: 'More details', moreDetailsHint: 'Stage, zone, assignee, deadline, cost', createStagePrompt: '+ Create stage "{name}"', createZonePrompt: '+ Create zone "{name}"', noStagesYetPlaceholder: 'e.g. Demolition', noZonesYetPlaceholder: 'e.g. Kitchen',
+      quickAddBtn: '+ Add task', zoneLabel: 'Zone / Room', noZone: '— no zone —', noZonesHint: 'No zone yet — start typing to create the first one', zoneNamePlaceholder: 'Zone name', renameZone: 'Rename zone', zoneDelete: 'Delete zone', noZoneTitle: 'No zone', noTasksZone: 'No tasks in this zone', addZone: 'Zone', groupByStage: 'By work type', groupByZone: 'By zone', importColZone: 'Zone', startDateLabel: 'Start date', viewAll: 'All', moreDetails: 'More details', moreDetailsHint: 'Stage, zone, assignee, deadline, cost', createStagePrompt: '+ Create stage "{name}"', createZonePrompt: '+ Create zone "{name}"', noStagesYetPlaceholder: 'e.g. Demolition', noZonesYetPlaceholder: 'e.g. Kitchen',
       qtyLabel: 'Quantity / volume', qtyPlaceholder: 'e.g. 50', unitLabel: 'Unit of measure', unitPriceLabel: 'Price per unit', pricePlaceholder: 'e.g. 2', totalLabel: 'Total for this work', totalPlaceholder: 'Auto-calculated or manual', totalHint: 'Fill in "Price per unit" above and the total is calculated automatically — or enter it manually.', costSection: 'Cost & volume', qtyShort: 'qty', priceShort: 'price', unitShort: 'unit', stageNamePlaceholder: 'Stage name', renameStage: 'Rename stage', noStageTitle: 'No stage',
       units: [{ value: '', label: '— no unit' }, { value: 'pcs', label: 'pcs — pieces' }, { value: 'lin.m', label: 'lin.m — linear meter' }, { value: 'm²', label: 'm² — square meter' }, { value: 'm³', label: 'm³ — cubic meter' }, { value: 'm', label: 'm — meter' }, { value: 'kg', label: 'kg — kilogram' }, { value: 't', label: 't — ton' }, { value: 'l', label: 'l — liter' }, { value: 'h', label: 'h — hour' }, { value: 'set', label: 'set — set' }],
       csvTemplate: 'Download CSV template',
@@ -485,12 +486,13 @@ const t = {
   ru: {
     nav: {
       projects: 'Объекты', materials: 'Материалы', tools: 'Инструменты',
-      team: 'Бригада', alerts: 'Уведомления', myTasks: 'Мои задачи',
+      team: 'Бригада', alerts: 'Уведомления', schedule: 'Расписание', myTasks: 'Мои задачи',
       account: 'Аккаунт', progress: 'Прогресс', photos: 'Фото',
       myProject: 'Мой объект', signOut: 'Выйти',
       darkMode: 'Тёмный режим', lightMode: 'Светлый режим',
     },
     roles: { foreman: 'Прораб', manager: 'Менеджер', worker: 'Рабочий', client: 'Клиент' },
+    schedule: { today: 'Сегодня', noWorkers: 'В команде пока никого нет', },
     common: {
       cancel: 'Отмена', save: 'Сохранить', delete: 'Удалить', edit: 'Изменить',
       add: 'Добавить', back: '← Назад', create: 'Создать', close: 'Закрыть',
@@ -613,7 +615,7 @@ const t = {
       addBtn: 'Добавить задачу',
       quickAdd: 'Быстрое добавление задачи…',
       quickAddPlaceholder: 'Название задачи...',
-      quickAddBtn: '+ Добавить задачу', zoneLabel: 'Зона / комната', noZone: '— без зоны —', noZonesHint: 'Зона ещё не создана — начните вводить, чтобы создать первую', zoneNamePlaceholder: 'Название зоны', renameZone: 'Переименовать зону', zoneDelete: 'Удалить зону', noZoneTitle: 'Без зоны', noTasksZone: 'В этой зоне нет задач', addZone: 'Зона', groupByStage: 'По видам работ', groupByZone: 'По зонам', importColZone: 'Зона', viewAll: 'Все', moreDetails: 'Дополнительно', moreDetailsHint: 'Этап, зона, исполнитель, срок, стоимость', createStagePrompt: '+ Создать этап «{name}»', createZonePrompt: '+ Создать зону «{name}»', noStagesYetPlaceholder: 'например, Демонтаж', noZonesYetPlaceholder: 'например, Кухня',
+      quickAddBtn: '+ Добавить задачу', zoneLabel: 'Зона / комната', noZone: '— без зоны —', noZonesHint: 'Зона ещё не создана — начните вводить, чтобы создать первую', zoneNamePlaceholder: 'Название зоны', renameZone: 'Переименовать зону', zoneDelete: 'Удалить зону', noZoneTitle: 'Без зоны', noTasksZone: 'В этой зоне нет задач', addZone: 'Зона', groupByStage: 'По видам работ', groupByZone: 'По зонам', importColZone: 'Зона', startDateLabel: 'Дата начала', viewAll: 'Все', moreDetails: 'Дополнительно', moreDetailsHint: 'Этап, зона, исполнитель, срок, стоимость', createStagePrompt: '+ Создать этап «{name}»', createZonePrompt: '+ Создать зону «{name}»', noStagesYetPlaceholder: 'например, Демонтаж', noZonesYetPlaceholder: 'например, Кухня',
       qtyLabel: 'Объём / кол-во', qtyPlaceholder: 'Например: 50', unitLabel: 'Единица измерения', unitPriceLabel: 'Цена за единицу', pricePlaceholder: 'Например: 2', totalLabel: 'Итого за работу', totalPlaceholder: 'Считается автоматически или вручную', totalHint: 'Заполни «Цена за единицу» выше — сумма посчитается сама. Или введи итог вручную.', costSection: 'Стоимость и объём', qtyShort: 'кол-во', priceShort: 'цена', unitShort: 'ед', stageNamePlaceholder: 'Название этапа', renameStage: 'Переименовать этап', noStageTitle: 'Без этапа',
       units: [{ value: '', label: '— без единицы' }, { value: 'шт', label: 'шт — штука' }, { value: 'пог.м', label: 'пог.м — погонный метр' }, { value: 'кв.м', label: 'кв.м — квадратный метр' }, { value: 'куб.м', label: 'куб.м — кубический метр' }, { value: 'м', label: 'м — метр' }, { value: 'кг', label: 'кг — килограмм' }, { value: 'т', label: 'т — тонна' }, { value: 'л', label: 'л — литр' }, { value: 'ч', label: 'ч — час' }, { value: 'компл', label: 'компл — комплект' }],
       csvTemplate: 'Скачать шаблон CSV',
@@ -962,12 +964,13 @@ const t = {
   sr: {
     nav: {
       projects: 'Projekti', materials: 'Materijali', tools: 'Alati',
-      team: 'Tim', alerts: 'Obavještenja', myTasks: 'Moji zadaci',
+      team: 'Tim', alerts: 'Obavještenja', schedule: 'Raspored', myTasks: 'Moji zadaci',
       account: 'Nalog', progress: 'Napredak', photos: 'Fotografije',
       myProject: 'Moj projekat', signOut: 'Odjava',
       darkMode: 'Tamni način', lightMode: 'Svijetli način',
     },
     roles: { foreman: 'Poslovođa', manager: 'Menadžer', worker: 'Radnik', client: 'Klijent' },
+    schedule: { today: 'Danas', noWorkers: 'U ekipi još nema nikoga', },
     common: {
       cancel: 'Otkaži', save: 'Sačuvaj', delete: 'Obriši', edit: 'Uredi',
       add: 'Dodaj', back: '← Nazad', create: 'Kreiraj', close: 'Zatvori',
@@ -1084,7 +1087,7 @@ const t = {
       addBtn: 'Dodaj zadatak',
       quickAdd: 'Brzo dodaj zadatak…',
       quickAddPlaceholder: 'Naziv zadatka...',
-      quickAddBtn: '+ Dodaj zadatak', zoneLabel: 'Zona / prostorija', noZone: '— bez zone —', noZonesHint: 'Zona još nije kreirana — počnite da kucate da biste kreirali prvu', zoneNamePlaceholder: 'Naziv zone', renameZone: 'Preimenuj zonu', zoneDelete: 'Obriši zonu', noZoneTitle: 'Bez zone', noTasksZone: 'Nema zadataka u ovoj zoni', addZone: 'Zona', groupByStage: 'Po vrsti radova', groupByZone: 'Po zonama', importColZone: 'Zona', viewAll: 'Sve', moreDetails: 'Detaljnije', moreDetailsHint: 'Faza, zona, izvođač, rok, cena', createStagePrompt: '+ Kreiraj fazu „{name}"', createZonePrompt: '+ Kreiraj zonu „{name}"', noStagesYetPlaceholder: 'npr. Rušenje', noZonesYetPlaceholder: 'npr. Kuhinja',
+      quickAddBtn: '+ Dodaj zadatak', zoneLabel: 'Zona / prostorija', noZone: '— bez zone —', noZonesHint: 'Zona još nije kreirana — počnite da kucate da biste kreirali prvu', zoneNamePlaceholder: 'Naziv zone', renameZone: 'Preimenuj zonu', zoneDelete: 'Obriši zonu', noZoneTitle: 'Bez zone', noTasksZone: 'Nema zadataka u ovoj zoni', addZone: 'Zona', groupByStage: 'Po vrsti radova', groupByZone: 'Po zonama', importColZone: 'Zona', startDateLabel: 'Datum početka', viewAll: 'Sve', moreDetails: 'Detaljnije', moreDetailsHint: 'Faza, zona, izvođač, rok, cena', createStagePrompt: '+ Kreiraj fazu „{name}"', createZonePrompt: '+ Kreiraj zonu „{name}"', noStagesYetPlaceholder: 'npr. Rušenje', noZonesYetPlaceholder: 'npr. Kuhinja',
       qtyLabel: 'Obim / količina', qtyPlaceholder: 'npr. 50', unitLabel: 'Jedinica mjere', unitPriceLabel: 'Cijena po jedinici', pricePlaceholder: 'npr. 2', totalLabel: 'Ukupno za rad', totalPlaceholder: 'Računa se automatski ili ručno', totalHint: 'Popuni "Cijena po jedinici" iznad i ukupno se računa samo — ili unesi ručno.', costSection: 'Cijena i obim', qtyShort: 'kol.', priceShort: 'cijena', unitShort: 'jed', stageNamePlaceholder: 'Naziv etape', renameStage: 'Preimenuj etapu', noStageTitle: 'Bez etape',
       units: [{ value: '', label: '— bez jedinice' }, { value: 'kom', label: 'kom — komad' }, { value: 'dm', label: 'dm — dužni metar' }, { value: 'm²', label: 'm² — kvadratni metar' }, { value: 'm³', label: 'm³ — kubni metar' }, { value: 'm', label: 'm — metar' }, { value: 'kg', label: 'kg — kilogram' }, { value: 't', label: 't — tona' }, { value: 'l', label: 'l — litar' }, { value: 'h', label: 'h — sat' }, { value: 'kompl', label: 'kompl — komplet' }],
       csvTemplate: 'Preuzmi CSV predložak',
@@ -1426,12 +1429,13 @@ const t = {
   es: {
     nav: {
       projects: 'Proyectos', materials: 'Materiales', tools: 'Herramientas',
-      team: 'Equipo', alerts: 'Alertas', myTasks: 'Mis tareas',
+      team: 'Equipo', alerts: 'Alertas', schedule: 'Calendario', myTasks: 'Mis tareas',
       account: 'Cuenta', progress: 'Progreso', photos: 'Fotos',
       myProject: 'Mi proyecto', signOut: 'Cerrar sesión',
       darkMode: 'Modo oscuro', lightMode: 'Modo claro',
     },
     roles: { foreman: 'Capataz', manager: 'Gerente', worker: 'Obrero', client: 'Cliente' },
+    schedule: { today: 'Hoy', noWorkers: 'Todavía no hay nadie en el equipo', },
     common: {
       cancel: 'Cancelar', save: 'Guardar', delete: 'Eliminar', edit: 'Editar',
       add: 'Agregar', back: '← Atrás', create: 'Crear', close: 'Cerrar',
@@ -1548,7 +1552,7 @@ const t = {
       addBtn: 'Agregar tarea',
       quickAdd: 'Agregar tarea rápida…',
       quickAddPlaceholder: 'Nombre de la tarea...',
-      quickAddBtn: '+ Agregar tarea', zoneLabel: 'Zona / habitación', noZone: '— sin zona —', noZonesHint: 'Aún no hay zonas — empieza a escribir para crear la primera', zoneNamePlaceholder: 'Nombre de la zona', renameZone: 'Renombrar zona', zoneDelete: 'Eliminar zona', noZoneTitle: 'Sin zona', noTasksZone: 'No hay tareas en esta zona', addZone: 'Zona', groupByStage: 'Por tipo de trabajo', groupByZone: 'Por zona', importColZone: 'Zona', viewAll: 'Todas', moreDetails: 'Más detalles', moreDetailsHint: 'Etapa, zona, responsable, fecha límite, costo', createStagePrompt: '+ Crear etapa "{name}"', createZonePrompt: '+ Crear zona "{name}"', noStagesYetPlaceholder: 'p. ej. Demolición', noZonesYetPlaceholder: 'p. ej. Cocina',
+      quickAddBtn: '+ Agregar tarea', zoneLabel: 'Zona / habitación', noZone: '— sin zona —', noZonesHint: 'Aún no hay zonas — empieza a escribir para crear la primera', zoneNamePlaceholder: 'Nombre de la zona', renameZone: 'Renombrar zona', zoneDelete: 'Eliminar zona', noZoneTitle: 'Sin zona', noTasksZone: 'No hay tareas en esta zona', addZone: 'Zona', groupByStage: 'Por tipo de trabajo', groupByZone: 'Por zona', importColZone: 'Zona', startDateLabel: 'Fecha de inicio', viewAll: 'Todas', moreDetails: 'Más detalles', moreDetailsHint: 'Etapa, zona, responsable, fecha límite, costo', createStagePrompt: '+ Crear etapa "{name}"', createZonePrompt: '+ Crear zona "{name}"', noStagesYetPlaceholder: 'p. ej. Demolición', noZonesYetPlaceholder: 'p. ej. Cocina',
       qtyLabel: 'Volumen / cantidad', qtyPlaceholder: 'p. ej. 50', unitLabel: 'Unidad de medida', unitPriceLabel: 'Precio por unidad', pricePlaceholder: 'p. ej. 2', totalLabel: 'Total del trabajo', totalPlaceholder: 'Se calcula automáticamente o manual', totalHint: 'Rellena "Precio por unidad" arriba y el total se calcula solo — o introdúcelo manualmente.', costSection: 'Costo y volumen', qtyShort: 'cant.', priceShort: 'precio', unitShort: 'ud', stageNamePlaceholder: 'Nombre de la etapa', renameStage: 'Renombrar etapa', noStageTitle: 'Sin etapa',
       units: [{ value: '', label: '— sin unidad' }, { value: 'ud', label: 'ud — unidad' }, { value: 'm.l.', label: 'm.l. — metro lineal' }, { value: 'm²', label: 'm² — metro cuadrado' }, { value: 'm³', label: 'm³ — metro cúbico' }, { value: 'm', label: 'm — metro' }, { value: 'kg', label: 'kg — kilogramo' }, { value: 't', label: 't — tonelada' }, { value: 'l', label: 'l — litro' }, { value: 'h', label: 'h — hora' }, { value: 'jgo', label: 'jgo — juego' }],
       csvTemplate: 'Descargar plantilla CSV',
@@ -1890,12 +1894,13 @@ const t = {
   pt: {
     nav: {
       projects: 'Projetos', materials: 'Materiais', tools: 'Ferramentas',
-      team: 'Equipe', alerts: 'Alertas', myTasks: 'Minhas tarefas',
+      team: 'Equipe', alerts: 'Alertas', schedule: 'Cronograma', myTasks: 'Minhas tarefas',
       account: 'Conta', progress: 'Progresso', photos: 'Fotos',
       myProject: 'Meu projeto', signOut: 'Sair',
       darkMode: 'Modo escuro', lightMode: 'Modo claro',
     },
     roles: { foreman: 'Mestre de obras', manager: 'Gerente', worker: 'Trabalhador', client: 'Cliente' },
+    schedule: { today: 'Hoje', noWorkers: 'Ainda não há ninguém na equipe', },
     common: {
       cancel: 'Cancelar', save: 'Salvar', delete: 'Excluir', edit: 'Editar',
       add: 'Adicionar', back: '← Voltar', create: 'Criar', close: 'Fechar',
@@ -2012,7 +2017,7 @@ const t = {
       addBtn: 'Adicionar tarefa',
       quickAdd: 'Adicionar tarefa rapidamente…',
       quickAddPlaceholder: 'Nome da tarefa...',
-      quickAddBtn: '+ Adicionar tarefa', zoneLabel: 'Zona / cômodo', noZone: '— sem zona —', noZonesHint: 'Ainda não há zonas — comece a digitar para criar a primeira', zoneNamePlaceholder: 'Nome da zona', renameZone: 'Renomear zona', zoneDelete: 'Excluir zona', noZoneTitle: 'Sem zona', noTasksZone: 'Nenhuma tarefa nesta zona', addZone: 'Zona', groupByStage: 'Por tipo de trabalho', groupByZone: 'Por zona', importColZone: 'Zona', viewAll: 'Todas', moreDetails: 'Mais detalhes', moreDetailsHint: 'Etapa, zona, responsável, prazo, custo', createStagePrompt: '+ Criar etapa "{name}"', createZonePrompt: '+ Criar zona "{name}"', noStagesYetPlaceholder: 'ex. Demolição', noZonesYetPlaceholder: 'ex. Cozinha',
+      quickAddBtn: '+ Adicionar tarefa', zoneLabel: 'Zona / cômodo', noZone: '— sem zona —', noZonesHint: 'Ainda não há zonas — comece a digitar para criar a primeira', zoneNamePlaceholder: 'Nome da zona', renameZone: 'Renomear zona', zoneDelete: 'Excluir zona', noZoneTitle: 'Sem zona', noTasksZone: 'Nenhuma tarefa nesta zona', addZone: 'Zona', groupByStage: 'Por tipo de trabalho', groupByZone: 'Por zona', importColZone: 'Zona', startDateLabel: 'Data de início', viewAll: 'Todas', moreDetails: 'Mais detalhes', moreDetailsHint: 'Etapa, zona, responsável, prazo, custo', createStagePrompt: '+ Criar etapa "{name}"', createZonePrompt: '+ Criar zona "{name}"', noStagesYetPlaceholder: 'ex. Demolição', noZonesYetPlaceholder: 'ex. Cozinha',
       qtyLabel: 'Volume / quantidade', qtyPlaceholder: 'ex. 50', unitLabel: 'Unidade de medida', unitPriceLabel: 'Preço por unidade', pricePlaceholder: 'ex. 2', totalLabel: 'Total do trabalho', totalPlaceholder: 'Calculado automaticamente ou manual', totalHint: 'Preencha "Preço por unidade" acima e o total é calculado sozinho — ou insira manualmente.', costSection: 'Custo e volume', qtyShort: 'qtd.', priceShort: 'preço', unitShort: 'un', stageNamePlaceholder: 'Nome da etapa', renameStage: 'Renomear etapa', noStageTitle: 'Sem etapa',
       units: [{ value: '', label: '— sem unidade' }, { value: 'un', label: 'un — unidade' }, { value: 'm.l.', label: 'm.l. — metro linear' }, { value: 'm²', label: 'm² — metro quadrado' }, { value: 'm³', label: 'm³ — metro cúbico' }, { value: 'm', label: 'm — metro' }, { value: 'kg', label: 'kg — quilograma' }, { value: 't', label: 't — tonelada' }, { value: 'l', label: 'l — litro' }, { value: 'h', label: 'h — hora' }, { value: 'cj', label: 'cj — conjunto' }],
       csvTemplate: 'Baixar modelo CSV',
@@ -2354,12 +2359,13 @@ const t = {
   de: {
     nav: {
       projects: 'Projekte', materials: 'Materialien', tools: 'Werkzeuge',
-      team: 'Team', alerts: 'Benachrichtigungen', myTasks: 'Meine Aufgaben',
+      team: 'Team', alerts: 'Benachrichtigungen', schedule: 'Zeitplan', myTasks: 'Meine Aufgaben',
       account: 'Konto', progress: 'Fortschritt', photos: 'Fotos',
       myProject: 'Mein Projekt', signOut: 'Abmelden',
       darkMode: 'Dunkelmodus', lightMode: 'Hellmodus',
     },
     roles: { foreman: 'Vorarbeiter', manager: 'Manager', worker: 'Arbeiter', client: 'Auftraggeber' },
+    schedule: { today: 'Heute', noWorkers: 'Noch niemand im Team', },
     common: {
       cancel: 'Abbrechen', save: 'Speichern', delete: 'Löschen', edit: 'Bearbeiten',
       add: 'Hinzufügen', back: '← Zurück', create: 'Erstellen', close: 'Schließen',
@@ -2476,7 +2482,7 @@ const t = {
       addBtn: 'Aufgabe hinzufügen',
       quickAdd: 'Aufgabe schnell hinzufügen…',
       quickAddPlaceholder: 'Aufgabenname...',
-      quickAddBtn: '+ Aufgabe hinzufügen', zoneLabel: 'Zone / Raum', noZone: '— keine Zone —', noZonesHint: 'Noch keine Zone angelegt — einfach tippen, um die erste zu erstellen', zoneNamePlaceholder: 'Zonenname', renameZone: 'Zone umbenennen', zoneDelete: 'Zone löschen', noZoneTitle: 'Keine Zone', noTasksZone: 'Keine Aufgaben in dieser Zone', addZone: 'Zone', groupByStage: 'Nach Arbeitsart', groupByZone: 'Nach Zone', importColZone: 'Zone', viewAll: 'Alle', moreDetails: 'Weitere Details', moreDetailsHint: 'Phase, Zone, Zuständiger, Frist, Kosten', createStagePrompt: '+ Phase „{name}" erstellen', createZonePrompt: '+ Zone „{name}" erstellen', noStagesYetPlaceholder: 'z. B. Abriss', noZonesYetPlaceholder: 'z. B. Küche',
+      quickAddBtn: '+ Aufgabe hinzufügen', zoneLabel: 'Zone / Raum', noZone: '— keine Zone —', noZonesHint: 'Noch keine Zone angelegt — einfach tippen, um die erste zu erstellen', zoneNamePlaceholder: 'Zonenname', renameZone: 'Zone umbenennen', zoneDelete: 'Zone löschen', noZoneTitle: 'Keine Zone', noTasksZone: 'Keine Aufgaben in dieser Zone', addZone: 'Zone', groupByStage: 'Nach Arbeitsart', groupByZone: 'Nach Zone', importColZone: 'Zone', startDateLabel: 'Startdatum', viewAll: 'Alle', moreDetails: 'Weitere Details', moreDetailsHint: 'Phase, Zone, Zuständiger, Frist, Kosten', createStagePrompt: '+ Phase „{name}" erstellen', createZonePrompt: '+ Zone „{name}" erstellen', noStagesYetPlaceholder: 'z. B. Abriss', noZonesYetPlaceholder: 'z. B. Küche',
       qtyLabel: 'Menge / Umfang', qtyPlaceholder: 'z. B. 50', unitLabel: 'Maßeinheit', unitPriceLabel: 'Preis pro Einheit', pricePlaceholder: 'z. B. 2', totalLabel: 'Gesamt für diese Arbeit', totalPlaceholder: 'Automatisch berechnet oder manuell', totalHint: '"Preis pro Einheit" oben ausfüllen — die Summe wird automatisch berechnet. Oder manuell eingeben.', costSection: 'Kosten & Menge', qtyShort: 'Menge', priceShort: 'Preis', unitShort: 'Einh.', stageNamePlaceholder: 'Phasenname', renameStage: 'Phase umbenennen', noStageTitle: 'Keine Phase',
       units: [{ value: '', label: '— keine Einheit' }, { value: 'Stk', label: 'Stk — Stück' }, { value: 'lfm', label: 'lfm — laufender Meter' }, { value: 'm²', label: 'm² — Quadratmeter' }, { value: 'm³', label: 'm³ — Kubikmeter' }, { value: 'm', label: 'm — Meter' }, { value: 'kg', label: 'kg — Kilogramm' }, { value: 't', label: 't — Tonne' }, { value: 'l', label: 'l — Liter' }, { value: 'Std', label: 'Std — Stunde' }, { value: 'Satz', label: 'Satz — Satz' }],
       csvTemplate: 'CSV-Vorlage herunterladen',
@@ -2818,12 +2824,13 @@ const t = {
   fr: {
     nav: {
       projects: 'Projets', materials: 'Matériaux', tools: 'Outils',
-      team: 'Équipe', alerts: 'Alertes', myTasks: 'Mes tâches',
+      team: 'Équipe', alerts: 'Alertes', schedule: 'Planning', myTasks: 'Mes tâches',
       account: 'Compte', progress: 'Avancement', photos: 'Photos',
       myProject: 'Mon projet', signOut: 'Déconnexion',
       darkMode: 'Mode sombre', lightMode: 'Mode clair',
     },
     roles: { foreman: 'Contremaître', manager: 'Manager', worker: 'Ouvrier', client: 'Client' },
+    schedule: { today: "Aujourd'hui", noWorkers: "Personne dans l'équipe pour l'instant", },
     common: {
       cancel: 'Annuler', save: 'Enregistrer', delete: 'Supprimer', edit: 'Modifier',
       add: 'Ajouter', back: '← Retour', create: 'Créer', close: 'Fermer',
@@ -2940,7 +2947,7 @@ const t = {
       addBtn: 'Ajouter la tâche',
       quickAdd: 'Ajouter une tâche rapidement…',
       quickAddPlaceholder: 'Nom de la tâche...',
-      quickAddBtn: '+ Ajouter une tâche', zoneLabel: 'Zone / pièce', noZone: '— aucune zone —', noZonesHint: "Aucune zone pour l'instant — commencez à taper pour créer la première", zoneNamePlaceholder: 'Nom de la zone', renameZone: 'Renommer la zone', zoneDelete: 'Supprimer la zone', noZoneTitle: 'Aucune zone', noTasksZone: 'Aucune tâche dans cette zone', addZone: 'Zone', groupByStage: 'Par type de travail', groupByZone: 'Par zone', importColZone: 'Zone', viewAll: 'Toutes', moreDetails: 'Plus de détails', moreDetailsHint: 'Étape, zone, responsable, échéance, coût', createStagePrompt: "+ Créer l'étape « {name} »", createZonePrompt: '+ Créer la zone « {name} »', noStagesYetPlaceholder: 'ex. Démolition', noZonesYetPlaceholder: 'ex. Cuisine',
+      quickAddBtn: '+ Ajouter une tâche', zoneLabel: 'Zone / pièce', noZone: '— aucune zone —', noZonesHint: "Aucune zone pour l'instant — commencez à taper pour créer la première", zoneNamePlaceholder: 'Nom de la zone', renameZone: 'Renommer la zone', zoneDelete: 'Supprimer la zone', noZoneTitle: 'Aucune zone', noTasksZone: 'Aucune tâche dans cette zone', addZone: 'Zone', groupByStage: 'Par type de travail', groupByZone: 'Par zone', importColZone: 'Zone', startDateLabel: 'Date de début', viewAll: 'Toutes', moreDetails: 'Plus de détails', moreDetailsHint: 'Étape, zone, responsable, échéance, coût', createStagePrompt: "+ Créer l'étape « {name} »", createZonePrompt: '+ Créer la zone « {name} »', noStagesYetPlaceholder: 'ex. Démolition', noZonesYetPlaceholder: 'ex. Cuisine',
       qtyLabel: 'Volume / quantité', qtyPlaceholder: 'ex. 50', unitLabel: 'Unité de mesure', unitPriceLabel: 'Prix unitaire', pricePlaceholder: 'ex. 2', totalLabel: 'Total pour ce travail', totalPlaceholder: 'Calculé automatiquement ou manuel', totalHint: 'Remplissez "Prix unitaire" ci-dessus et le total se calcule tout seul — ou saisissez-le manuellement.', costSection: 'Coût et volume', qtyShort: 'qté', priceShort: 'prix', unitShort: 'unité', stageNamePlaceholder: "Nom de l'étape", renameStage: "Renommer l'étape", noStageTitle: 'Aucune étape',
       units: [{ value: '', label: '— sans unité' }, { value: 'pce', label: 'pce — pièce' }, { value: 'ml', label: 'ml — mètre linéaire' }, { value: 'm²', label: 'm² — mètre carré' }, { value: 'm³', label: 'm³ — mètre cube' }, { value: 'm', label: 'm — mètre' }, { value: 'kg', label: 'kg — kilogramme' }, { value: 't', label: 't — tonne' }, { value: 'l', label: 'l — litre' }, { value: 'h', label: 'h — heure' }, { value: 'ens', label: 'ens — ensemble' }],
       csvTemplate: 'Télécharger le modèle CSV',
@@ -3282,12 +3289,13 @@ const t = {
   sk: {
     nav: {
       projects: 'Projekty', materials: 'Materiály', tools: 'Nástroje',
-      team: 'Tím', alerts: 'Upozornenia', myTasks: 'Moje úlohy',
+      team: 'Tím', alerts: 'Upozornenia', schedule: 'Harmonogram', myTasks: 'Moje úlohy',
       account: 'Účet', progress: 'Pokrok', photos: 'Fotografie',
       myProject: 'Môj projekt', signOut: 'Odhlásiť sa',
       darkMode: 'Tmavý režim', lightMode: 'Svetlý režim',
     },
     roles: { foreman: 'Majster', manager: 'Manažér', worker: 'Pracovník', client: 'Klient' },
+    schedule: { today: 'Dnes', noWorkers: 'V tíme zatiaľ nikto nie je', },
     common: {
       cancel: 'Zrušiť', save: 'Uložiť', delete: 'Odstrániť', edit: 'Upraviť',
       add: 'Pridať', back: '← Späť', create: 'Vytvoriť', close: 'Zatvoriť',
@@ -3404,7 +3412,7 @@ const t = {
       addBtn: 'Pridať úlohu',
       quickAdd: 'Rýchle pridanie úlohy…',
       quickAddPlaceholder: 'Názov úlohy...',
-      quickAddBtn: '+ Pridať úlohu', zoneLabel: 'Zóna / miestnosť', noZone: '— bez zóny —', noZonesHint: 'Zóna zatiaľ nie je vytvorená — začnite písať a vytvorte prvú', zoneNamePlaceholder: 'Názov zóny', renameZone: 'Premenovať zónu', zoneDelete: 'Odstrániť zónu', noZoneTitle: 'Bez zóny', noTasksZone: 'V tejto zóne nie sú žiadne úlohy', addZone: 'Zóna', groupByStage: 'Podľa druhu prác', groupByZone: 'Podľa zón', importColZone: 'Zóna', viewAll: 'Všetky', moreDetails: 'Viac podrobností', moreDetailsHint: 'Etapa, zóna, zodpovedný, termín, cena', createStagePrompt: '+ Vytvoriť etapu „{name}"', createZonePrompt: '+ Vytvoriť zónu „{name}"', noStagesYetPlaceholder: 'napr. Búranie', noZonesYetPlaceholder: 'napr. Kuchyňa',
+      quickAddBtn: '+ Pridať úlohu', zoneLabel: 'Zóna / miestnosť', noZone: '— bez zóny —', noZonesHint: 'Zóna zatiaľ nie je vytvorená — začnite písať a vytvorte prvú', zoneNamePlaceholder: 'Názov zóny', renameZone: 'Premenovať zónu', zoneDelete: 'Odstrániť zónu', noZoneTitle: 'Bez zóny', noTasksZone: 'V tejto zóne nie sú žiadne úlohy', addZone: 'Zóna', groupByStage: 'Podľa druhu prác', groupByZone: 'Podľa zón', importColZone: 'Zóna', startDateLabel: 'Dátum začiatku', viewAll: 'Všetky', moreDetails: 'Viac podrobností', moreDetailsHint: 'Etapa, zóna, zodpovedný, termín, cena', createStagePrompt: '+ Vytvoriť etapu „{name}"', createZonePrompt: '+ Vytvoriť zónu „{name}"', noStagesYetPlaceholder: 'napr. Búranie', noZonesYetPlaceholder: 'napr. Kuchyňa',
       qtyLabel: 'Objem / množstvo', qtyPlaceholder: 'napr. 50', unitLabel: 'Merná jednotka', unitPriceLabel: 'Cena za jednotku', pricePlaceholder: 'napr. 2', totalLabel: 'Spolu za prácu', totalPlaceholder: 'Počíta sa automaticky alebo ručne', totalHint: 'Vyplň "Cena za jednotku" vyššie a suma sa vypočíta sama — alebo zadaj ručne.', costSection: 'Cena a objem', qtyShort: 'množ.', priceShort: 'cena', unitShort: 'jedn.', stageNamePlaceholder: 'Názov etapy', renameStage: 'Premenovať etapu', noStageTitle: 'Bez etapy',
       units: [{ value: '', label: '— bez jednotky' }, { value: 'ks', label: 'ks — kus' }, { value: 'bm', label: 'bm — bežný meter' }, { value: 'm²', label: 'm² — štvorcový meter' }, { value: 'm³', label: 'm³ — kubický meter' }, { value: 'm', label: 'm — meter' }, { value: 'kg', label: 'kg — kilogram' }, { value: 't', label: 't — tona' }, { value: 'l', label: 'l — liter' }, { value: 'h', label: 'h — hodina' }, { value: 'súpr', label: 'súpr — súprava' }],
       csvTemplate: 'Stiahnuť šablónu CSV',
@@ -3745,12 +3753,13 @@ const t = {
   cs: {
     nav: {
       projects: 'Projekty', materials: 'Materiály', tools: 'Nástroje',
-      team: 'Tým', alerts: 'Upozornění', myTasks: 'Moje úkoly',
+      team: 'Tým', alerts: 'Upozornění', schedule: 'Harmonogram', myTasks: 'Moje úkoly',
       account: 'Účet', progress: 'Pokrok', photos: 'Fotografie',
       myProject: 'Můj projekt', signOut: 'Odhlásit se',
       darkMode: 'Tmavý režim', lightMode: 'Světlý režim',
     },
     roles: { foreman: 'Vedoucí', manager: 'Manažer', worker: 'Pracovník', client: 'Klient' },
+    schedule: { today: 'Dnes', noWorkers: 'V týmu zatím nikdo není', },
     common: {
       cancel: 'Zrušit', save: 'Uložit', delete: 'Smazat', edit: 'Upravit',
       add: 'Přidat', back: '← Zpět', create: 'Vytvořit', close: 'Zavřít',
@@ -3867,7 +3876,7 @@ const t = {
       addBtn: 'Přidat úkol',
       quickAdd: 'Rychlé přidání úkolu…',
       quickAddPlaceholder: 'Název úkolu...',
-      quickAddBtn: '+ Přidat úkol', zoneLabel: 'Zóna / místnost', noZone: '— bez zóny —', noZonesHint: 'Zóna zatím není vytvořena — začněte psát a vytvořte první', zoneNamePlaceholder: 'Název zóny', renameZone: 'Přejmenovat zónu', zoneDelete: 'Odstranit zónu', noZoneTitle: 'Bez zóny', noTasksZone: 'V této zóně nejsou žádné úkoly', addZone: 'Zóna', groupByStage: 'Podle druhu prací', groupByZone: 'Podle zón', importColZone: 'Zóna', viewAll: 'Všechny', moreDetails: 'Více podrobností', moreDetailsHint: 'Etapa, zóna, odpovědný, termín, cena', createStagePrompt: '+ Vytvořit etapu „{name}"', createZonePrompt: '+ Vytvořit zónu „{name}"', noStagesYetPlaceholder: 'např. Demolice', noZonesYetPlaceholder: 'např. Kuchyně',
+      quickAddBtn: '+ Přidat úkol', zoneLabel: 'Zóna / místnost', noZone: '— bez zóny —', noZonesHint: 'Zóna zatím není vytvořena — začněte psát a vytvořte první', zoneNamePlaceholder: 'Název zóny', renameZone: 'Přejmenovat zónu', zoneDelete: 'Odstranit zónu', noZoneTitle: 'Bez zóny', noTasksZone: 'V této zóně nejsou žádné úkoly', addZone: 'Zóna', groupByStage: 'Podle druhu prací', groupByZone: 'Podle zón', importColZone: 'Zóna', startDateLabel: 'Datum zahájení', viewAll: 'Všechny', moreDetails: 'Více podrobností', moreDetailsHint: 'Etapa, zóna, odpovědný, termín, cena', createStagePrompt: '+ Vytvořit etapu „{name}"', createZonePrompt: '+ Vytvořit zónu „{name}"', noStagesYetPlaceholder: 'např. Demolice', noZonesYetPlaceholder: 'např. Kuchyně',
       qtyLabel: 'Objem / množství', qtyPlaceholder: 'např. 50', unitLabel: 'Měrná jednotka', unitPriceLabel: 'Cena za jednotku', pricePlaceholder: 'např. 2', totalLabel: 'Celkem za práci', totalPlaceholder: 'Počítá se automaticky nebo ručně', totalHint: 'Vyplň "Cena za jednotku" výše a částka se spočítá sama — nebo zadej ručně.', costSection: 'Cena a objem', qtyShort: 'množ.', priceShort: 'cena', unitShort: 'jedn.', stageNamePlaceholder: 'Název etapy', renameStage: 'Přejmenovat etapu', noStageTitle: 'Bez etapy',
       units: [{ value: '', label: '— bez jednotky' }, { value: 'ks', label: 'ks — kus' }, { value: 'bm', label: 'bm — běžný metr' }, { value: 'm²', label: 'm² — čtvereční metr' }, { value: 'm³', label: 'm³ — krychlový metr' }, { value: 'm', label: 'm — metr' }, { value: 'kg', label: 'kg — kilogram' }, { value: 't', label: 't — tuna' }, { value: 'l', label: 'l — litr' }, { value: 'h', label: 'h — hodina' }, { value: 'sada', label: 'sada — sada' }],
       csvTemplate: 'Stáhnout šablonu CSV',

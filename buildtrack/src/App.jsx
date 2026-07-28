@@ -8,7 +8,7 @@ import AccountPage from './pages/AccountPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import OnboardingScreen from './components/OnboardingScreen'
 import {
-  Projects, MyTasks, Tools, Team, Notifications, Procurement,
+  Projects, MyTasks, Tools, Team, Notifications, Procurement, Schedule,
 } from './pages/index'
 import WorkerMaterials from './features/materials/WorkerMaterials'
 import { supabase } from './lib/supabase'
@@ -155,6 +155,8 @@ function TabIcon({ name, size = 22 }) {
       return <svg style={s} viewBox="0 0 24 24" {...p}><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
     case 'account':
       return <svg style={s} viewBox="0 0 24 24" {...p}><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    case 'schedule':
+      return <svg style={s} viewBox="0 0 24 24" {...p}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
     default:
       return null
   }
@@ -171,6 +173,9 @@ const NAV = {
     { id: 'tools',         icon: 'tools',         labelKey: 'tools'         },
     { id: 'team',          icon: 'team',          labelKey: 'team'          },
     { id: 'notifications', icon: 'notifications', labelKey: 'alerts'        },
+    // Kept out of the first 4 (the mobile bottom tab bar shows navItems[0..3])
+    // so it doesn't bump Team off the bar — reachable via the sidebar for now.
+    { id: 'schedule',      icon: 'schedule',      labelKey: 'schedule'      },
   ],
   manager: [
     { id: 'projects',      icon: 'projects',      labelKey: 'projects'      },
@@ -178,6 +183,7 @@ const NAV = {
     { id: 'tools',         icon: 'tools',         labelKey: 'tools'         },
     { id: 'team',          icon: 'team',          labelKey: 'team'          },
     { id: 'notifications', icon: 'notifications', labelKey: 'alerts'        },
+    { id: 'schedule',      icon: 'schedule',      labelKey: 'schedule'      },
   ],
   worker: [
     { id: 'my-tasks',          icon: 'tasks',         labelKey: 'myTasks'   },
@@ -196,6 +202,7 @@ function PageContent({ role, page, onNavigate }) {
     const canEdit   = role === 'foreman'
     const canDelete = role === 'foreman'
     if (page === 'projects')      return <Projects canDelete={canDelete} canEdit={canEdit} />
+    if (page === 'schedule')      return <Schedule onNavigate={onNavigate} />
     if (page === 'materials')     return <Procurement canDelete={canDelete} canEdit={canEdit} />
     if (page === 'tools')         return <Tools canAdd={canEdit} canDelete={canDelete} />
     if (page === 'team')          return <Team canManage={canDelete} />
