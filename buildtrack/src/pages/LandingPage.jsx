@@ -3,7 +3,6 @@ import { useT, LANGUAGES } from '../i18n/useLanguage'
 import translations from '../i18n/translations'
 import { supabase } from '../lib/supabase'
 import { useStore } from '../store/useStore'
-import { PLANS, fmtPrice } from '../lib/billing'
 import './landing.css'
 
 function nav(to) { window.__navigate?.(to) }
@@ -368,81 +367,6 @@ function MockupLightbox({ screens, startIndex, onClose }) {
   )
 }
 
-// ── Beta pricing popup ───────────────────────────────────────────────────────
-function PricingModal({ l, onClose }) {
-  const [period, setPeriod] = useState('monthly')
-  const plans = [
-    { key: 'standard', name: l.planStandardName, desc: l.planStandardDesc, ...PLANS.standard },
-    { key: 'pro',      name: l.planProName,      desc: l.planProDesc,      ...PLANS.pro },
-  ]
-  return (
-    <div
-      onClick={e => e.target === e.currentTarget && onClose()}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 1000,
-        background: 'rgba(28,25,23,0.5)', backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '24px', overflowY: 'auto',
-      }}
-    >
-      <div style={{
-        background: '#fff', borderRadius: 16, padding: '32px 28px',
-        maxWidth: 520, width: '100%', textAlign: 'center',
-        border: '0.5px solid #F0EEE8',
-        boxShadow: '0 24px 60px rgba(0,0,0,0.12)',
-      }}>
-        <h2 style={{ fontSize: 22, fontWeight: 500, color: '#1C1917', margin: '0 0 8px', lineHeight: 1.2 }}>
-          {l.pricingTitle}
-        </h2>
-        <p style={{ fontSize: 14, color: '#78716C', lineHeight: 1.6, margin: '0 0 20px' }}>
-          {l.pricingSubtitle}
-        </p>
-
-        <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 20 }}>
-          {['monthly', 'annual'].map(p => (
-            <button key={p} onClick={() => setPeriod(p)} style={{
-              padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: 'pointer',
-              border: period === p ? '1px solid #EA580C' : '1px solid #E5DDD1',
-              background: period === p ? '#FFF7ED' : '#fff',
-              color: period === p ? '#EA580C' : '#78716C',
-            }}>
-              {p === 'monthly' ? l.planPeriodMonthly : `${l.planPeriodAnnual} · ${l.planAnnualSaveBadge}`}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
-          {plans.map(plan => (
-            <div key={plan.key} style={{ border: '1px solid #F0EEE8', borderRadius: 12, padding: '18px 14px', textAlign: 'left' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#1C1917', marginBottom: 2 }}>{plan.name}</div>
-              <div style={{ fontSize: 12, color: '#78716C', marginBottom: 10, lineHeight: 1.4 }}>{plan.desc}</div>
-              <div style={{ fontSize: 24, fontWeight: 600, color: '#EA580C' }}>
-                ${fmtPrice(period === 'annual' ? plan.priceAnnual : plan.priceMonthly)}
-                <span style={{ fontSize: 11, fontWeight: 500, color: '#A39A90' }}>
-                  /{period === 'annual' ? l.planPeriodAnnual : l.planPeriodMonthly}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <p style={{ fontSize: 12, color: '#78716C', marginBottom: 16 }}>{l.trialNote}</p>
-
-        <button
-          onClick={() => nav('/app')}
-          style={{
-            background: '#EA580C', color: '#fff', border: 'none',
-            borderRadius: 8, padding: '12px 32px', fontSize: 14,
-            fontWeight: 500, cursor: 'pointer', width: '100%',
-          }}
-        >
-          {l.pricingCta}
-        </button>
-      </div>
-    </div>
-  )
-}
-
 // Crew counter: grows by one per day, capped at 300.
 const CREW_START = Date.UTC(2026, 5, 1) // Jun 1, 2026
 const CREW_BASE = 220
@@ -456,7 +380,6 @@ export default function LandingPage() {
   const { lang, setLang } = useT()
   const { theme, toggleTheme } = useStore()
   const l = translations[lang]?.landing || translations.en.landing
-  const [showPricing, setShowPricing] = useState(false)
   const [stats, setStats] = useState(null)
   const [lightboxIdx, setLightboxIdx] = useState(null)
   // Same order as rendered in .ld-phones below — real PNG captures of each
@@ -716,7 +639,7 @@ export default function LandingPage() {
         <div className="ld-logo" style={{ fontSize: 15 }}>tutuu<em>.</em></div>
         <div className="ld-footer-links">
           <span onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>{l.ftFeat}</span>
-          <span onClick={() => setShowPricing(true)}>{l.ftPrice}</span>
+          <span onClick={() => nav('/pricing')}>{l.ftPrice}</span>
           <span onClick={() => nav('/app')}>{l.ftSignin}</span>
           <span onClick={() => nav('/terms')}>Terms</span>
           <span onClick={() => nav('/privacy')}>Privacy</span>
@@ -725,7 +648,6 @@ export default function LandingPage() {
         <div>© 2026 Tutuu</div>
       </footer>
 
-      {showPricing && <PricingModal l={l} onClose={() => setShowPricing(false)} />}
       {lightboxIdx !== null && (
         <MockupLightbox screens={mockupScreens} startIndex={lightboxIdx} onClose={() => setLightboxIdx(null)} />
       )}
