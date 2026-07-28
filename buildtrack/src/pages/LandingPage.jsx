@@ -302,13 +302,20 @@ function MTeamScreen() {
 // scale rather than opening an image file. Scale is measured from the actual
 // rendered clip width via ResizeObserver, so it stays correct at any phone
 // or desktop viewport instead of relying on fixed CSS breakpoints. ──────────
+// Native mockup canvas is a fixed 320×666 (see .ldg .mscr) — everything
+// about the lightbox's size is derived from one width number so there is
+// exactly one source of truth, computed in plain JS with no CSS
+// aspect-ratio/clientWidth measurement involved at all (the previous fix
+// still relied on aspect-ratio, which is a plausible spot for a WebKit
+// quirk we can't repro in this sandbox — only Chromium is available here).
+function lightboxDims() {
+  const w = Math.min(320, window.innerWidth * 0.78)
+  return { w, h: (w / 320) * 666, scale: w / 320 }
+}
+
 function MockupLightbox({ screens, startIndex, onClose }) {
   const [idx, setIdx] = useState(startIndex)
-  // Mirrors the .ld-lb-clip CSS rule (width: min(320px, 78vw)) exactly, so
-  // the scale is always right on the very first paint — no waiting on a
-  // ResizeObserver/clientWidth read, which proved unreliable on iOS Safari
-  // (content stayed at its tiny default scale instead of filling the frame).
-  const [scale, setScale] = useState(() => Math.min(320, window.innerWidth * 0.78) / 320)
+  const [dims, setDims] = useState(lightboxDims)
   const touchX = useRef(null)
 
   const count = screens.length
@@ -316,7 +323,7 @@ function MockupLightbox({ screens, startIndex, onClose }) {
   const goNext = () => setIdx(i => (i + 1) % count)
 
   useEffect(() => {
-    const update = () => setScale(Math.min(320, window.innerWidth * 0.78) / 320)
+    const update = () => setDims(lightboxDims())
     update()
     window.addEventListener('resize', update)
     window.addEventListener('orientationchange', update)
@@ -358,8 +365,8 @@ function MockupLightbox({ screens, startIndex, onClose }) {
 
       <div className="ld-lb-phone" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         <div className="ld-cam" />
-        <div className="ld-lb-clip">
-          <div className="mscr" style={{ transform: `scale(${scale})` }}>
+        <div className="ld-lb-clip" style={{ width: dims.w, height: dims.h }}>
+          <div className="mscr" style={{ transform: `scale(${dims.scale})` }}>
             <Screen />
           </div>
         </div>
