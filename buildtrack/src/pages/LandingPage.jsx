@@ -19,6 +19,9 @@ const ICONS = {
   clock: <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
   grid: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
   user: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></>,
+  chevronLeft:  <polyline points="15 18 9 12 15 6"/>,
+  chevronRight: <polyline points="9 18 15 12 9 6"/>,
+  close:        <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
 }
 
 function Ic({ name, size = 15, color = 'currentColor' }) {
@@ -80,9 +83,15 @@ function Ticker({ items }) {
 // ── Phone mockups ────────────────────────────────────────────────────────────
 // Screens replicate the real app UI (project view) at native 320px scale,
 // shrunk via transform:scale in CSS. All demo copy is intentionally English.
-function PhoneFrame({ secondary, children }) {
+function PhoneFrame({ secondary, onClick, children }) {
   return (
-    <div className={`ld-phone ${secondary ? 'secondary' : ''}`}>
+    <div
+      className={`ld-phone ${secondary ? 'secondary' : ''}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e => { if (e.key === 'Enter' || e.key === ' ') onClick() }) : undefined}
+    >
       <div className="ld-cam" />
       <div className="ld-clip">{children}</div>
     </div>
@@ -287,6 +296,84 @@ function MTeamScreen() {
   )
 }
 
+// ── Mockup lightbox: click a phone to see it full-size, arrow/swipe between
+// screens. The mockup content itself is hand-built markup at a fixed 320×666
+// canvas (not an <img>), so "zooming in" means re-rendering it at a bigger
+// scale rather than opening an image file. Scale is measured from the actual
+// rendered clip width via ResizeObserver, so it stays correct at any phone
+// or desktop viewport instead of relying on fixed CSS breakpoints. ──────────
+function MockupLightbox({ screens, startIndex, onClose }) {
+  const [idx, setIdx] = useState(startIndex)
+  const [scale, setScale] = useState(1)
+  const clipRef  = useRef(null)
+  const touchX   = useRef(null)
+
+  const count = screens.length
+  const goPrev = () => setIdx(i => (i - 1 + count) % count)
+  const goNext = () => setIdx(i => (i + 1) % count)
+
+  useEffect(() => {
+    const el = clipRef.current
+    if (!el) return
+    const update = () => setScale(el.clientWidth / 320)
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape')     onClose()
+      if (e.key === 'ArrowRight') goNext()
+      if (e.key === 'ArrowLeft')  goPrev()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [count])
+
+  const onTouchStart = (e) => { touchX.current = e.touches[0].clientX }
+  const onTouchEnd = (e) => {
+    if (touchX.current == null) return
+    const dx = e.changedTouches[0].clientX - touchX.current
+    if (dx > 40) goPrev()
+    else if (dx < -40) goNext()
+    touchX.current = null
+  }
+
+  const Screen = screens[idx].Comp
+
+  return (
+    <div className="ld-lb-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <button className="ld-lb-close" onClick={onClose} aria-label="Close"><Ic name="close" size={18} color="#fff" /></button>
+
+      <button className="ld-lb-arrow left" onClick={goPrev} aria-label="Previous screen">
+        <Ic name="chevronLeft" size={22} color="#fff" />
+      </button>
+
+      <div className="ld-lb-phone" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        <div className="ld-cam" />
+        <div className="ld-lb-clip" ref={clipRef}>
+          <div className="mscr" style={{ transform: `scale(${scale})` }}>
+            <Screen />
+          </div>
+        </div>
+      </div>
+
+      <button className="ld-lb-arrow right" onClick={goNext} aria-label="Next screen">
+        <Ic name="chevronRight" size={22} color="#fff" />
+      </button>
+
+      <div className="ld-lb-dots">
+        {screens.map((_, i) => (
+          <button key={i} className={`ld-lb-dot ${i === idx ? 'on' : ''}`} onClick={() => setIdx(i)} aria-label={`Screen ${i + 1}`} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── Beta pricing popup ───────────────────────────────────────────────────────
 function BetaModal({ l, onClose }) {
   return (
@@ -355,6 +442,9 @@ export default function LandingPage() {
   const l = translations[lang]?.landing || translations.en.landing
   const [showPricing, setShowPricing] = useState(false)
   const [stats, setStats] = useState(null)
+  const [lightboxIdx, setLightboxIdx] = useState(null)
+  // Same order as rendered in .ld-phones below
+  const mockupScreens = [{ Comp: MMaterialsScreen }, { Comp: MTasksScreen }, { Comp: MTeamScreen }]
 
   // Real aggregate numbers from the DB (landing_stats RPC, anon-accessible).
   // The ticker is only rendered once real data arrives.
@@ -480,9 +570,9 @@ export default function LandingPage() {
 
           {/* Phone mockups */}
           <div className="ld-phones">
-            <PhoneFrame secondary><MMaterialsScreen /></PhoneFrame>
-            <PhoneFrame><MTasksScreen /></PhoneFrame>
-            <PhoneFrame secondary><MTeamScreen /></PhoneFrame>
+            <PhoneFrame secondary onClick={() => setLightboxIdx(0)}><MMaterialsScreen /></PhoneFrame>
+            <PhoneFrame onClick={() => setLightboxIdx(1)}><MTasksScreen /></PhoneFrame>
+            <PhoneFrame secondary onClick={() => setLightboxIdx(2)}><MTeamScreen /></PhoneFrame>
           </div>
         </div>
       </div>
@@ -612,6 +702,9 @@ export default function LandingPage() {
       </footer>
 
       {showPricing && <BetaModal l={l} onClose={() => setShowPricing(false)} />}
+      {lightboxIdx !== null && (
+        <MockupLightbox screens={mockupScreens} startIndex={lightboxIdx} onClose={() => setLightboxIdx(null)} />
+      )}
     </div>
   )
 }
