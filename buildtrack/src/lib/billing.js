@@ -12,23 +12,27 @@ export function fmtPrice(n) {
 }
 
 // Opens Paddle's hosted Customer Portal in a new tab, where the foreman can
-// cancel their subscription or update their card — returns false if the
-// portal couldn't be reached (no subscription on file, function error, etc).
+// cancel their subscription or update their card. Returns { ok: true } on
+// success, or { ok: false, error } with the raw failure reason so the UI can
+// show it directly — this endpoint fails in enough different ways (missing
+// subscription, Paddle permission scope, expired session) that a generic
+// "something went wrong" isn't enough to debug from.
 export async function openBillingPortal() {
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return false
+  if (!session) return { ok: false, error: 'Not signed in' }
   try {
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paddle-portal`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${session.access_token}` },
     })
-    if (!res.ok) return false
-    const { url } = await res.json()
-    if (!url) return false
+    const text = await res.text()
+    if (!res.ok) return { ok: false, error: `${res.status}: ${text}` }
+    const { url } = JSON.parse(text)
+    if (!url) return { ok: false, error: 'No portal URL returned' }
     window.open(url, '_blank', 'noopener')
-    return true
-  } catch {
-    return false
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, error: String(e) }
   }
 }
 
