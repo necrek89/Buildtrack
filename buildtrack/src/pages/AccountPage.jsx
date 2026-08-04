@@ -261,6 +261,7 @@ export default function AccountPage() {
         const locked = computeIsLocked(profile)
         const daysLeft = getTrialDaysLeft(profile)
         const configured = isPaddleConfigured()
+        const hasSubscription = !!profile.plan && !['canceled', 'paused'].includes(profile.subscription_status)
         const statusLabel = profile.plan
           ? `${t(`account.billingPlan${profile.plan === 'pro' ? 'Pro' : 'Standard'}`)} · ${profile.plan_period === 'annual' ? t('account.billingAnnual') : t('account.billingMonthly')}`
           : locked ? t('account.billingTrialEndedMsg') : t('account.billingTrialDaysLeft', { n: daysLeft })
@@ -277,42 +278,46 @@ export default function AccountPage() {
             </div>
             {statusExtra && <div style={{ fontSize:12, color:'var(--text-secondary)', marginBottom:12 }}>{statusExtra}</div>}
 
-            <div style={{ display:'flex', gap:6, margin:'12px 0' }}>
-              <button className={`filter-btn ${billingPeriod === 'monthly' ? 'active' : ''}`} onClick={() => setBillingPeriod('monthly')}>
-                {t('account.billingMonthly')}
-              </button>
-              <button className={`filter-btn ${billingPeriod === 'annual' ? 'active' : ''}`} onClick={() => setBillingPeriod('annual')}>
-                {t('account.billingAnnual')} · {t('account.billingSaveBadge')}
-              </button>
-            </div>
+            {!hasSubscription && (
+              <>
+                <div style={{ display:'flex', gap:6, margin:'12px 0' }}>
+                  <button className={`filter-btn ${billingPeriod === 'monthly' ? 'active' : ''}`} onClick={() => setBillingPeriod('monthly')}>
+                    {t('account.billingMonthly')}
+                  </button>
+                  <button className={`filter-btn ${billingPeriod === 'annual' ? 'active' : ''}`} onClick={() => setBillingPeriod('annual')}>
+                    {t('account.billingAnnual')} · {t('account.billingSaveBadge')}
+                  </button>
+                </div>
 
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-              {['standard', 'pro'].map(planKey => {
-                const p = PLANS[planKey]
-                const price = billingPeriod === 'annual' ? p.priceAnnual : p.priceMonthly
-                const label = planKey === 'pro' ? t('account.billingPlanPro') : t('account.billingPlanStandard')
-                const subscribeLabel = planKey === 'pro' ? t('account.billingSubscribePro') : t('account.billingSubscribeStandard')
-                return (
-                  <div key={planKey} style={{ border:'1px solid var(--border-medium)', borderRadius:10, padding:12 }}>
-                    <div style={{ fontSize:13, fontWeight:700, marginBottom:4 }}>{label}</div>
-                    <div style={{ fontSize:18, fontWeight:700, color:'var(--accent)', marginBottom:10 }}>
-                      ${fmtPrice(price)}
-                      <span style={{ fontSize:11, fontWeight:500, color:'var(--text-muted)' }}>
-                        /{billingPeriod === 'annual' ? t('account.billingAnnual') : t('account.billingMonthly')}
-                      </span>
-                    </div>
-                    <Button
-                      variant="primary" size="sm" disabled={!configured}
-                      onClick={() => openCheckout(planKey, billingPeriod, profile)}
-                    >
-                      {subscribeLabel}
-                    </Button>
-                  </div>
-                )
-              })}
-            </div>
-            {!configured && (
-              <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:10 }}>{t('account.billingNotConfiguredMsg')}</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                  {['standard', 'pro'].map(planKey => {
+                    const p = PLANS[planKey]
+                    const price = billingPeriod === 'annual' ? p.priceAnnual : p.priceMonthly
+                    const label = planKey === 'pro' ? t('account.billingPlanPro') : t('account.billingPlanStandard')
+                    const subscribeLabel = planKey === 'pro' ? t('account.billingSubscribePro') : t('account.billingSubscribeStandard')
+                    return (
+                      <div key={planKey} style={{ border:'1px solid var(--border-medium)', borderRadius:10, padding:12 }}>
+                        <div style={{ fontSize:13, fontWeight:700, marginBottom:4 }}>{label}</div>
+                        <div style={{ fontSize:18, fontWeight:700, color:'var(--accent)', marginBottom:10 }}>
+                          ${fmtPrice(price)}
+                          <span style={{ fontSize:11, fontWeight:500, color:'var(--text-muted)' }}>
+                            /{billingPeriod === 'annual' ? t('account.billingAnnual') : t('account.billingMonthly')}
+                          </span>
+                        </div>
+                        <Button
+                          variant="primary" size="sm" disabled={!configured}
+                          onClick={() => openCheckout(planKey, billingPeriod, profile)}
+                        >
+                          {subscribeLabel}
+                        </Button>
+                      </div>
+                    )
+                  })}
+                </div>
+                {!configured && (
+                  <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:10 }}>{t('account.billingNotConfiguredMsg')}</div>
+                )}
+              </>
             )}
             {profile.paddle_customer_id && (
               <div style={{ borderTop:'0.5px solid var(--border)', marginTop:16, paddingTop:16 }}>
