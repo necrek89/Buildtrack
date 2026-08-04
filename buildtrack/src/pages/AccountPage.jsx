@@ -267,6 +267,7 @@ export default function AccountPage() {
           : locked ? t('account.billingTrialEndedMsg') : t('account.billingTrialDaysLeft', { n: daysLeft })
         const statusExtra = profile.subscription_status === 'canceled' ? t('account.billingStatusCanceled')
           : profile.subscription_status === 'paused' ? t('account.billingStatusPaused')
+          : profile.scheduled_cancel_at ? t('account.billingCancelsOn', { date: profile.scheduled_cancel_at.slice(0, 10) })
           : profile.subscription_current_period_end ? t('account.billingRenewsOn', { date: profile.subscription_current_period_end.slice(0, 10) })
           : null
 
