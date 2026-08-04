@@ -68,6 +68,10 @@ Deno.serve(async (req) => {
       subscription_status: status,
       paddle_subscription_id: data.id,
       paddle_customer_id: data.customer_id,
+      // Canceling from the portal schedules the cancellation for the end of
+      // the current period rather than flipping status right away — null
+      // clears it back out if the customer changes their mind ("Don't cancel").
+      scheduled_cancel_at: data.scheduled_change?.action === 'cancel' ? data.scheduled_change.effective_at : null,
     }
 
     if (!LOCK_ONLY_STATUSES.has(status)) {
