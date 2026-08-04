@@ -6,7 +6,7 @@ import { useT } from '../i18n/useLanguage'
 import { supabase } from '../lib/supabase'
 import { useAsyncGuard } from '../lib/useAsyncGuard'
 import { subscribeToPush, unsubscribeFromPush, isSubscribed, isPushSupported } from '../lib/push'
-import { PLANS, computeIsLocked, getTrialDaysLeft, fmtPrice } from '../lib/billing'
+import { PLANS, computeIsLocked, getTrialDaysLeft, fmtPrice, openBillingPortal } from '../lib/billing'
 import { isPaddleConfigured, openCheckout } from '../lib/paddle'
 
 const AVATAR_COLORS = [
@@ -60,6 +60,8 @@ export default function AccountPage() {
   const [saving,  saveGuard]  = useAsyncGuard()
   const [pwSaving, pwGuard]   = useAsyncGuard()
   const [billingPeriod, setBillingPeriod] = useState('monthly')
+  const [portalLoading, portalGuard] = useAsyncGuard()
+  const [portalErr, setPortalErr] = useState('')
   const [pushSupported, setPushSupported] = useState(false)
   const [pushEnabled,   setPushEnabled]   = useState(false)
   const [pushLoading,   setPushLoading]   = useState(false)
@@ -122,6 +124,12 @@ export default function AccountPage() {
     setAvatarUrl(data.publicUrl)
     fetchProfile?.()
     setMsg(t('account.msgSaved')); setMsgOk(true)
+  })
+
+  const managePortal = () => portalGuard(async () => {
+    setPortalErr('')
+    const ok = await openBillingPortal()
+    if (!ok) setPortalErr(t('account.billingManagePortalError'))
   })
 
   const changePassword = () => pwGuard(async () => {
@@ -305,6 +313,14 @@ export default function AccountPage() {
             </div>
             {!configured && (
               <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:10 }}>{t('account.billingNotConfiguredMsg')}</div>
+            )}
+            {profile.paddle_customer_id && (
+              <div style={{ borderTop:'0.5px solid var(--border)', marginTop:16, paddingTop:16 }}>
+                <Button size="sm" onClick={managePortal} disabled={portalLoading}>
+                  {portalLoading ? '...' : t('account.billingManagePortal')}
+                </Button>
+                {portalErr && <div style={{ fontSize:11, color:'var(--danger)', marginTop:6 }}>{portalErr}</div>}
+              </div>
             )}
           </div>
         )
