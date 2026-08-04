@@ -1,0 +1,8 @@
+project_id = "mqvuuryakvdcrontnxkp"
+
+# Paddle calls this directly and can only authenticate via the
+# paddle-signature header (verified in code) — it never sends a Supabase
+# JWT, so the platform's default JWT check must be disabled here or every
+# request is rejected before our code ever runs.
+[functions.paddle-webhook]
+verify_jwt = false
