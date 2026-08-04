@@ -11,6 +11,27 @@ export function fmtPrice(n) {
   return Number.isInteger(n) ? String(n) : n.toFixed(2)
 }
 
+// Opens Paddle's hosted Customer Portal in a new tab, where the foreman can
+// cancel their subscription or update their card — returns false if the
+// portal couldn't be reached (no subscription on file, function error, etc).
+export async function openBillingPortal() {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return false
+  try {
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paddle-portal`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
+    if (!res.ok) return false
+    const { url } = await res.json()
+    if (!url) return false
+    window.open(url, '_blank', 'noopener')
+    return true
+  } catch {
+    return false
+  }
+}
+
 const TRIAL_DAYS = 30
 const LOCKED_STATUSES = ['canceled', 'paused']
 const ACTIVE_STATUSES = ['active', 'trialing', 'past_due'] // past_due = grace period during Paddle's dunning retries
