@@ -128,8 +128,8 @@ export default function AccountPage() {
 
   const managePortal = () => portalGuard(async () => {
     setPortalErr('')
-    const ok = await openBillingPortal()
-    if (!ok) setPortalErr(t('account.billingManagePortalError'))
+    const { ok, error } = await openBillingPortal()
+    if (!ok) setPortalErr(`${t('account.billingManagePortalError')}${error ? ` (${error})` : ''}`)
   })
 
   const changePassword = () => pwGuard(async () => {
